@@ -23,11 +23,14 @@ export async function loadLagebild(source: DataSource, kMin: number): Promise<La
   const topics = (await source.getTopics())
     .filter((topic) => topic.audience.includes('student'))
     .sort((a, b) => a.sort - b.sort);
+  // Einzelne langsame Abfragen dürfen das gesamte Lagebild nicht blockieren.
+  // Besonders die Schul-Ebene ist bei vielen Antworten teuer; sie wird für die Schulzahl gebraucht.
+  const safe = <T>(promise: Promise<T[]>): Promise<T[]> => promise.catch(() => []);
   // `level: 'nrw'` liefert genau eine Zeile, direkt über alle Antworten aggregiert (#140).
   const [allRows, schoolRows, ...topicRows] = await Promise.all([
-    source.getAggregates({ level: 'nrw', topic: 'all' }),
-    source.getAggregates({ level: 'school', topic: 'all' }),
-    ...topics.map((topic) => source.getAggregates({ level: 'nrw', topic: topic.slug })),
+    safe(source.getAggregates({ level: 'nrw', topic: 'all' })),
+    safe(source.getAggregates({ level: 'school', topic: 'all' })),
+    ...topics.map((topic) => safe(source.getAggregates({ level: 'nrw', topic: topic.slug }))),
   ]);
   return {
     overall: combineRows(allRows, kMin),
