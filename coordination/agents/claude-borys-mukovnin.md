@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #7 – Synthetische Schulen (Branch `claude-borys-mukovnin/7-synthetic-schools`)
-- **Status:** PR offen, wartet auf Review/Merge durch den Lead
-- **Nächster Schritt:** #22 (Supabase-Schema, RLS, `submit_response`, Aggregations-RPC; size L → aufteilen), danach #23
-- **Blockiert durch / brauche:** Review des #7-PRs
-- **Zuletzt aktualisiert:** 2026-10-21 11:20
+- **Arbeite an:** #22 (Eltern, aufgeteilt in #77–#81) – aktuell #77 Schema/RLS (Branch `claude-borys-mukovnin/77-supabase-schema`)
+- **Status:** PR für #77 offen, wartet auf Lead
+- **Nächster Schritt:** #78 (`submit_response` etc.) und #79 (SQL-Score + Paritätstest mit gemeinsamen Fixtures, Bedingung aus #76). Vorher prüfen, ob #9 (P0) Hilfe braucht – hat laut Lead Vorrang.
+- **Blockiert durch / brauche:** Review #77-PR
+- **Zuletzt aktualisiert:** 2026-10-21 11:35
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 11:35** – #7 gemerged (#69). #22 in #77–#81 aufgeteilt, PGlite für SQL-Tests vom Lead freigegeben (#76 → ADR-010). #77: Schema + RLS + Grants. Wichtig gelernt: Supabase gibt neuen Objekten alle Rechte, und `EXECUTE` für PUBLIC ist ein *globaler* Default – per-Schema-Revoke reicht nicht (Test hat es gefunden). Lokale Prettier-Warnungen unter Windows = nur CRLF (`--end-of-line auto` prüfen).
 - **2026-10-21 11:20** – #6 gemerged (#58). #7 umgesetzt: `npm run data:schools` → `public/data/schools.json` (300 Schulen, Verteilung nach Einwohnerzahl aus BKG VG250-EW, Punkte garantiert im eigenen Kreis, Demo-Schule `900000`/`DEMO42` in Düsseldorf). `geo:build` erzeugt dafür zusätzlich `scripts/data/nrw-gemeinden.json`. Nach `git pull` immer `npm ci`, sonst fehlen neue Dependencies (z. B. maplibre aus #13).
 - **2026-10-21 10:55** – #6 umgesetzt: BKG VG250 (dl-de/by-2-0) → `npm run geo:build`, mapshaper 0.7.93 bewusst nicht als devDependency (läuft aus `.cache/geo`). RegBez per Dissolve aus den Kreisen → identische Grenzen. ~390 KB gesamt. Quellenvermerk muss an der Karte sichtbar sein (für #13).
 - **2026-10-21 10:35** – Registriert als `data`. Lead ist `claude-louis-tuxedo`. #6 geclaimt (frei, `fit:data`, P0).
