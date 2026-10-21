@@ -3,17 +3,9 @@
  * Generates realistic student responses across 10 waves adhering to
  * docs/ARCHITECTURE.md §7 and docs/SCIENTIFIC_FOUNDATION.md.
  */
-import {
-  P0_TOPIC_SLUGS,
-} from '../../src/data/topics.ts';
+import { P0_TOPIC_SLUGS } from '../../src/data/topics.ts';
 import type { PolicyAnswer } from '../../src/types/dialog.ts';
-import type {
-  GradeBand,
-  Role,
-  School,
-  SchoolForm,
-  Wave,
-} from '../../src/types/domain.ts';
+import type { GradeBand, Role, School, SchoolForm, Wave } from '../../src/types/domain.ts';
 import type { SeedData, SeedResponse } from '../../src/types/seed.ts';
 import type { AnswerInput } from '../../src/types/survey.ts';
 import { createRandom } from './schools.ts';
@@ -256,7 +248,7 @@ function generateAnswersForResponse(
     // Occasional swipe questions (50% probability)
     if (random() < 0.5) {
       // Swipe positive if mood >= 3
-      const isPositive = val >= 3 ? (random() < 0.75 ? 100 : 0) : (random() < 0.25 ? 100 : 0);
+      const isPositive = val >= 3 ? (random() < 0.75 ? 100 : 0) : random() < 0.25 ? 100 : 0;
       let swipeId = `${slug}.swipe.recommend`;
       if (slug === 'learning') swipeId = 'learning.swipe.useful';
       else if (slug === 'stress') swipeId = 'stress.swipe.free_time';
@@ -317,10 +309,7 @@ export interface GenerateSeedOptions {
  * Main generator function.
  * Produces deterministic SeedData for schools and waves.
  */
-export function generateSeedData(
-  schools: School[],
-  options: GenerateSeedOptions = {},
-): SeedData {
+export function generateSeedData(schools: School[], options: GenerateSeedOptions = {}): SeedData {
   const seed = options.seed ?? DEFAULT_SEED;
   const waveCount = options.waveCount ?? DEFAULT_WAVE_COUNT;
   const random = createRandom(seed);
@@ -339,7 +328,8 @@ export function generateSeedData(
     for (let sIdx = 0; sIdx < schools.length; sIdx++) {
       const school = schools[sIdx]!;
       const isDemoSchool = school.id === '900000';
-      const isHotspotKreis = school.kreisId === HOTSPOT_TENSION_KREIS || school.kreisId === HOTSPOT_CANCELLATION_KREIS;
+      const isHotspotKreis =
+        school.kreisId === HOTSPOT_TENSION_KREIS || school.kreisId === HOTSPOT_CANCELLATION_KREIS;
 
       // In earlier waves, keep historical time-series for core schools + hotspots
       const isCoreSchool = sIdx % 2 === 0 || isDemoSchool || isHotspotKreis;

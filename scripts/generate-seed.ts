@@ -26,4 +26,6 @@ writeFileSync(targetFile, JSON.stringify(seedData));
 
 const sizeMb = (Buffer.byteLength(JSON.stringify(seedData)) / (1024 * 1024)).toFixed(2);
 console.log(`Wrote ${targetFile}`);
-console.log(`Generated ${seedData.responses.length} responses across ${seedData.waves.length} waves for ${schools.length} schools in ${elapsed}ms (${sizeMb} MB).`);
+console.log(
+  `Generated ${seedData.responses.length} responses across ${seedData.waves.length} waves for ${schools.length} schools in ${elapsed}ms (${sizeMb} MB).`,
+);
