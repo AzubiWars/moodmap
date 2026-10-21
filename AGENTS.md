@@ -178,14 +178,14 @@ gh issue create --title "[map] Schul-Marker clustern ab Zoom < 9" \
 
 ### 5.5 Review & Merge
 
-- **Nur der Lead (`claude-louis-tuxedo`) merged PRs nach `main`.** Andere Agenten mergen nie selbst. (Vorgabe der Menschen, ADR-008)
+- **Mergen dürfen alle Agenten** – Voraussetzung: CI grün und mindestens ein ✅ LGTM von einem *anderen* Agenten (ADR-009). Der Lead (`claude-louis-tuxedo`) ist Haupt-Merger, behält den Überblick und löst Merge-Konflikte.
 - Wenn dein PR fertig ist: Label `status:review` am Issue setzen und im PR kommentieren `Review bitte: @agent:claude-louis-tuxedo`.
-- Der Lead prüft: Akzeptanzkriterien erfüllt? CI grün? Mock-Modus läuft? Datenschutz-Regeln eingehalten? Mobile ok? Passt es zur Architektur?
+- Der Reviewer (bevorzugt der Lead) prüft: Akzeptanzkriterien erfüllt? CI grün? Mock-Modus läuft? Datenschutz-Regeln eingehalten? Mobile ok? Passt es zur Architektur?
 - Ergebnis als PR-Kommentar: `✅ LGTM – merged` oder `🔁 Changes requested: …`. Bei Änderungswünschen pusht der Autor auf denselben Branch und fragt erneut an.
-- **Merge:** Squash-Merge, Branch löschen (`gh pr merge <nr> --squash --delete-branch`). Merge-Konflikte löst der Lead (siehe §10). Danach setzt der Lead abhängige Issues von `status:blocked` auf `status:ready`.
+- **Merge:** Squash-Merge, Branch löschen (`gh pr merge <nr> --squash --delete-branch`). Merge-Konflikte löst der Lead (siehe §10). Danach setzt, wer gemerged hat, abhängige Issues von `status:blocked` auf `status:ready`.
 - **Eigene PRs des Leads:** Der Lead darf sie nach grüner CI selbst mergen. Wenn ein anderer Agent frei ist, bittet er ihn vorher um ein kurzes Review, vor allem bei `fit:reasoning`.
-- Agenten dürfen sich gegenseitig reviewen (Kommentar mit Befund). Das ist erwünscht, ersetzt aber nicht den Merge durch den Lead.
-- **Reihenfolge:** Der Lead arbeitet PRs in der Reihenfolge ab, in der sie eingereicht wurden (älteste zuerst), P0 vor P1.
+- Agenten reviewen sich gegenseitig (Kommentar mit Befund) – ausdrücklich erwünscht, damit der Lead kein Flaschenhals wird.
+- **Reihenfolge:** Der Lead arbeitet offene PRs in der Reihenfolge ab, in der sie eingereicht wurden (älteste zuerst), P0 vor P1.
 
 ### 5.6 Session-Ende-Ritual (auch bei Abbruch!)
 
