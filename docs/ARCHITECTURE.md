@@ -309,7 +309,7 @@ Die Demo lebt von glaubwürdigen Mustern. Der Generator soll **deterministisch**
 - **KI**: überall niedriger Score (Regeln unklar) → landesweites Thema = Aha-Moment im Pitch.
 - **Unterrichtsausfall**: einzelne Hotspot-Kreise mit deutlicher Verschlechterung in den letzten 4 Wochen.
 - **Gebäude/Toiletten**: breit gestreut, einzelne Schulen sehr schlecht.
-- Beteiligung: 5–40 % der Schüler, manche Schulen unter `K_MIN` (damit die graue Darstellung sichtbar ist).
+- Beteiligung: jede Schule hat in jeder Welle mindestens `K_MIN` Antworten (aktuelle Welle 24–36, ältere 12–18 pro Schule); die graue `K_MIN`-Darstellung wird über Fixtures/Unit-Tests abgedeckt, nicht über absichtlich leere Demo-Schulen.
 - 8–12 Wellen (Wochen) Historie für Zeitachse und Trends.
 - **Frühwarn-Story:** 1–2 Kreise, in denen `voice`, `safety` und `community` über die letzten 4–5 Wellen kontinuierlich sinken → Spannungs-Index steigt auf `talk`. In einem davon existiert eine Politik-Antwort (z. B. „Mehr Schulsozialarbeit + Dialogrunde"), nach der sich die Werte leicht erholen → zeigt Wirkung des Dialogs.
 - **`voice` landesweit eher niedrig** (Score ~35–45) → Kernbotschaft: Schüler fühlen sich von der Politik kaum gehört.
