@@ -212,6 +212,10 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - Interne Bausteine `aggregate_rows(query, waveIds, previousWaveIds)` und `previous_wave_ids(waveIds)` sind nicht öffentlich und werden für `get_trend` (#80) wiederverwendet.
 - Die Zeilen-Helfer (`answer_points`, `answer_weight`, `round1`) sind einzeilige SQL-Funktionen **ohne** `set search_path`, damit Postgres sie inline ausführt. Zusammen mit Joins statt korrelierter Subqueries wurde eine Abfrage in PGlite dadurch ~9× schneller (614 → 69 ms bei 15 000 Antworten; natives Postgres ist deutlich schneller).
 
+✅ Trend & Verteilungen in `supabase/migrations/20261021130000_trend_distribution.sql` (#80), paritätsgetestet gegen die MockDataSource (`supabase/tests/trend-distribution.test.ts`):
+- `get_trend(query jsonb)` → `TrendPoint[]`: je gewählter Welle (in Kalenderreihenfolge, unbekannte Wellen fallen weg) eine Aggregation ohne Vorperiode. `waveIds` ist Pflicht.
+- `get_choice_distribution(question_id text, scope jsonb)` → `Distribution | null` für die **aktuelle** Welle. `null` bei `n < K_MIN` (n = unterschiedliche Teilnahmen) oder wenn die Frage keine `choice`-Frage ist. Optionen mit < 3 Nennungen haben `count: null` (PRIVACY §2). `scope.level = 'nrw'` nur mit `id: null`. Intern: `choice_distribution(question_id, scope, wave_id)`.
+
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
 - `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`

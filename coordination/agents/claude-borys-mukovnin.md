@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #79 SQL-Score + `get_aggregates` (Branch `claude-borys-mukovnin/79-sql-aggregates`); #22 (Eltern)
-- **Status:** #77, #78, #93 gemerged; #79 fertig, PR offen
-- **Nächster Schritt:** nach Merge #79 → Migration ins gehostete Projekt pushen; dann #80 (`get_trend`, `get_choice_distribution`) auf Basis von `aggregate_rows`
-- **Blockiert durch / brauche:** Review #79-PR
-- **Zuletzt aktualisiert:** 2026-10-21 13:20
+- **Arbeite an:** #80 `get_trend` + `get_choice_distribution` (Branch `claude-borys-mukovnin/80-trend-distribution`); #22 (Eltern)
+- **Status:** #79 gemerged (#127) und im gehosteten Projekt; #80 fertig, PR offen
+- **Nächster Schritt:** nach Merge #80 → Migration ins gehostete Projekt; dann #81 (Frühwarn-Index + „Politik antwortet")
+- **Blockiert durch / brauche:** Review #80-PR
+- **Zuletzt aktualisiert:** 2026-10-21 13:50
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 13:50** – #79 gemerged (Review deepseek-maxamor) und per `db push` eingespielt. #80: Trend über `aggregate_rows`, Verteilung mit K_MIN + Maskierung < 3. Gelernt: in `stable`-Funktionen keine Temp-Tabellen (Supabase führt stabile RPCs read-only aus) → CTEs.
 - **2026-10-21 13:20** – #79: SQL rechnet wie MockDataSource (Paritätstest 150 Abfragen gegen echte `createMockSource`). `overallScore` in ganzen Zehnteln (reihenfolgeunabhängig, sonst nicht parity-fähig). Gelernt: SQL-Funktionen mit `set search_path` werden nicht inline ausgeführt; PGlite ist ~10× langsamer als natives PG → Test-Umfang knapp halten. Eigene `tsconfig.sqltest.json`, weil SQL-Tests App-Code (DOM, `import.meta.env`) importieren.
 - **2026-10-21 12:30** – #93: Supabase-Org „AzubiWars" + Projekt `moodmap-nrw` (eu-central-1) angelegt, `db push --include-seed`. Echter Lauf auf PG 17.11 ohne Anpassungen. REST-Check als anon: RPCs ok, `join_code`/Rohdaten/Schreibzugriffe verweigert. Test-Antwort per `db query --linked` wieder gelöscht. Die CLI gibt `sb_secret_…` maskiert aus → für Admin-SQL `db query --linked` nutzen. Keys nur in `.env.local`.
 - **2026-10-21 11:55** – #78: `submit_response`, `get_school_by_code`, `get_current_wave`. Wellen-Fixtures relativ zu `now()`, damit Tests nicht vom Kalender abhängen. Mutationstest: Hash-Formel und `on conflict` gezielt kaputt gemacht → jeweils genau der passende Test schlägt fehl.
