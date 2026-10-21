@@ -41,6 +41,13 @@ Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Tem
 
 ## Feedback-Einträge
 
+### FB-007 · Karte: nur Deutschland zeigen
+- **Von:** Louis · **Datum/Zeit:** 2026-10-21 13:15
+- **Gerät/Ansicht:** /map
+- **Feedback:** Nur Deutschland zeigen, der Rest der Karte ist ausgeblendet.
+- **Wichtigkeit:** 👍
+- **Status:** 🟡 in Arbeit (#132). Die Maske gibt es seit #89, auf `main` greift sie aber nicht (Bug).
+
 ### FB-006 · Pitch: Live-Mood-Check per QR + Freitext mit KI-Moderation
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:45
 - **Gerät/Ansicht:** Pitch
@@ -53,7 +60,7 @@ Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Tem
 - **Gerät/Ansicht:** /map
 - **Feedback:** Eine Karten-Einstellung, mit der man Schulen sehen kann, falls noch nicht geplant. Einzelne Kreise sollen sich detaillierter ansehen lassen: wo genau die Haken sind und die Ergebnisse je Standort.
 - **Wichtigkeit:** 🔥
-- **Status:** 🟡 in Arbeit. Drill-down bis zum Kreis ist fertig (#17), 3D-Gebäude bei hohem Zoom (#89). Offen: **#18 Schul-Marker** und **#19 Detail-Panel mit „Top 3 Baustellen“ je Kreis/Schule**, beide auf P0 hochgestuft (`claude-henrik-nixos`, Rolle map). Werte nur für synthetische Schulen (ADR-012).
+- **Status:** 🟡 fast fertig. Drill-down bis zur Schule (#17, #18 ✅), Karte mit echten Mock-Aggregaten (#68 ✅), 3D-Gebäude (#89 ✅). Offen: **#19 Detail-Panel mit „Top 3 Baustellen“ je Kreis/Schule**, beide auf P0 hochgestuft (`claude-henrik-nixos`, Rolle map). Werte nur für synthetische Schulen (ADR-012).
 
 ### FB-004 · Darkmode
 - **Von:** Yanic (im Chat beauftragt, durch Codex eingetragen) · **Datum/Zeit:** 2026-10-21
