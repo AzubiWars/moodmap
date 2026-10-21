@@ -7,7 +7,7 @@
 
 1. **Keine personenbezogenen Daten erheben.** Kein Name, keine E-Mail, kein Account, keine Telefonnummer, keine Klasse (nur grobe Stufe), **keine IP-Adressen speichern**, keine Tracking-/Analytics-Cookies.
 2. **Datenminimierung:** Nur Schule, grobe Stufe (`5–7`, `8–10`, `Oberstufe`, `Berufskolleg`), Rolle, Welle, Antworten.
-3. **Keine Freitexte im Prototyp** – Freitext kann Namen, Beleidigungen oder Hilferufe enthalten, die wir nicht verantwortungsvoll bearbeiten können.
+3. **Freitext nur mit KI-Moderation** (ADR-016, PRODUCT_SPEC §3.13): optional, max. 280 Zeichen. Eine serverseitige Moderation entfernt Namen/persönliche Angaben, Beleidigungen und unpassende Sprache. **Gespeichert wird nur der bereinigte Text mit Themen-Cluster, nie der Rohtext** (auch nicht in Logs). Angezeigt werden Cluster und bereinigte Beispiele erst ab K_MIN. Bei Krisensignalen: sofort Hilfsangebote anzeigen, keine Weiterleitung.
 4. **Zeitstempel grob:** auf Tag gerundet speichern (verhindert Zuordnung über Uhrzeit, z. B. „wer war gerade in Stunde 3 am Handy").
 5. **Nur Aggregate sichtbar** – nie Einzelantworten, in keiner Rolle, auch nicht im Ministerium.
 6. **Synthetische Daten im Hackathon.** Alle Umfrageergebnisse in der Demo sind generiert und als „Demo-Daten" gekennzeichnet.
@@ -52,6 +52,12 @@ Ehrlich im Pitch: Ohne Login ist Manipulation nie 0 – aber durch Join-Codes, W
 - Das LLM erhält **ausschließlich aggregierte, bereits k-anonymisierte Kennzahlen** (Scores, n, Deltas, Verteilungen) – keine Rohdaten, keine Einzelantworten.
 - API-Key nur serverseitig (Edge Function Secret).
 - Bericht wird als „KI-generiert – bitte prüfen" gekennzeichnet.
+
+## 6b. KI-Moderation von Freitexten (OpenRouter)
+
+- Der Text geht per Edge Function an OpenRouter. Der API-Key liegt nur als Supabase-Secret vor. Es werden **keine** Metadaten mitgeschickt (keine Schule, kein Gerät), nur der Text und die Themenliste.
+- Hinweis für den Echtbetrieb: Die Übermittlung an einen externen KI-Dienst ist eine Datenverarbeitung durch Dritte (Auftragsverarbeitung, Serverstandort, Speicherdauer beim Anbieter). Vor einem Echtbetrieb muss das geprüft werden. Im Pitch-Test sind nur Freiwillige im Saal beteiligt, mit Hinweis vor der Eingabe.
+- Der Pitch-Test-Standort (`is_test`) wird nach dem Pitch zurückgesetzt, Freitexte inklusive.
 
 ## 7. Frühwarn-Radar & „Politik antwortet": Dialog, keine Überwachung
 
