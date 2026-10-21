@@ -1,12 +1,4 @@
-import type {
-  DataLevel,
-  GradeBand,
-  Role,
-  SchoolForm,
-  ScopeLevel,
-  TopicSlug,
-  WaveId,
-} from './domain';
+import type { DataLevel, GradeBand, Role, SchoolForm, ScopeLevel, TopicSlug, WaveId } from './domain';
 
 export interface AggregateQuery {
   level: ScopeLevel;

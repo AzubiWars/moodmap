@@ -27,6 +27,12 @@ const BLANK_STYLE: StyleSpecification = {
 
 const FILL_LAYER_ID = 'regions-fill';
 
+/** Pflicht-Quellenvermerk für die Grenzen (docs/ARCHITECTURE.md §6) */
+const BOUNDARY_ATTRIBUTION =
+  '© <a href="https://www.bkg.bund.de" target="_blank" rel="noopener">BKG</a> (2026) ' +
+  '<a href="https://www.govdata.de/dl-de/by-2-0" target="_blank" rel="noopener">dl-de/by-2-0</a>, ' +
+  'Datenquellen: <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener">VG250</a> – Geometrien vereinfacht';
+
 interface HoverInfo {
   lng: number;
   lat: number;
@@ -78,12 +84,12 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
       minZoom={5}
       maxZoom={14}
       dragRotate={false}
-      attributionControl={{ compact: true }}
+      attributionControl={{ compact: true, customAttribution: BOUNDARY_ATTRIBUTION }}
       style={{ width: '100%', height: '100%' }}
     >
       <NavigationControl position="top-right" showCompass={false} />
       {regions && (
-        <Source id="regions" type="geojson" data={regions}>
+        <Source id="regions" type="geojson" data={regions} promoteId="id">
           <Layer
             id={FILL_LAYER_ID}
             type="fill"

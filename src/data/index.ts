@@ -26,9 +26,7 @@ export function resolveDataSourceMode(value: string | undefined = DATA_MODE): Da
 export function getDataSource(mode: DataSourceMode = resolveDataSourceMode()): DataSource {
   const source = sources.get(mode) ?? sources.get('mock');
   if (!source) {
-    throw new Error(
-      `Keine DataSource registriert (Modus "${mode}"). Siehe #9 (Mock) und #23 (Supabase).`,
-    );
+    throw new Error(`Keine DataSource registriert (Modus "${mode}"). Siehe #9 (Mock) und #23 (Supabase).`);
   }
   return source;
 }

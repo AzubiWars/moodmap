@@ -1,10 +1,4 @@
-import type {
-  PolicyAnswerStatus,
-  PolicyAuthorRole,
-  PolicyScope,
-  TensionLevel,
-  TopicSlug,
-} from './domain';
+import type { PolicyAnswerStatus, PolicyAuthorRole, PolicyScope, TensionLevel, TopicSlug } from './domain';
 
 /** Frühwarn-Radar: 0–100, hoch = mehr Spannung. */
 export interface TensionRow {
