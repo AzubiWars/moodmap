@@ -13,13 +13,14 @@
 - **Bevorzugte Labels:** `fit:data`, `fit:reasoning`, `fit:fast`, `fit:ui`
 
 ## Aktueller Stand
-- **Arbeite an:** #120 – sichtbare regionale Unterschiede im synthetischen Seed.
-- **Status:** Kreis-/Schulklima-Effekte implementiert. 234 Tests, Format/Lint/Typecheck/Build grün. Kreiswerte 28,2–78,6 (3 Stufen), Schulwerte 21,2–86,6 (4 Stufen), 41 Schulen unter K_MIN grau. Story-Hotspots bleiben geprüft.
-- **Nächster Schritt:** PR/Lead-Review inkl. NRW-/RegBez-Screenshot; danach Seed-Vertragsfehler #128 beheben.
-- **Blockiert durch / brauche:** Visuelle Prüfung durch Lead, Browserzugriff hier abgelehnt. #35/PR #123 inzwischen mit Lead-LGTM und Sichtprüfung gemerged; fehlenden Mobile-Header-Fix angesprochen (PR #129).
-- **Zuletzt aktualisiert:** 2026-10-21 12:10
+- **Arbeite an:** #141 – Stadt-/Ortsnamen und Kartenorientierung sichtbar halten.
+- **Status:** Ursache im Code und den Live-Style-JSONs gefunden: Mood-Flächen überdeckten Labels; Dark-POIs verwendeten nicht vorhandenes `label_other`. Reihenfolge/Einfügepunkte und Label-Kontrast korrigiert. 276 Tests + Lint/Typecheck/Build grün.
+- **Nächster Schritt:** PR/Lead-Review mit Sichtprüfung 375 px/Desktop in beiden Themes und beim Theme-Wechsel; #128/PR #144 ist parallel reviewfähig (278 Tests, CI/Vercel grün).
+- **Blockiert durch / brauche:** Eigene Browserprüfung nicht möglich (Zugriff automatisch abgelehnt). Lead-Screenshots/Review erforderlich. Main-Baseline für #141 enthält #128 noch nicht; deshalb dort 276 statt 278 Tests.
+- **Zuletzt aktualisiert:** 2026-10-21 12:30
 
 ## Journal
+- **2026-10-21 12:30** – #141 auf Basis des Nutzerfeedbacks übernommen und #24/Henrik informiert. Live-Style-JSON belegt: Positron hat `label_other`, Dark nur `place_other`. Mood-Flächen/Regionslinien jetzt unter Gebäude-/Label-Ebenen, POI-/Ortsteiltexte mit Theme-Kontrast. Voller Check grün (276 Tests). Visuelles Review beim Lead offen; #144/Seed-Fix parallel mit grüner CI/Vercel, noch kein Merge behauptet.
 - **2026-10-21 12:10** – #120: deterministische Kreis-/Schulklima-Effekte ohne zusätzliche Zufallsziehungen; gezielte Story-Kreise und DEMO42 ausgenommen. Regressionen prüfen echte DataSource-Aggregate, drei/vier Farbstufen, K_MIN und Hotspot-Verlauf/Radar. Alle 234 Tests + Build grün. Daneben ungültige Frage-IDs/Swipewerte/Choice-Optionen im bisherigen Seed gefunden, #128 angelegt und #23 informiert. Darkmode #123 gemerged, Lead-Mobile-Fix in #129.
 - **2026-10-21 12:05** – #35 als PR #123 gepusht. Vollständige lokale Checks grün (197 Tests), Vercel-Preview erfolgreich. Lead um Konfliktlösung/Integration mit #18 und #30 sowie visuelles Review gebeten; noch kein LGTM oder Merge. Neue dunkle Textpaare rechnerisch mit Kontrast 7,1–13,4:1 geprüft.
 - **2026-10-21 11:59** – #9/PR #95 ist gemerged. #19 wegen neuer Lead-Zuteilung an Henrik ohne Code zurückgegeben; NRW-Aggregationslücke im Issue dokumentiert. #68 zunächst geclaimt, auf Yanics Wunsch zugunsten #35 ohne Code wieder freigegeben (Henrik übernimmt nun #68). #106 auf Reset-Präfixfehler hingewiesen. #35 implementiert, erste 10 relevante Tests grün, vollständige Checks vor PR. Darkmode-Sichtprüfung beim Lead angefragt.

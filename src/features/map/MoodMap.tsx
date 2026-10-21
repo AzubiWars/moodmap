@@ -72,8 +72,8 @@ const BUILDING_BASE = ['coalesce', ['get', 'render_min_height'], 0] as unknown a
 const POI_LAYER_ID = 'public-buildings';
 const POI_SOURCE_LAYER = 'poi';
 const PLACE_DETAIL_LAYER_ID = 'places-detail';
-/** In Positron ist `label_other` die erste Ortsnamen-Ebene; davor einfügen. */
-const LABEL_INSERT_BEFORE = 'label_other';
+/** Both styles use different IDs for their first place-name layer. */
+const LABEL_INSERT_BEFORE = { light: 'label_other', dark: 'place_other' };
 
 const PUBLIC_POI_CLASSES = [
   'townhall',
@@ -360,12 +360,12 @@ export function MoodMap({
             source-layer={POI_SOURCE_LAYER}
             type="circle"
             minzoom={14}
-            beforeId={LABEL_INSERT_BEFORE}
+            beforeId={LABEL_INSERT_BEFORE[theme]}
             filter={PUBLIC_POI_FILTER}
             paint={{
               'circle-radius': 2.5,
-              'circle-color': '#475569',
-              'circle-stroke-color': '#ffffff',
+              'circle-color': dark ? '#cbd5e1' : '#475569',
+              'circle-stroke-color': dark ? '#0f172a' : '#ffffff',
               'circle-stroke-width': 1,
             }}
           />
@@ -375,7 +375,7 @@ export function MoodMap({
             source-layer={POI_SOURCE_LAYER}
             type="symbol"
             minzoom={14}
-            beforeId={LABEL_INSERT_BEFORE}
+            beforeId={LABEL_INSERT_BEFORE[theme]}
             filter={PUBLIC_POI_FILTER}
             layout={{
               'text-field': POI_LABEL,
@@ -387,8 +387,8 @@ export function MoodMap({
               'text-optional': true,
             }}
             paint={{
-              'text-color': '#334155',
-              'text-halo-color': '#ffffff',
+              'text-color': dark ? '#e2e8f0' : '#334155',
+              'text-halo-color': dark ? '#0f172a' : '#ffffff',
               'text-halo-width': 1.2,
             }}
           />
@@ -398,7 +398,7 @@ export function MoodMap({
             source-layer="place"
             type="symbol"
             minzoom={11}
-            beforeId={LABEL_INSERT_BEFORE}
+            beforeId={LABEL_INSERT_BEFORE[theme]}
             filter={PLACE_DETAIL_FILTER}
             layout={{
               'text-field': PLACE_LABEL,
@@ -408,8 +408,8 @@ export function MoodMap({
               'text-optional': true,
             }}
             paint={{
-              'text-color': '#64748b',
-              'text-halo-color': '#ffffff',
+              'text-color': dark ? '#cbd5e1' : '#64748b',
+              'text-halo-color': dark ? '#0f172a' : '#ffffff',
               'text-halo-width': 1,
             }}
           />
@@ -430,16 +430,24 @@ export function MoodMap({
           <Layer
             id={FILL_LAYER_ID}
             type="fill"
+            // Below 3D/POIs and all basemap labels; otherwise the 78%-opaque fill hides city names.
+            beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
               'fill-color': MOOD_FILL_EXPRESSION as unknown as string,
               'fill-opacity': regionFillOpacity(muted),
             }}
           />
-          <Layer id="regions-outline" type="line" paint={{ 'line-color': '#ffffff', 'line-width': 1 }} />
+          <Layer
+            id="regions-outline"
+            type="line"
+            beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
+            paint={{ 'line-color': '#ffffff', 'line-width': 1 }}
+          />
           <Layer
             id="regions-selected"
             type="line"
+            beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
             filter={selectedFilter}
             paint={{ 'line-color': dark ? '#f1f5f9' : '#0f172a', 'line-width': 3 }}
           />
