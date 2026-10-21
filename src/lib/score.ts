@@ -31,6 +31,8 @@ export const TENSION_TREND_BONUS = 10;
 export type AnswerType = 'mood5' | 'swipe' | 'choice';
 
 export interface AnswerScoreInput {
+  /** ID der Teilnahme; mehrere Fragen derselben Person/Welle teilen diese ID. */
+  responseId: string;
   topicSlug: TopicSlug;
   type: AnswerType;
   /** mood5: 1–5; swipe: 1 = stimme zu, 0 = stimme nicht zu; choice: ignoriert. */
@@ -42,7 +44,7 @@ export interface AnswerScoreInput {
 }
 
 export interface TopicScore {
-  /** Anzahl gewerteter Antworten (Gewicht > 0). */
+  /** Unterschiedliche Teilnahmen mit mindestens einer gewerteten Antwort (Gewicht > 0). */
   n: number;
   /** 0–100 oder `null`, wenn `n < kMin`. */
   score: number | null;
@@ -112,30 +114,32 @@ export function scoreAnswer(input: AnswerScoreInput): number | null {
 
 /**
  * Themen-Score einer Einheit: gewichteter Mittelwert aller gewerteten
- * Antworten zu diesem Thema. Unter `kMin` ist der Score `null`.
+ * Antworten zu diesem Thema. Unter `kMin` unterschiedlichen Teilnahmen ist der Score `null`.
  */
 export function topicScore(
   answers: readonly AnswerScoreInput[],
   topicSlug: TopicSlug,
   kMin = DEFAULT_K_MIN,
 ): TopicScore {
-  let n = 0;
+  const responseIds = new Set<string>();
   let weightedSum = 0;
   let weightSum = 0;
 
   for (const answer of answers) {
     if (answer.topicSlug !== topicSlug) continue;
+    if (!answer.responseId?.trim()) continue;
     const points = scoreAnswer(answer);
     if (points === null) continue;
 
     const weight = answer.weight ?? defaultWeight(answer.type);
     if (weight <= 0) continue;
 
-    n += 1;
+    responseIds.add(answer.responseId);
     weightedSum += points * weight;
     weightSum += weight;
   }
 
+  const n = responseIds.size;
   if (n < kMin || weightSum === 0) return { n, score: null };
   return { n, score: round1(weightedSum / weightSum) };
 }

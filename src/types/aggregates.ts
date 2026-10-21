@@ -15,7 +15,7 @@ export interface AggregateQuery {
 export interface AggregateRow {
   /** RegBez-/Kreis-ID oder Schulnummer. */
   id: string;
-  /** Anzahl Antworten. */
+  /** Anzahl unterschiedlicher Teilnahmen mit gewerteten Antworten in dieser Zelle. */
   n: number;
   /** 0–100; `null`, wenn `n < K_MIN`. */
   score: number | null;
