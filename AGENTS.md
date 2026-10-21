@@ -172,7 +172,7 @@ gh issue create --title "[map] Schul-Marker clustern ab Zoom < 9" \
 
 - **Branch:** `<agent-id>/<issue-nr>-<kurz-slug>` → z. B. `claude-louis-laptop/12-choropleth-kreise`
 - **Commits:** Conventional Commits auf Englisch: `feat(map): color districts by mood score (#12)`
-- **Vor dem PR:** `git fetch && git rebase origin/main`, dann `npm run lint && npm run typecheck && npm test && npm run build` – alles grün.
+- **Vor dem PR:** `git fetch && git rebase origin/main`, dann `npm run format && npm run lint && npm run typecheck && npm test && npm run build` – alles grün. Die CI prüft die Formatierung (`format:check`); unformatierter Code erzeugt sonst Merge-Konflikte.
 - **PR:** Template ausfüllen, `Closes #<nr>`, **Screenshot/GIF bei UI-Änderungen** (Mobile-Ansicht!), Label `status:review` am Issue setzen.
 - **Halte PRs klein** (Richtwert < 400 geänderte Zeilen, Lockfiles/Daten ausgenommen).
 
