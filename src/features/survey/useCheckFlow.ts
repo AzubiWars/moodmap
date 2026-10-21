@@ -3,7 +3,8 @@ import { useEffect, useReducer, useRef } from 'react';
 import { getDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
 import { saveFreeText, submitFreeText } from '@/lib/freeText';
-import type { GradeBand, Question } from '@/types';
+import { enqueueResponse, isOffline } from '@/lib/outbox';
+import type { GradeBand, Question, ResponseInput } from '@/types';
 import { buildAnswers, cardsOf, checkReducer, initialState, type CardAnswer } from './checkFlow';
 
 const submittedKey = (waveId: string) => `moodmap:submitted:${waveId}`;
@@ -73,15 +74,23 @@ export function useCheckFlow({
   useEffect(() => {
     if (state.status !== 'submitting' || sentAttempt.current === attempt.current) return;
     sentAttempt.current = attempt.current;
+    const input: ResponseInput = {
+      schoolId,
+      waveId,
+      role: 'student',
+      gradeBand,
+      deviceToken: getDeviceToken(),
+      answers: buildAnswers(state),
+    };
+    // Offline (#36): Antwort puffern, die Outbox sendet beim Wiederverbinden. Freitext bleibt draußen.
+    const queue = () => {
+      enqueueResponse(input);
+      if (!isTest) markSubmitted(waveId);
+      if (mounted.current) dispatch({ type: 'RESULT', result: 'queued' });
+    };
+    if (isOffline()) return queue();
     getDataSource()
-      .submitResponse({
-        schoolId,
-        waveId,
-        role: 'student',
-        gradeBand,
-        deviceToken: getDeviceToken(),
-        answers: buildAnswers(state),
-      })
+      .submitResponse(input)
       .then(async (result) => {
         if (!mounted.current) return;
         if (!isTest && (result.ok || result.reason === 'already_submitted')) markSubmitted(waveId);
@@ -103,7 +112,7 @@ export function useCheckFlow({
           result: result.ok ? 'ok' : result.reason === 'already_submitted' ? 'already' : 'error',
         });
         if (result.ok) onDoneRef.current();
-      })
+      }, queue)
       .catch(() => mounted.current && dispatch({ type: 'RESULT', result: 'error' }));
   }, [state, schoolId, isTest, waveId, gradeBand, queryClient]);
 

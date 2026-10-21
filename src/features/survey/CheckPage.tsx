@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MoodScaleInput, type MoodValue } from '@/components/MoodScaleInput';
 import { getDataSource } from '@/data';
 import { getTopic } from '@/data/topics';
 import { getDeviceToken } from '@/lib/device';
+import { pendingCount, subscribeOutbox } from '@/lib/outbox';
 import { cn } from '@/lib/utils';
 import { useParticipantStore } from '@/store/participant';
 import type { Question } from '@/types';
@@ -114,6 +115,9 @@ function CheckFlow({
       </Message>
     );
   }
+  if (state.status === 'queued') {
+    return <QueuedMessage droppedFreeText={!!state.freeText} />;
+  }
   if (state.status === 'freetext') {
     return <FreeTextCard onDone={flow.finish} />;
   }
@@ -153,6 +157,29 @@ function CheckFlow({
       </p>
       {question}
     </>
+  );
+}
+
+/** Offline abgegeben (#36): Hinweis, bis die Outbox leer ist. */
+function QueuedMessage({ droppedFreeText }: { droppedFreeText: boolean }) {
+  const pending = useSyncExternalStore(subscribeOutbox, pendingCount);
+  const sent = pending === 0;
+  return (
+    <Message title={sent ? 'Angekommen! 🌤️' : 'Gespeichert ✓'}>
+      <p className="text-muted" role="status">
+        {sent
+          ? 'Du bist wieder online – deine Stimme ist jetzt gezählt.'
+          : 'Du bist gerade offline. Deine Antworten werden gesendet, sobald du wieder online bist.'}
+      </p>
+      {droppedFreeText && (
+        <p className="text-sm text-muted">
+          Deinen Freitext haben wir offline nicht gespeichert – zu deinem Schutz.
+        </p>
+      )}
+      <Link to="/map" className={linkButton}>
+        Karte ansehen
+      </Link>
+    </Message>
   );
 }
 

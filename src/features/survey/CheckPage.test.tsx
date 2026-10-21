@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { DataSource } from '@/data/api';
 import { clearDataSources, registerDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
+import { startOutbox } from '@/lib/outbox';
 import { useParticipantStore } from '@/store/participant';
 import type { ResponseInput, SubmitResult } from '@/types';
 import { CheckPage } from './CheckPage';
@@ -145,6 +146,41 @@ describe('CheckPage', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     expect(await screen.findByText(/Nächster Mood-Check ab Montag/)).toBeInTheDocument();
+  });
+
+  it('buffers the answers offline, shows a hint and sends them once back online (#36)', async () => {
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    const submit = setup();
+    const stop = startOutbox();
+    for (const q of questions()) await answerScale(q.text, 'eher gut');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Dein Freitext' }), {
+      target: { value: 'Mehr WLAN bitte' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
+
+    expect(await screen.findByText(/sobald du wieder online bist/)).toBeInTheDocument();
+    expect(screen.getByText(/Freitext haben wir offline nicht gespeichert/)).toBeInTheDocument();
+    expect(submit).not.toHaveBeenCalled();
+    expect(localStorage.getItem('moodmap:outbox:v1')).not.toContain('WLAN');
+    expect(localStorage.getItem(`moodmap:submitted:${WAVE}`)).toBe('1');
+
+    online.mockReturnValue(true);
+    window.dispatchEvent(new Event('online'));
+    expect(await screen.findByText('Angekommen! 🌤️')).toBeInTheDocument();
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect(firstCall(submit)).toMatchObject({ schoolId: '900000', waveId: WAVE });
+    expect(localStorage.getItem('moodmap:outbox:v1')).toBeNull();
+    stop();
+    online.mockRestore();
+  });
+
+  it('buffers the answers when the request fails with a network error', async () => {
+    const submit = setup();
+    submit.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+    for (const q of questions()) await answerScale(q.text, 'eher gut');
+    fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    expect(await screen.findByText('Gespeichert ✓')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('moodmap:outbox:v1') ?? '[]')).toHaveLength(1);
   });
 
   it('offers a retry after an error and keeps the answers', async () => {
