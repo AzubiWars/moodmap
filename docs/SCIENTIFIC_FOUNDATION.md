@@ -1,7 +1,7 @@
 # Wissenschaftliches Fundament & Methodik – Moodmap NRW
 
 > **Zweck dieses Dokuments:**  
-> Dieses Dokument definiert die theoretische, statistische und methodische Grundlage für Moodmap NRW. Es dient dem gesamten Entwickler-Team (Lead, Frontend, Backend/Data, QA) als Referenz, um Algorithmen, Aggregationen, Seed-Generatoren und Datenvisualisierungen wissenschaftlich fundiert und rechtlich unangreifbar aufzubauen.
+> Dieses Dokument definiert die theoretische, statistische und methodische Grundlage für Moodmap NRW. Es dient dem gesamten Entwickler-Team (Lead, Frontend, Backend/Data, QA) als Referenz, um Algorithmen, Aggregationen, Seed-Generatoren und Datenvisualisierungen wissenschaftlich fundiert, pädagogisch zielführend und rechtlich reflektiert aufzubauen.
 
 ---
 
@@ -23,15 +23,17 @@ Daraus ergeben sich besondere methodische Anforderungen an Skalierung, Aggregati
 Die Erfassung erfolgt über standardisierte 5-stufige Likert-Items (`mood5`) sowie dichotome evaluative Statements (`swipe`).
 
 * **Likert-Transformation:**  
-  Um intuitive Interpretierbarkeit (0 = maximaler Frust / Unzufriedenheit, 100 = maximale Zufriedenheit / Wohlbefinden) über heterogene Zielgruppen (Schüler:innen, Lehrkräfte, Politik) hinweg zu gewährleisten, wird die ordinale 5-Stufen-Skala metrisiert (analog zum Vorgehen des *WHO-5 Well-Being Index*):
+  Um intuitive Interpretierbarkeit (0 = maximale Unzufriedenheit / Belastung, 100 = maximale Zufriedenheit / Wohlbefinden) über heterogene Zielgruppen (Schüler:innen, Lehrkräfte, Politik) hinweg zu gewährleisten, wird die ordinale 5-Stufen-Skala metrisiert (analog zum Vorgehen des *WHO-5 Well-Being Index*):
   
   $$P(v) = (v - 1) \cdot 25 \quad \text{für } v \in \{1, 2, 3, 4, 5\}$$
   
-  * Stufe 1 (😡 Tiefrot) $\rightarrow 0$ Punkte
-  * Stufe 2 (🙁 Rot) $\rightarrow 25$ Punkte
-  * Stufe 3 (😐 Gelb) $\rightarrow 50$ Punkte
-  * Stufe 4 (🙂 Grün) $\rightarrow 75$ Punkte
-  * Stufe 5 (😄 Dunkelgrün) $\rightarrow 100$ Punkte
+  * Stufe 1: ⛈️ 😫 (Gewitter / stark unzufrieden, Rot / Accent) $\rightarrow 0$ Punkte
+  * Stufe 2: 🌧️ 😕 (Regen / unzufrieden, Orange / Warm) $\rightarrow 25$ Punkte
+  * Stufe 3: ⛅ 😐 (Bewölkt / teils-teils, Gelb / Neutral) $\rightarrow 50$ Punkte
+  * Stufe 4: 🌤️ 🙂 (Sonne & Wolken / zufrieden, Hellblau / Milde) $\rightarrow 75$ Punkte
+  * Stufe 5: ☀️ 🤩 (Sonne / sehr zufrieden, Blau / Positiv) $\rightarrow 100$ Punkte
+  
+  *(Farbpalette orientiert sich an `docs/DESIGN.md` und `src/lib/colors.ts`: barrierefrei und farbfehlsichtigkeits-freundlich gestaltet ohne klassisches Rot-Grün).*
 
 * **Reverse-Coding (Negativ polare Items):**  
   Fragen, die Belastung, Stress oder Ausfall messen (z. B. `stress.core`, `cancellation.core`), werden vor der Aggregation invertiert:
@@ -54,22 +56,22 @@ Die Erfassung erfolgt über standardisierte 5-stufige Likert-Items (`mood5`) sow
 
 ## 3. Statistische Inferenz, Stichprobenfehler & Konfidenz
 
-### 3.1 Das Spannungsfeld zwischen $k$-Anonymität und statistischer Power
-Es muss strikt zwischen zwei Schwellenwerten unterschieden werden:
-1. **Datenschutzgrenze ($k \ge 10$):**  
-   Rechtlich zwingend nach Art. 4 Nr. 1 i.V.m. ErwGr. 26 DSGVO zur Verhinderung von Re-Identifizierungen. Unter $n = 10$ erfolgt **keine Datenanzeige** (`score = null`).
-2. **Statistische Belastbarkeitsschwelle ($n \ge 30$):**  
-   Gemäß dem *Zentralen Grenzwertsatz (Central Limit Theorem)* konvergiert die Verteilung des Stichprobenmittelwerts erst ab $n \approx 30$ verlässlich gegen eine Normalverteilung, unabhängig von der Verteilung der Grundgesamtheit.
+### 3.1 Das Zusammenspiel von $k$-Anonymität und statistischer Stichprobengröße
+Es wird methodisch zwischen zwei Schwellenwerten unterschieden:
+1. **Entwurfsentscheidung zum Re-Identifikationsschutz ($k \ge 10$):**  
+   Um jegliches Re-Identifizierungsrisiko in kleinen Schulumgebungen praxistauglich zu minimieren, folgt Moodmap dem Prinzip der $k$-Anonymität ($k \ge 10$). Liegen für eine Auswertungseinheit weniger als 10 Antworten vor, erfolgt **keine Score-Berechnung oder aggregierte Detailanzeige** (`score = null`, `status: suppressed`).
+2. **Statistische Faustregel für Stichprobengrößen ($n \ge 30$):**  
+   Gemäß dem *Zentralen Grenzwertsatz (Central Limit Theorem)* gilt $n \approx 30$ in der empirischen Sozialforschung als pragmatische Faustregel, ab der sich der Stichprobenmittelwert einer Normalverteilung annähert, wodurch Konfidenzintervalle hinreichend eng werden.
 
 ### 3.2 Standardfehler und Konfidenzintervalle
-Unter Annahme einer konservativen Standardabweichung auf Schulebene von $\sigma \approx 25$ Punkten errechnet sich der Standardfehler ($SE$) und das 95%-Konfidenzintervall ($CI_{95\%} = \pm 1.96 \cdot SE$):
+Unter Annahme einer exemplarischen Standardabweichung auf Schulebene von $\sigma \approx 25$ Punkten errechnet sich der Standardfehler ($SE$) und das 95%-Konfidenzintervall ($CI_{95\%} = \pm 1.96 \cdot SE$):
 
-| Fallzahl $n$ | Standardfehler $SE = \frac{\sigma}{\sqrt{n}}$ | 95%-Konfidenzintervall ($CI_{95\%}$) | Methodische Einstufung | Empfohlene UI-Darstellung |
+| Fallzahl $n$ | Standardfehler $SE = \frac{\sigma}{\sqrt{n}}$ | 95%-Konfidenzintervall ($CI_{95\%}$) | Methodische Einstufung | UI-Darstellung (Design-Empfehlung) |
 |---|---|---|---|---|
-| **$n < 10$** | $> 7.9$ | $> \pm 15.5$ Punkte | **Nicht zulässig (Datenschutz)** | Ausgegraut, Status „Zu wenige Daten“ |
-| **$10 \le n < 30$** | $4.6 \dots 7.9$ | $\pm 9.0 \dots \pm 15.5$ Punkte | **Geringe Stichprobe (Indikator)** | Punktwert mit Kennzeichnung `~` / Dotted Border |
-| **$30 \le n < 100$** | $2.5 \dots 4.5$ | $\pm 4.9 \dots \pm 8.9$ Punkte | **Statistisch belastbar** | Vollflächige Farbfläche, Standardwert |
-| **$n \ge 100$** | $\le 2.5$ | $\le \pm 4.9$ Punkte | **Hohe Präzision** | Hohe Konfidenz (optionaler Badge) |
+| **$n < 10$** | $> 7.9$ | $> \pm 15.5$ Punkte | **Unterdrückt (Anonymitätsschutz)** | Ausgegraut, Status „Zu wenige Daten“ |
+| **$10 \le n < 30$** | $4.6 \dots 7.9$ | $\pm 9.0 \dots \pm 15.5$ Punkte | **Geringe Fallzahl (Orientierungswert)** | Regulärer Score, optional als vorläufig gekennzeichnet |
+| **$30 \le n < 100$** | $2.5 \dots 4.5$ | $\pm 4.9 \dots \pm 8.9$ Punkte | **Statistisch robust** | Standard-Farbfläche |
+| **$n \ge 100$** | $\le 2.5$ | $\le \pm 4.9$ Punkte | **Hohe Präzision** | Hohe Verlässlichkeit |
 
 ---
 
@@ -98,50 +100,57 @@ Wird auf Kreisebene der Mittelwert der Schul-Mittelwerte gebildet (ungewichtete 
 
 ## 5. Das Frühwarn-Radar: Sozialwissenschaftliche Modellierung
 
-### 5.1 Theoretischer Hintergrund: Soziale Entfremdung & Anomie
-Der *Spannungs-Index (Tension Index)* modelliert das Risiko schulischer und jugendkultureller Eskalationen. Die theoretische Fundierung stützt sich auf:
-* **Entfremdungstheorie (Melvin Seeman, 1959):** Fünf Dimensionen der Entfremdung – insbesondere *Machtlosigkeit (Powerlessness)* und *Bedeutungslosigkeit (Meaninglessness)*. Jugendliche eskalieren nicht spontan; Eskalation ist das Endstadium eines Entfremdungsprozesses, in dem die eigene Wirksamkeit nicht erlebt wird.
-* **Theorie der sozialen Desintegration (Wilhelm Heitmeyer, 1997):** Desintegration und das Fehlen emotionaler und sozialer Anerkennung führen zu Frustrations- und Aggressionsstau.
-* **Social Bond Theory (Travis Hirschi, 1969):** Die Bindung an die Institution Schule (Vertrauen in Lehrkräfte, Gemeinschaft, Gehört-werden) schützt vor Delinquenz und Gewalt.
+### 5.1 Theoretischer Hintergrund: Soziale Entfremdung & dialogorientierte Prävention
+Der *Spannungs-Index (Tension Index)* dient als theoriegeleiteter Indikator für Dialog- und Unterstützungsbedarf an Schulen. Er soll Schulleitungen und Bildungsadministration frühzeitig signalisieren, wo Jugendliche das Gefühl verloren haben, gehört zu werden oder das Schulklima als belastend empfinden. Die theoretische Motivation stützt sich auf etablierte soziologische Ansätze:
+* **Entfremdungstheorie (Melvin Seeman, 1959):** Fünf Dimensionen der Entfremdung – insbesondere *Machtlosigkeit (Powerlessness)* und *Bedeutungslosigkeit (Meaninglessness)*. Ein Mangel an wahrgenommener Selbstwirksamkeit und Partizipation begünstigt Rückzug, Resignation und Frustration.
+* **Theorie der sozialen Desintegration (Wilhelm Heitmeyer, 1997):** Das Fehlen emotionaler, sozialer und institutioneller Anerkennung schwächt das Gemeinschaftsgefühl und erhöht Spannungen im Gruppenkontext.
+* **Social Bond Theory (Travis Hirschi, 1969):** Eine gelebte Bindung an die Institution Schule (Vertrauen in Bezugspersonen, Mitsprache, Sicherheit) stärkt Resilienz und prosoziales Verhalten.
+
+> [!IMPORTANT]
+> **Leitprinzip gemäß `docs/PRIVACY.md` §7:**  
+> Moodmap erstellt **keine Prognosen über Kriminalität oder Gewalt** und kategorisiert Schüler:innen nicht in Gefährdungsprofile. Der Spannungs-Index ist kein Überwachungsinstrument, sondern ein **Barometer für Dialog- und Unterstützungsbedarf**, das der Prämisse *„Prävention durch Dialog“* folgt.
 
 ### 5.2 Mathematische Formulierung des Spannungs-Index ($T$)
 
-Der Index bewegt sich auf einer Skala von $0$ (völlig entspannt / stabil) bis $100$ (akuter Handlungs- und Dialogbedarf).
+Der Index bewegt sich auf einer Skala von $0$ (sehr entspanntes, positives Klima) bis $100$ (hoher Handlungs- und Dialogbedarf). Die Gewichte sind theoriegeleitete, heuristische Startwerte und keine empirisch kalibrierten Regressionskoeffizienten.
 
-#### 1. Themenauswahl & Gewichtung
-Die Indikatoren sind nach ihrer prognostischen Valenz für soziale Spannungen gewichtet:
+#### 1. Themenauswahl & Heuristische Gewichtung
+Die Indikatoren spiegeln zentrale Aspekte des Schulklimas wider:
 
 | Thema | Slug | Gewicht $w_t$ | Theoretische Begründung |
 |---|---|---|---|
-| **Gehört werden** | `voice` | **0.30** | Zentraler Hebel: Erlebte Selbstwirksamkeit vs. Ohnmacht |
+| **Gehört werden** | `voice` | **0.30** | Zentraler Hebel: Erlebte Selbstwirksamkeit vs. institutionelle Ohnmacht |
 | **Sicherheit & Mobbing** | `safety` | **0.20** | Physische und psychische Unversehrtheit im Sozialraum Schule |
-| **Gemeinschaft & Klima** | `community` | **0.15** | Peer-Group-Zusammenhalt und Diskriminierungsfreiheit |
-| **Seelisches Wohlbefinden** | `wellbeing` | **0.15** | Psychischer Belastungsgrad (WHO-5 Anlehnung) |
-| **Mitsprache** | `participation` | **0.10** | Institutionalisierte Beteiligung (§ 74 SchulG NRW) |
-| **Verhältnis zu Lehrkräften** | `teachers` | **0.10** | Vertrauen in pädagogische Bezugspersonen |
+| **Gemeinschaft & Klima** | `community` | **0.15** | Peer-Group-Zusammenhalt und Schulkultur |
+| **Seelisches Wohlbefinden** | `wellbeing` | **0.15** | Allgemeiner Wohlbefindens- und Belastungsgrad |
+| **Mitsprache** | `participation` | **0.10** | Institutionalisierte Mitwirkungsmöglichkeiten (§ 74 SchulG NRW) |
+| **Verhältnis zu Lehrkräften** | `teachers` | **0.10** | Vertrauen in pädagogische Ansprechpersonen |
 
 #### 2. Roh-Spannungsindex ($T_{\text{raw}}$)
-Liegen für eine Einheit nicht alle Themen mit $n \ge K_{\text{MIN}}$ vor, werden die vorhandenen Gewichte normiert (Bedingung: `voice` + mindestens zwei weitere Themen müssen vorliegen):
+Liegen für eine Schule oder Region nicht alle Themen mit $n \ge K_{\text{MIN}}$ vor, werden die vorhandenen Gewichte normiert (Bedingung: `voice` + mindestens zwei weitere Themen liegen vor):
 
 $$T_{\text{raw}} = 100 - \frac{\sum_{t \in T_{\text{obs}}} w_t \cdot S_t}{\sum_{t \in T_{\text{obs}}} w_t}$$
 
 #### 3. Dynamische Drift-Erkennung (CUSUM-Prinzip)
-Statische Werte zeigen Momentaufnahmen. Eine kontinuierliche Verschlechterung über mehrere Zeitintervalle (Wellen) deutet auf eine sich verfestigende Dynamik hin.  
-* **Regel:** Fällt der Score von `voice` oder `safety` über drei aufeinanderfolgende Wellen ($\Delta S_t \le -3$ pro Welle), wird ein Trend-Aufschlag von $+10$ Punkten addiert:
+Statische Querschnitte erfassen nur Momentaufnahmen. Eine kontinuierliche Stimmungsverschlechterung über mehrere Erhebungswellen hinweg signalisiert verfestigte Problemlagen.
+* **Referenz-Spezifikation (`docs/ARCHITECTURE.md` §5.8):**  
+  Die Basis-Trendberechnung basiert auf der Differenz zur Vorwelle ($\Delta S = S_{\text{aktuell}} - S_{\text{vorher}}$).
+* **Heuristische Verfeinerung für das Frühwarn-Radar:**  
+  Fällt der Stimmungs-Score in Kernbereichen (`voice` oder `safety`) über drei aufeinanderfolgende Erhebungswellen signifikant ab (z. B. $\Delta S_t \le -3$ Punkte pro Welle), kann ein dynamischer Trend-Aufschlag von $+10$ Punkten vergeben werden:
 
 $$T = \min\left(100, \, T_{\text{raw}} + T_{\text{trend\_bonus}}\right)$$
 
 #### 4. Kategoriale Schwellenwerte
-* **$T < 45$ (`stable`):** Normales Schulklima. Keine systemischen Risiken erkennbar.
-* **$45 \le T < 60$ (`watch`):** Erhöhte Irritation. Empfehlung: Regelmäßige Beobachtung, SV-Gespräche.
-* **$T \ge 60$ (`talk`):** **Frühwarnung.** Konkretes Handlungsfeld. Empfehlung: Proaktiver Dialog des Ministeriums / der Schulsozialarbeit vor Ort.
+* **$T < 45$ (`stable`):** Positives Schulklima. Keine akuten Dialogbedarfe erkennbar.
+* **$45 \le T < 60$ (`watch`):** Erhöhte Irritation. Empfehlung: Aufmerksamkeit schärfen, SV-Themen ansprechen.
+* **$T \ge 60$ (`talk`):** **Frühwarnung.** Konkreter Unterstützungsbedarf. Empfehlung: Proaktiver Dialog von Schulleitung, SV und Schulsozialarbeit.
 
-#### 5. Driver-Attribution (Ursachenzerlegung)
-Um blinden Aktionismus zu vermeiden, identifiziert der Algorithmus die zwei Haupttreiber (*Drivers*) der Spannung:
+#### 5. Driver-Attribution (Ursachenidentifikation)
+Um passgenaue Maßnahmen zu ermöglichen, berechnet das System die Haupttreiber (*Drivers*) des Handlungsbedarfs:
 
 $$D_t = w_t \cdot (100 - S_t)$$
 
-Die Themen mit den höchsten $D_t$-Werten erklären den größten Anteil am Frust und geben der Politik konkrete Handlungsfelder vor (z. B. „Sanierung Toiletten“ vs. „Mitsprache bei Handynutzung“).
+Die Themen mit den höchsten $D_t$-Werten erklären den größten Anteil am Handlungsdruck und geben Schulen konkrete Ansatzpunkte für den Dialog (z. B. gezielte SV-Gespräche zu Toilettenzuständen oder Prüfungsdruck).
 
 ---
 
@@ -154,39 +163,39 @@ Reagiert die Politik auf einen Frust-Hotspot mit einer Veröffentlichung (z. B. 
 * Aggregation erfolgt ab $k \ge 10$ gehashten Bewertungen.
 
 ### 6.2 Quasi-experimentelle Wirkungsmessung (Difference-in-Differences)
-Um nachzuweisen, ob eine Stimmungsverbesserung in einer Region tatsächlich auf die politische Maßnahme zurückzuführen ist (und nicht auf externe Faktoren wie Ferienbeginn oder Sommerwetter), verwendet das System einen vereinfachten **Difference-in-Differences (DiD)** Ansatz:
+Um zu beobachten, wie sich eine Stimmungsverbesserung in einer Region im zeitlichen Umfeld einer politischen Maßnahme verhält (unter Kontrolle überregionaler Einflüsse wie Ferienbeginn oder Saison), verwendet das System einen vereinfachten **Difference-in-Differences (DiD)** Ansatz:
 
 $$\text{Effekt} = \left(S_{\text{Region, post}} - S_{\text{Region, pre}}\right) - \left(S_{\text{Landesweit, post}} - S_{\text{Landesweit, pre}}\right)$$
 
-Ist $\text{Effekt} > 0$, hat die gezielte Maßnahme der Region über den landesweiten Trend hinaus signifikant geholfen.
+Ein Wert $\text{Effekt} > 0$ deutet darauf hin, dass die gezielte Maßnahme der Region über den allgemeinen landesweiten Trend hinaus mit einer überdurchschnittlichen Stimmungsaufhellung korrespondiert. In einem späteren Produktivbetrieb sollte dieser deskriptive Trendindikator durch inferenzstatistische Panelanalysen oder Standardfehler-Bootstrapping methodisch untermauert werden.
 
 ---
 
-## 7. Rechtliche Leitplanken („Legal by Design“)
+## 7. Rechtliche Leitplanken („Privacy by Design“)
 
-### 7.1 Schulgesetz NRW (§ 120 Abs. 4 SchulG NRW & BASS 10-45 Nr. 2)
-Befragungen und wissenschaftliche Untersuchungen an Schulen in NRW unterliegen strengen rechtlichen Voraussetzungen:
-1. **Keine Beeinträchtigung des Unterrichts:** Durch die Begrenzung auf 60 Sekunden (maximal 5–8 Klicks) kann die Befragung in Pausen, Freistunden oder im Rahmen der SV-Arbeit durchgeführt werden.
-2. **Absolute Freiwilligkeit:** Die Teilnahme darf weder durch Notendruck, noch durch Belohnungen erzwungen werden.
-3. **Zwingende Anonymität:** Es dürfen keinerlei Rückschlüsse auf Einzelpersonen möglich sein.
-4. **Legitimation:** Moodmap ist als Initiative des Ministeriums für Schule und Bildung (MSB NRW) in Verbindung mit den gewählten Schülervertretungen (**§ 74 SchulG NRW**) konzipiert.
+### 7.1 Schulgesetzlicher Rahmen (z. B. § 120 Abs. 4 SchulG NRW & BASS 10-45 Nr. 2)
+Befragungen an Schulen unterliegen im deutschen Schulrecht strengen Vorgaben (u. a. Erlass „Wissenschaftliche Untersuchungen und Befragungen an Schulen“, BASS 10-45 Nr. 2):
+1. **Keine Beeinträchtigung des Unterrichts:** Durch die Begrenzung auf einen ultrakurzen Puls (60 Sekunden) kann die Befragung flexibel in Pausen, Freistunden oder in der Schülervertretungsarbeit stattfinden.
+2. **Absolute Freiwilligkeit:** Die Teilnahme ist vollkommen freiwillig und darf an keinerlei Benachteiligung oder Bevorzugung gekoppelt sein.
+3. **Anonymität als Grundvoraussetzung:** Es dürfen zu keinem Zeitpunkt Rückschlüsse auf einzelne Personen möglich sein.
+4. **Projektstatus & Legitimation:** Moodmap ist ein studentischer Prototyp im Hackathon-Kontext. Als Zielbild für einen späteren Echtbetrieb ist eine Trägerschaft durch das Ministerium für Schule und Bildung (MSB NRW) in Kooperation mit den gewählten Schülervertretungen (§ 74 SchulG NRW) denkbar, vorbehaltlich ministerieller Genehmigung.
 
-### 7.2 DSGVO-Freiheit durch echte Anonymität (ErwGr. 26 DSGVO)
-* Gemäß Erwägungsgrund 26 der DSGVO gelten die Grundsätze des Datenschutzes **nicht für anonyme Informationen**.
-* **Technische Garantien für Anonymität:**
-  * Keine Speicherung von IP-Adressen (Verwerfung vor Datenbank-Insert).
-  * Keine Speicherung von User-Agents oder Canvas-Fingerprints.
-  * Keine Freitextfelder (Ausschluss von Klarnamen und Re-Identifizierungsvektoren).
-  * Zeitstempel werden server- und clientseitig auf den Kalendertag gerundet.
-  * Verhinderung von Mehrfachteilnahme über einen Einweg-Hash:  
-    $\text{DeviceHash} = \text{HMAC-SHA256}(\text{ClientToken}, \text{WaveSecret})$. Der Hash lässt keine Rückschlüsse auf das Endgerät zu.
+### 7.2 Anonymität nach DSGVO (ErwGr. 26 DSGVO)
+* **Zielsetzung:** Nach Erwägungsgrund 26 der DSGVO finden die Grundsätze des Datenschutzes keine Anwendung auf Informationen, die sich nicht auf eine identifizierte oder identifizierbare natürliche Person beziehen (echte Anonymität). Im Echtbetrieb ist dies durch behördliche Datenschutzbeauftragte und eine Datenschutz-Folgenabschätzung (DSFA) formal zu prüfen.
+* **Architektonische Maßnahmen zur Re-Identifikationsvermeidung:**
+  * Keine Erfassung oder Persistierung von IP-Adressen (vollständiger Verzicht bereits auf Netzwerkebene).
+  * Kein User-Agent-Logging, kein Canvas-Fingerprinting.
+  * Keine Freitextfelder im regulären Survey (vollständiger Ausschluss von PII und Klarnamen).
+  * Datumsstempel werden tagesgenau gehasht bzw. gerundet.
+  * Verhinderung von Mehrfachteilnahmen über kryptographische Einweg-Hashes:  
+    $\text{DeviceHash} = \text{SHA256}(\text{ClientToken} \,\|\, \text{WaveId})$. Da Geräte-Hashes rechtlich im Grenzbereich von pseudonymen Daten diskutiert werden können, speichert das System keinerlei Verknüpfungstabellen zu echten Nutzerprofilen.
 
-### 7.3 Schutz vor Schul-Pranger (Verwaltungs- & Persönlichkeitsrecht)
-* Öffentliche Rankings („Die 10 schlechtesten Schulen NRWs“) sind rechtlich und pädagogisch unzulässig, da sie Schulen stigmatisieren und Anreize zur Manipulation schaffen.
-* **Rollenbasiertes Sichtbarkeitsmodell:**
-  * **Öffentlichkeit / Schüler:innen:** Landes- und Kreisebene aggregiert; Einzelschule nur die eigene Schule.
-  * **Schulleitung & SV:** Eigene Schule im Vergleich zum Landesdurchschnitt der gleichen Schulform.
-  * **Ministerium / Schulaufsicht:** Vollständige aggregierte Landeskarte (ab $k \ge 10$) zur gezielten Ressourcenallokation.
+### 7.3 Schutz vor Schul-Pranger (Pädagogisches & organisatorisches Prinzip)
+* Öffentliche Rankings („Die schlechtesten Schulen des Landes“) sind pädagogisch hochgradig kontraproduktiv, erzeugen Stigmatisierung und falsche Anreize zur Datenverzerrung.
+* **Differenziertes Rollen- und Sichtbarkeitsmodell:**
+  * **Öffentlichkeit / Schüler:innen:** Landes- und Kreisebene aggregiert; Einzelschule nur die eigene Schule über Code.
+  * **Schulleitung & SV:** Eigene Schule im Vergleich zum aggregierten Landesmittelwert der gleichen Schulform.
+  * **Schulaufsicht / Ministerium:** Aggregierte Übersicht (ab $k \ge 10$) zur bedarfsgerechten Mittel- und Unterstützungsplanung.
 
 ### 7.4 Fürsorge & Krisenintervention
 * Moodmap ist ein Stimmungsbarometer und **kein Notfallmeldesystem**. Um falsche Rettungserwartungen auszuschließen, verspricht das System zu keinem Zeitpunkt individuelles Eingreifen.
@@ -194,11 +203,13 @@ Befragungen und wissenschaftliche Untersuchungen an Schulen in NRW unterliegen s
 
 ---
 
-## 8. Konkrete Implementierungs-Vorgaben für Agenten
+## 8. Methodische Empfehlungen & P2-Diskussionsbeiträge für das Team
 
-| Agent-Rolle | Zuständigkeit | Konkrete Implementierungs-Aufgabe |
+Die verbindliche Feature- und Task-Planung verbleibt zentral in den GitHub Issues und `docs/ROADMAP.md`. Folgende Punkte dienen den jeweiligen Agenten-Rollen als wissenschaftliche Orientierung:
+
+| Agent-Rolle | Relevanter Bereich | Methodische Orientierung / Diskussionsbeiträge |
 |---|---|---|
-| **`data`** (Backend) | Datenmodell, Views, SQL | • Aggregations-Views implementieren, die $k \ge 10$ serverseitig erzwingen.<br>• Felder `n`, `score`, `delta` und `confidence` (`low` bei $10 \le n < 30$, `robust` bei $n \ge 30$) bereitstellen.<br>• Schul-Stammdaten mit Schülerschaftszahlen aus Open Data NRW verknüpfen. |
-| **`qa`** (Algorithmen & Tests) | `src/lib/score.ts`, Seed | • Unit-Tests für Grenzfälle implementieren: $n=9$ vs. $n=10$, $n=29$ vs. $n=30$.<br>• Trend-Bonus-Logik und Driver-Zerlegung mit deterministischen Test-Fixtures absichern.<br>• Seed-Generator (`generate-seed.ts`) anpassen, sodass realistische Normalverteilungen und soziologisch plausible Hotspots entstehen. |
-| **`fe` / `map`** (UI & Karten) | Charts, MapLibre, UI-Tokens | • Visualisierung von Konfidenzen: Schraffur / Dotted Outline für Gebiete mit $10 \le n < 30$.<br>• Detail-Panel: Anzeige der Top-2 Drivers bei Hotspots.<br>• Notfall-Hilfe-Banner (`Nummer gegen Kummer`) im Survey-Flow verankern.<br>• Kennzeichnung „Freiwillige anonyme Befragung nach § 120 SchulG NRW“ im Footer. |
-| **`lead`** (Architektur & Pitch) | Storyline & Gesamtintegration | • Zahlen aus dem Deutschen Schulbarometer 2026 und Shell 2024 in den Pitch einbinden.<br>• Den Begriff „Prävention durch Dialog“ anhand der Entfremdungstheorie und der Frankreich-Recherche als stärkstes Jury-Argument etablieren. |
+| **`data`** (Backend) | Datenmodell & Aggregation | • Sicherstellung serverseitiger Filterung für $k \ge 10$.<br>• Unterdrückung von Kleinst-Antwortmustern ($< 3$ Antworten je Option $\rightarrow \text{null}$) zum Schutz vor Differenzangriffen.<br>• *P2-Vorschlag:* Bereitstellung eines abgeleiteten Indikator-Feldes `confidence` (`low` bei $10 \le n < 30$, `robust` bei $n \ge 30$). |
+| **`qa`** (Algorithmen & Tests) | `src/lib/score.ts`, Seed | • Unit-Tests für Grenzfälle bei Schwellen ($n=9$ vs. $n=10$, $n=29$ vs. $n=30$).<br>• Trend-Logik und Driver-Zerlegung mit deterministischen Testfällen absichern.<br>• Seed-Generator (`generate-seed.ts`) auf soziologisch plausible Verteilungen abstimmen. |
+| **`fe` / `map`** (UI & Karten) | Charts, MapLibre, UI-Tokens | • Barrierefreie Farbskala nach `docs/DESIGN.md` (Wetterstufen ⛈️ bis ☀️, Rot/Gelb/Blau).<br>• *P2-Vorschlag:* Dezente visuelle Kennzeichnung für Regionen/Schulen mit geringer Fallzahl ($10 \le n < 30$, z. B. Dotted Border / `~`).<br>• Notfall-Hilfe-Hinweis (`Nummer gegen Kummer`) bei kritischen Scores. *(Keine statischen Rechtsbehauptungen oder Paragraphen im UI-Footer).* |
+| **`lead`** (Architektur & Pitch) | Storyline & Gesamtintegration | • Zahlen aus dem Deutschen Schulbarometer 2025/2026 und der 19. Shell Jugendstudie 2024 für Problem-Validierung nutzen.<br>• Kernbotschaft: „Prävention durch Dialog“ (Entfremdung früh erkennen, bevor Resignation entsteht). |
