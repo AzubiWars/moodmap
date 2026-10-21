@@ -1,6 +1,8 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { ActionCatalogPage } from '@/features/actions/ActionCatalogPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { SchoolDashboardPage } from '@/features/dashboard/SchoolDashboardPage';
+import { SchoolPosterPage } from '@/features/dashboard/SchoolPosterPage';
 import { ComponentGallery } from '@/features/demo/ComponentGallery';
 import { DemoPage } from '@/features/demo/DemoPage';
 import { LandingPage } from '@/features/info/LandingPage';
@@ -24,6 +26,8 @@ export const router = createBrowserRouter([
       { path: '/map', element: <LazyMapPage /> },
       { path: '/massnahmen', element: <ActionCatalogPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
+      { path: '/dashboard/school', element: <SchoolDashboardPage /> },
+      { path: '/dashboard/school/poster', element: <SchoolPosterPage /> },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/demo', element: <DemoPage /> },
       { path: '/demo/components', element: <ComponentGallery /> },

@@ -17,7 +17,7 @@ export function Layout() {
   return (
     <div className="flex min-h-full flex-col">
       <DemoBanner />
-      <header className="sticky top-0 z-20 border-b border-border bg-card/90 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-border bg-card/90 backdrop-blur print:hidden">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <NavLink to="/" className="flex items-center gap-2 text-lg font-bold">
             <AppLogo variant="handshake" className="size-7" />
@@ -54,7 +54,7 @@ export function Layout() {
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
         aria-label="Hauptnavigation"
       >
         {NAV.map(({ to, label, icon: Icon }) => (
