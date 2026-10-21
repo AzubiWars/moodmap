@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { TOPICS } from '@/data/topics';
 import type { School } from '@/types';
@@ -24,7 +25,15 @@ import {
 } from './geo';
 import { DetailPanel } from './DetailPanel';
 import { FilterMenu } from './FilterMenu';
-import { activeFilterCount, filterParams, type MapFilters, parseFilters, periodWaveIds } from './filters';
+import { Timeline } from './Timeline';
+import {
+  activeFilterCount,
+  filterParams,
+  type MapFilters,
+  parseFilters,
+  periodWaveIds,
+  weekLabel,
+} from './filters';
 import { LiveToggle } from './LiveToggle';
 import { LIVE_POLL_MS, useLivePulses } from './live';
 import { MapModeSwitch } from './MapModeSwitch';
@@ -214,10 +223,15 @@ export function MapPage() {
   // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
   const filters = parseFilters(searchParams);
   const currentWave = useCurrentWave();
+  // Zeitachse (#34): eine gewählte Woche überschreibt den Zeitraum-Filter
+  const schoolYearWaves = periodWaveIds('year', currentWave.data?.id) ?? [];
+  const requestedWave = searchParams.get('wave');
+  const selectedWave = schoolYearWaves.find((w) => w === requestedWave);
+  const [playing, setPlaying] = useState(false);
   const aggFilters: AggregateFilters = {
     schoolForm: filters.schoolForm,
     gradeBand: filters.gradeBand,
-    waveIds: periodWaveIds(filters.period, currentWave.data?.id),
+    waveIds: selectedWave ? [selectedWave] : periodWaveIds(filters.period, currentWave.data?.id),
   };
   const regionAggregates = useAggregates(regionLevel, topicSlug, {
     refetchInterval: poll,
@@ -276,7 +290,28 @@ export function MapPage() {
   });
 
   function setFilters(next: MapFilters) {
-    setSearchParams((previous) => filterParams(previous, next), { preventScrollReset: true });
+    setSearchParams(
+      (previous) => {
+        const params = filterParams(previous, next);
+        // Neuer Zeitraum ersetzt eine auf der Zeitachse gewählte Woche
+        if (next.period !== filters.period) params.delete('wave');
+        return params;
+      },
+      { preventScrollReset: true },
+    );
+  }
+
+  function setWave(wave: string | undefined) {
+    setSearchParams(
+      (previous) => {
+        const params = new URLSearchParams(previous);
+        if (wave) params.set('wave', wave);
+        else params.delete('wave');
+        return params;
+      },
+      // Abspielen erzeugt keine History-Einträge pro Woche
+      { replace: true, preventScrollReset: true },
+    );
   }
 
   function setMode(next: MapMode) {
@@ -422,6 +457,7 @@ export function MapPage() {
               {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
               {city && ` · Stadt ${city}`}
               {activeFilterCount(filters) > 0 && ' · gefiltert'}
+              {selectedWave && ` · ${weekLabel(selectedWave)}`}
             </p>
           </div>
         </div>
@@ -430,10 +466,17 @@ export function MapPage() {
         <div
           className={
             drill.level === 'nrw'
-              ? 'absolute bottom-8 left-2 md:bottom-3 md:left-3'
-              : 'absolute bottom-[8.5rem] left-2 md:bottom-3 md:left-3'
+              ? 'absolute bottom-8 left-2 flex flex-col items-start md:bottom-3 md:left-3'
+              : 'absolute bottom-[8.5rem] left-2 flex flex-col items-start md:bottom-3 md:left-3'
           }
         >
+          <Timeline
+            waves={schoolYearWaves}
+            selected={selectedWave}
+            playing={playing}
+            onSelect={setWave}
+            onPlayingChange={setPlaying}
+          />
           <MapLegend mode={mode} />
           {/* Quellenhinweis Demo vs. Live (#160) */}
           <p className="mt-1 max-w-[16rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">

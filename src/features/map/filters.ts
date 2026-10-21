@@ -102,3 +102,16 @@ function schoolYearWeeks(currentWaveId: WaveId): number {
   const current = isoWeekMonday(currentWaveId)!;
   return Math.round((current.getTime() - start.getTime()) / 604_800_000) + 1;
 }
+
+export function weekLabel(wave: WaveId): string {
+  return `KW ${Number(wave.split('-W')[1])}`;
+}
+
+export function weekRange(wave: WaveId): string {
+  const monday = isoWeekMonday(wave);
+  if (!monday) return '';
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  const fmt = (d: Date) => d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+  return `${fmt(monday)} – ${fmt(sunday)}`;
+}
