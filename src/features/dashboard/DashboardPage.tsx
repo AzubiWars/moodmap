@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { K_MIN } from '@/lib/env';
 import { useRoleStore } from '@/store/role';
@@ -12,10 +12,13 @@ import { loadLagebild } from './loadLagebild';
 export function DashboardPage() {
   const queryClient = useQueryClient();
   const role = useRoleStore((s) => s.role);
+  const [searchParams] = useSearchParams();
+  // Pitch-Default: schnelle, vollständige Demo-Daten. Live-Aggregate gibt es unter ?live=1.
+  const live = searchParams.get('live') === '1';
+  const source = useMemo(() => getDataSource(live ? undefined : 'mock'), [live]);
   const query = useQuery({
-    queryKey: ['aggregates', 'lagebild'],
+    queryKey: ['aggregates', 'lagebild', live],
     queryFn: async () => {
-      const source = getDataSource();
       const [wave, lagebild] = await Promise.all([source.getCurrentWave(), loadLagebild(source, K_MIN)]);
       return { wave, ...lagebild };
     },
@@ -24,10 +27,10 @@ export function DashboardPage() {
   // Neue Antwort (Mood-Check, anderer Tab) → Kennzahlen neu laden.
   useEffect(
     () =>
-      getDataSource().subscribeToNewResponses(() => {
-        void queryClient.invalidateQueries({ queryKey: ['aggregates', 'lagebild'] });
+      source.subscribeToNewResponses(() => {
+        void queryClient.invalidateQueries({ queryKey: ['aggregates', 'lagebild', live] });
       }),
-    [queryClient],
+    [queryClient, source, live],
   );
 
   return (
@@ -42,9 +45,16 @@ export function DashboardPage() {
             Zum Dashboard Ihrer Schule
           </Link>
         )}
+        <Link
+          to={live ? '/dashboard' : '/dashboard?live=1'}
+          className="mt-2 ml-3 inline-flex min-h-11 items-center font-medium text-accent underline"
+        >
+          {live ? 'Demo-Daten anzeigen' : 'Live-Daten anzeigen'}
+        </Link>
         <p className="mt-1 text-sm text-muted">
           {query.data ? `Woche ${query.data.wave.id.replace(/^\d{4}-W/, 'KW ')} · ` : ''}
           Alle Schulformen · Werte erst ab {K_MIN} Stimmen, darunter „zu wenige Daten“.
+          {!live && ' · Demo-Daten'}
         </p>
       </header>
 
