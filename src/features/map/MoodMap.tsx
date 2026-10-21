@@ -1,12 +1,13 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
-import type { StyleSpecification } from 'maplibre-gl';
+import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import MapGL, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
-import { MOOD_FILL_EXPRESSION, NO_DATA, scoreToLevel } from '@/lib/colors';
+import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from '@/lib/colors';
 import { type Bounds, NRW_BOUNDS, type RegionProperties } from './geo';
 import { maplibre } from './maplibreSetup';
+import type { SchoolCollection, SchoolPointProperties } from './schools';
 
 /** `dim` = liegt außerhalb des fokussierten Regierungsbezirks (Drill-down #17) */
 type ScoredProperties = RegionProperties & { score: number; n: number; dim?: boolean };
@@ -17,6 +18,14 @@ interface MoodMapProps {
   onSelect?: (id: string | null) => void;
   /** Kartenausschnitt der aktuellen Drill-down-Ebene; Änderungen lösen eine Kamerafahrt aus. */
   focusBounds?: Bounds;
+  /** Flächen zurücknehmen, damit Schul-Marker in derselben Farbskala lesbar sind (Kreis-/Schulebene) */
+  muted?: boolean;
+  /** Schul-Marker (#18) */
+  schools?: SchoolCollection | null;
+  /** Clustern (Regierungsbezirk); im Kreis sind es wenige genug für Einzel-Marker */
+  clusterSchools?: boolean;
+  selectedSchoolId?: string | null;
+  onSelectSchool?: (id: string) => void;
 }
 
 const BASEMAP_URL = 'https://tiles.openfreemap.org/styles/positron';
@@ -29,6 +38,16 @@ const BLANK_STYLE: StyleSpecification = {
 };
 
 const FILL_LAYER_ID = 'regions-fill';
+const SCHOOL_LAYER_ID = 'schools-points';
+const CLUSTER_LAYER_ID = 'schools-clusters';
+
+/** Ø-Score eines Clusters: nur Schulen mit genug Antworten, gewichtet nach n (-1 = keine) */
+const CLUSTER_SCORE = [
+  'case',
+  ['>', ['get', 'scoredN'], 0],
+  ['/', ['get', 'weighted'], ['get', 'scoredN']],
+  -1,
+] as const;
 
 /** 3D-Gebäude aus dem bereits vorhandenen OpenFreeMap-Vektortileset (#85). */
 const BUILDING_LAYER_ID = 'buildings-3d';
@@ -116,21 +135,27 @@ const POI_LABEL = [
 const PLACE_LABEL = ['coalesce', ['get', 'name'], ['get', 'name_de']] as unknown as string;
 
 /** Bei hohem Zoom zurückhaltender, damit Gebäude/Schulgelände sichtbar werden. */
-/** Deckkraft je Zoom (#85: Flächen treten für 3D-Gebäude zurück) und abgeblendet außerhalb des Drill-downs (#17). */
-const dimmed = (normal: number, dim: number) => ['case', ['==', ['get', 'dim'], true], dim, normal];
-const REGION_FILL_OPACITY = [
-  'interpolate',
-  ['linear'],
-  ['zoom'],
-  5,
-  dimmed(0.78, 0.22),
-  12,
-  dimmed(0.78, 0.22),
-  15,
-  dimmed(0.32, 0.1),
-  17,
-  dimmed(0.12, 0.05),
-] as unknown as number;
+/**
+ * Deckkraft je Zoom (#85: Flächen treten für 3D-Gebäude zurück), abgeblendet außerhalb des Drill-downs (#17)
+ * und insgesamt zurückgenommen, wenn Schul-Marker in derselben Farbskala darauf liegen (#18).
+ */
+function regionFillOpacity(muted: boolean) {
+  const f = muted ? 0.4 : 1;
+  const dimmed = (normal: number, dim: number) => ['case', ['==', ['get', 'dim'], true], dim * f, normal * f];
+  return [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    5,
+    dimmed(0.78, 0.22),
+    12,
+    dimmed(0.78, 0.22),
+    15,
+    dimmed(0.32, 0.1),
+    17,
+    dimmed(0.12, 0.05),
+  ] as unknown as number;
+}
 
 /** Deutschland-Maske: alles außerhalb Deutschlands ausblenden (#90). */
 const GERMANY_MASK_URL = '/geo/non-germany-mask.geojson';
@@ -144,17 +169,27 @@ const BOUNDARY_ATTRIBUTION =
   'Datenquellen: <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener">VG250</a> – Geometrien vereinfacht · ' +
   'Deutschland: <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> (Public Domain)';
 
-interface HoverInfo {
-  lng: number;
-  lat: number;
-  props: ScoredProperties;
-}
+type HoverInfo = { lng: number; lat: number } & (
+  | { kind: 'region'; props: ScoredProperties }
+  | { kind: 'school'; props: SchoolPointProperties }
+  | { kind: 'cluster'; props: { point_count: number; weighted: number; scoredN: number } }
+);
 
 /** Platz für Info-Box (oben) und Legende (unten), damit die fokussierte Fläche nicht verdeckt wird */
 const FOCUS_PADDING = { top: 120, bottom: 72, left: 24, right: 56 };
 const MOBILE_FOCUS_PADDING = { top: 128, bottom: 80, left: 16, right: 16 };
 
-export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUNDS }: MoodMapProps) {
+export function MoodMap({
+  regions,
+  selectedId,
+  onSelect,
+  focusBounds = NRW_BOUNDS,
+  muted = false,
+  schools,
+  clusterSchools = true,
+  selectedSchoolId,
+  onSelectSchool,
+}: MoodMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [mapStyle, setMapStyle] = useState<string | StyleSpecification>(BASEMAP_URL);
   const [hover, setHover] = useState<HoverInfo | null>(null);
@@ -177,9 +212,27 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
     [selectedId],
   );
 
+  const selectedSchoolFilter = useMemo(
+    () => ['==', ['get', 'id'], selectedSchoolId ?? ''] as ['==', ['get', string], string],
+    [selectedSchoolId],
+  );
+
   function handleMove(e: MapLayerMouseEvent) {
+    // Features kommen von oben nach unten: Schulen/Cluster vor Flächen
     const f = e.features?.[0];
-    setHover(f ? { lng: e.lngLat.lng, lat: e.lngLat.lat, props: f.properties as ScoredProperties } : null);
+    if (!f) return setHover(null);
+    const pos = { lng: e.lngLat.lng, lat: e.lngLat.lat };
+    if (f.layer.id === CLUSTER_LAYER_ID) {
+      setHover({
+        ...pos,
+        kind: 'cluster',
+        props: f.properties as Extract<HoverInfo, { kind: 'cluster' }>['props'],
+      });
+    } else if (f.layer.id === SCHOOL_LAYER_ID) {
+      setHover({ ...pos, kind: 'school', props: f.properties as SchoolPointProperties });
+    } else {
+      setHover({ ...pos, kind: 'region', props: f.properties as ScoredProperties });
+    }
   }
 
   function handleClick(e: MapLayerMouseEvent) {
@@ -190,7 +243,21 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
     }
     // Tooltip schließen: nach der Kamerafahrt stünde er sonst an fremder Stelle
     setHover(null);
-    onSelect?.((f.properties as ScoredProperties).id);
+    if (f.layer.id === CLUSTER_LAYER_ID) {
+      zoomIntoCluster(f.properties.cluster_id as number, e.lngLat);
+    } else if (f.layer.id === SCHOOL_LAYER_ID) {
+      onSelectSchool?.((f.properties as SchoolPointProperties).id);
+    } else {
+      onSelect?.((f.properties as ScoredProperties).id);
+    }
+  }
+
+  async function zoomIntoCluster(clusterId: number, center: { lng: number; lat: number }) {
+    const map = mapRef.current;
+    const source = map?.getSource('schools') as GeoJSONSource | undefined;
+    if (!map || !source) return;
+    const zoom = await source.getClusterExpansionZoom(clusterId);
+    map.easeTo({ center: [center.lng, center.lat], zoom, duration: 600 });
   }
 
   /** Auf schmalen Screens startet MapLibre die Attribution aufgeklappt – mit BKG-Text verdeckt sie die Legende. */
@@ -199,7 +266,15 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
     attrib?.classList.remove('maplibregl-compact-show');
   }
 
-  const hoverLevel = hover ? scoreToLevel(hover.props.score < 0 ? null : hover.props.score) : null;
+  const hoverScore =
+    hover?.kind === 'cluster'
+      ? hover.props.scoredN > 0
+        ? hover.props.weighted / hover.props.scoredN
+        : null
+      : hover && hover.props.score >= 0
+        ? hover.props.score
+        : null;
+  const hoverLevel = scoreToLevel(hoverScore);
 
   return (
     <MapGL
@@ -219,7 +294,7 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
           mapRef.current?.easeTo({ pitch: targetPitch, duration: 400 });
         }
       }}
-      interactiveLayerIds={[FILL_LAYER_ID]}
+      interactiveLayerIds={[FILL_LAYER_ID, SCHOOL_LAYER_ID, CLUSTER_LAYER_ID]}
       onMouseMove={handleMove}
       onMouseLeave={() => setHover(null)}
       onClick={handleClick}
@@ -329,7 +404,7 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
               'fill-color': MOOD_FILL_EXPRESSION as unknown as string,
-              'fill-opacity': REGION_FILL_OPACITY,
+              'fill-opacity': regionFillOpacity(muted),
             }}
           />
           <Layer id="regions-outline" type="line" paint={{ 'line-color': '#ffffff', 'line-width': 1 }} />
@@ -338,6 +413,71 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
             type="line"
             filter={selectedFilter}
             paint={{ 'line-color': '#0f172a', 'line-width': 3 }}
+          />
+        </Source>
+      )}
+      {schools && (
+        <Source
+          // Cluster-Optionen lassen sich nicht live ändern → Source beim Umschalten neu anlegen
+          key={clusterSchools ? 'clustered' : 'points'}
+          id="schools"
+          type="geojson"
+          data={schools}
+          promoteId="id"
+          cluster={clusterSchools}
+          clusterMaxZoom={12}
+          clusterRadius={44}
+          clusterProperties={{ weighted: ['+', ['get', 'weighted']], scoredN: ['+', ['get', 'scoredN']] }}
+        >
+          <Layer
+            id={CLUSTER_LAYER_ID}
+            type="circle"
+            filter={['has', 'point_count']}
+            paint={{
+              'circle-color': moodColorExpression(CLUSTER_SCORE) as unknown as string,
+              'circle-radius': ['step', ['get', 'point_count'], 13, 10, 17, 30, 22],
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 2,
+              'circle-opacity': 0.92,
+            }}
+          />
+          {/* Symbol-Layer brauchen Glyphen – die hat nur der Positron-Stil, nicht der Fallback */}
+          {mapStyle === BASEMAP_URL && (
+            <Layer
+              id="schools-cluster-count"
+              type="symbol"
+              filter={['has', 'point_count']}
+              layout={{
+                'text-field': ['get', 'point_count_abbreviated'],
+                'text-font': ['Noto Sans Bold'],
+                'text-size': 12,
+                'text-allow-overlap': true,
+              }}
+              paint={{ 'text-color': '#0f172a', 'text-halo-color': '#ffffff', 'text-halo-width': 1.2 }}
+            />
+          )}
+          <Layer
+            id={SCHOOL_LAYER_ID}
+            type="circle"
+            filter={['!', ['has', 'point_count']]}
+            paint={{
+              'circle-color': moodColorExpression(['get', 'score']) as unknown as string,
+              // Fläche ~ n: Radius ~ √n (docs/DESIGN.md §5)
+              'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 2, 5, 20, 12],
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 1.5,
+            }}
+          />
+          <Layer
+            id="schools-selected"
+            type="circle"
+            filter={['all', ['!', ['has', 'point_count']], selectedSchoolFilter]}
+            paint={{
+              'circle-color': 'rgba(0,0,0,0)',
+              'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 2, 9, 20, 16],
+              'circle-stroke-color': '#0f172a',
+              'circle-stroke-width': 3,
+            }}
           />
         </Source>
       )}
@@ -352,14 +492,25 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
           className="pointer-events-none [&_*]:pointer-events-none"
         >
           <div className="text-sm">
-            <div className="font-semibold">{hover.props.name}</div>
-            {hoverLevel ? (
+            <div className="font-semibold">
+              {hover.kind === 'cluster' ? `${hover.props.point_count} Schulen` : hover.props.name}
+            </div>
+            {hover.kind === 'school' && (
+              <div className="text-xs text-slate-500">
+                {hover.props.form} · {hover.props.city}
+              </div>
+            )}
+            {hoverLevel && hoverScore != null ? (
               <div>
-                {hoverLevel.weather} {Math.round(hover.props.score)} · {hoverLevel.label} · n ={' '}
-                {hover.props.n}
+                {hoverLevel.weather} {hover.kind === 'cluster' && 'Ø '}
+                {Math.round(hoverScore)} · {hoverLevel.label}
+                {hover.kind !== 'cluster' && <> · n = {hover.props.n}</>}
               </div>
             ) : (
               <div className="text-slate-500">{NO_DATA.label}</div>
+            )}
+            {hover.kind === 'cluster' && (
+              <div className="text-xs text-slate-500">Klicken zum Hineinzoomen</div>
             )}
           </div>
         </Popup>
