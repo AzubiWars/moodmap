@@ -10,16 +10,28 @@ export interface MoodLevelInfo {
   /** Untergrenze des Score-Bereichs (inklusiv) */
   min: number;
   color: string;
+  /** Lesbare Textfarbe auf `color` (WCAG-Kontrast) */
+  textColor: string;
   weather: string;
+  /** Emoji für die Antwortskala im Mood-Check */
+  face: string;
   label: string;
 }
 
 export const MOOD_LEVELS: readonly MoodLevelInfo[] = [
-  { level: 1, min: 0, color: '#C2263C', weather: '⛈️', label: 'sehr schlecht' },
-  { level: 2, min: 20, color: '#F07B4F', weather: '🌧️', label: 'schlecht' },
-  { level: 3, min: 40, color: '#F6D365', weather: '⛅', label: 'gemischt' },
-  { level: 4, min: 60, color: '#7FC4DE', weather: '🌤️', label: 'gut' },
-  { level: 5, min: 80, color: '#2F7FC1', weather: '☀️', label: 'sehr gut' },
+  {
+    level: 1,
+    min: 0,
+    color: '#C2263C',
+    textColor: '#FFFFFF',
+    weather: '⛈️',
+    face: '😫',
+    label: 'sehr schlecht',
+  },
+  { level: 2, min: 20, color: '#F07B4F', textColor: '#0F172A', weather: '🌧️', face: '😕', label: 'schlecht' },
+  { level: 3, min: 40, color: '#F6D365', textColor: '#0F172A', weather: '⛅', face: '😐', label: 'gemischt' },
+  { level: 4, min: 60, color: '#7FC4DE', textColor: '#0F172A', weather: '🌤️', face: '🙂', label: 'gut' },
+  { level: 5, min: 80, color: '#2B78B8', textColor: '#FFFFFF', weather: '☀️', face: '🤩', label: 'sehr gut' },
 ];
 
 export const NO_DATA = { color: '#B8BCC6', weather: '░', label: 'zu wenige Daten' } as const;

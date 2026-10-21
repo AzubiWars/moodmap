@@ -18,12 +18,7 @@ import {
 
 let nextResponseId = 0;
 
-const mood = (
-  value: number,
-  topicSlug = 'ai',
-  weight?: number,
-  invert?: boolean,
-): AnswerScoreInput => ({
+const mood = (value: number, topicSlug = 'ai', weight?: number, invert?: boolean): AnswerScoreInput => ({
   responseId: `mood-${nextResponseId++}`,
   topicSlug,
   type: 'mood5',
@@ -75,10 +70,7 @@ describe('scoreAnswer', () => {
 
 describe('topicScore', () => {
   it('uses the weighted mean of core and swipe answers', () => {
-    const answers = [
-      ...repeat(10, () => mood(5, 'ai', 1)),
-      ...repeat(10, () => swipe(0, 'ai', 0.5)),
-    ];
+    const answers = [...repeat(10, () => mood(5, 'ai', 1)), ...repeat(10, () => swipe(0, 'ai', 0.5))];
 
     expect(topicScore(answers, 'ai')).toEqual({ n: 20, score: 66.7 });
   });
@@ -90,12 +82,28 @@ describe('topicScore', () => {
   });
 
   it('returns null below K_MIN but keeps n', () => {
-    expect(topicScore(repeat(9, () => mood(5)), 'ai')).toEqual({ n: 9, score: null });
-    expect(topicScore(repeat(10, () => mood(5)), 'ai')).toEqual({ n: 10, score: 100 });
+    expect(
+      topicScore(
+        repeat(9, () => mood(5)),
+        'ai',
+      ),
+    ).toEqual({ n: 9, score: null });
+    expect(
+      topicScore(
+        repeat(10, () => mood(5)),
+        'ai',
+      ),
+    ).toEqual({ n: 10, score: 100 });
   });
 
   it('respects a custom kMin', () => {
-    expect(topicScore(repeat(5, () => mood(5)), 'ai', 5)).toEqual({ n: 5, score: 100 });
+    expect(
+      topicScore(
+        repeat(5, () => mood(5)),
+        'ai',
+        5,
+      ),
+    ).toEqual({ n: 5, score: 100 });
   });
 
   it('suppresses four participants answering three questions each', () => {
@@ -137,11 +145,21 @@ describe('topicScore', () => {
   });
 
   it('excludes weight 0 and unknown topics', () => {
-    expect(topicScore(repeat(10, () => swipe(1, 'voice', 0)), 'voice')).toEqual({
+    expect(
+      topicScore(
+        repeat(10, () => swipe(1, 'voice', 0)),
+        'voice',
+      ),
+    ).toEqual({
       n: 0,
       score: null,
     });
-    expect(topicScore(repeat(10, () => mood(5)), 'stress')).toEqual({ n: 0, score: null });
+    expect(
+      topicScore(
+        repeat(10, () => mood(5)),
+        'stress',
+      ),
+    ).toEqual({ n: 0, score: null });
   });
 });
 
@@ -219,9 +237,7 @@ describe('tensionLevel', () => {
 
 describe('tensionIndex', () => {
   const allAt = (score: number): Record<string, TopicScore> =>
-    Object.fromEntries(
-      Object.keys(TENSION_WEIGHTS).map((slug) => [slug, topic(score)]),
-    );
+    Object.fromEntries(Object.keys(TENSION_WEIGHTS).map((slug) => [slug, topic(score)]));
 
   it('computes 100 minus the weighted topic scores', () => {
     expect(tensionIndex(allAt(50))).toEqual({

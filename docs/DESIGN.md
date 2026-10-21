@@ -18,7 +18,7 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 | 20–39 | schlecht | 🌧️ | `--mood-2` | `#F07B4F` |
 | 40–59 | gemischt | ⛅ | `--mood-3` | `#F6D365` |
 | 60–79 | gut | 🌤️ | `--mood-4` | `#7FC4DE` |
-| 80–100 | sehr gut | ☀️ | `--mood-5` | `#2F7FC1` |
+| 80–100 | sehr gut | ☀️ | `--mood-5` | `#2B78B8` |
 | – | zu wenige Daten | ░ | `--mood-none` | `#B8BCC6` + Schraffur |
 
 - Auf der Karte: **5 diskrete Stufen** (MapLibre `step`-Expression), exakt wie die Legende. Keine Interpolation: Gelb↔Blau gemischt ergibt Grüntöne, die nicht in der Legende stehen.

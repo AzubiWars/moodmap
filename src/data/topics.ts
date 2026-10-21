@@ -164,12 +164,7 @@ const mood5 = (topicSlug: string, text: string): Question => ({
   audience: 'student',
 });
 
-const choice = (
-  topicSlug: string,
-  text: string,
-  options: QuestionOption[],
-  multiple = false,
-): Question => ({
+const choice = (topicSlug: string, text: string, options: QuestionOption[], multiple = false): Question => ({
   id: `${topicSlug}.deep`,
   topicSlug,
   type: 'choice',
@@ -307,26 +302,21 @@ export const QUESTIONS: readonly Question[] = [
   swipe('building', 'toilet', 'Ich gehe in der Schule ohne Bedenken auf die Toilette.'),
   swipe('voice', 'change', 'Wenn wir Schüler:innen Probleme ansprechen, ändert sich auch etwas.'),
   // Zählt nicht in den Score, nur in die Verteilung (docs/SURVEY_TOPICS.md §2).
-  swipe(
-    'voice',
-    'talk',
-    'Ich würde gern direkt mit Politiker:innen über Schule sprechen.',
-    0,
-  ),
+  swipe('voice', 'talk', 'Ich würde gern direkt mit Politiker:innen über Schule sprechen.', 0),
   swipe('safety', 'conflict', 'Wenn es an meiner Schule Streit gibt, wird er gut gelöst.'),
 ];
 
-export const P0_TOPIC_SLUGS: readonly string[] = TOPICS.filter(
-  (topic) => topic.priority === 'P0',
-).map((topic) => topic.slug);
+export const P0_TOPIC_SLUGS: readonly string[] = TOPICS.filter((topic) => topic.priority === 'P0').map(
+  (topic) => topic.slug,
+);
 
-export const P1_TOPIC_SLUGS: readonly string[] = TOPICS.filter(
-  (topic) => topic.priority === 'P1',
-).map((topic) => topic.slug);
+export const P1_TOPIC_SLUGS: readonly string[] = TOPICS.filter((topic) => topic.priority === 'P1').map(
+  (topic) => topic.slug,
+);
 
-export const MANDATORY_TOPIC_SLUGS: readonly string[] = TOPICS.filter(
-  (topic) => topic.mandatory,
-).map((topic) => topic.slug);
+export const MANDATORY_TOPIC_SLUGS: readonly string[] = TOPICS.filter((topic) => topic.mandatory).map(
+  (topic) => topic.slug,
+);
 
 export const TOPICS_BY_SLUG: Readonly<Record<string, Topic>> = Object.fromEntries(
   TOPICS.map((topic) => [topic.slug, topic]),
@@ -345,7 +335,5 @@ export function getQuestionsForTopic(topicSlug: string): Question[] {
 }
 
 export function getCoreQuestion(topicSlug: string): Question | undefined {
-  return QUESTIONS.find(
-    (question) => question.topicSlug === topicSlug && question.type === 'mood5',
-  );
+  return QUESTIONS.find((question) => question.topicSlug === topicSlug && question.type === 'mood5');
 }
