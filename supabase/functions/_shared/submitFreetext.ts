@@ -93,25 +93,24 @@ async function findResponseId(
   }
 }
 
-/** Repeat calls for an already stored text must not trigger another LLM request. */
-async function hasFreetext(
+/** Atomic one-attempt allowance. Fail closed: a database failure must never spend an LLM call. */
+async function claimModeration(
   responseId: string,
   deps: SubmitFreetextDeps,
   fetchImpl: typeof fetch,
-): Promise<boolean> {
+): Promise<'claimed' | 'used' | 'unavailable'> {
   try {
-    const url = new URL(`${deps.supabaseUrl}/rest/v1/freetext_entries`);
-    url.searchParams.set('select', 'response_id');
-    url.searchParams.set('response_id', `eq.${responseId}`);
-    url.searchParams.set('limit', '1');
-    const response = await fetchImpl(url, { headers: restHeaders(deps.serviceRoleKey) });
-    if (!response.ok) return false;
-    const rows = (await response.json()) as unknown[];
-    return rows.length > 0;
+    const response = await fetchImpl(`${deps.supabaseUrl}/rest/v1/rpc/claim_freetext_moderation`, {
+      method: 'POST',
+      headers: restHeaders(deps.serviceRoleKey),
+      body: JSON.stringify({ response_id: responseId }),
+      signal: AbortSignal.timeout(5_000),
+    });
+    if (!response.ok) return 'unavailable';
+    const claimed: unknown = await response.json();
+    return claimed === true ? 'claimed' : claimed === false ? 'used' : 'unavailable';
   } catch {
-    // Do not block the text just because the pre-check failed; record_freetext still enforces
-    // the one-entry-per-response rule.
-    return false;
+    return 'unavailable';
   }
 }
 
@@ -169,7 +168,11 @@ export async function submitFreetext(
     // No survey participation for this device/wave: do not call the LLM at all.
     return { status: 403, body: { ok: false, reason: 'no_response' } };
   }
-  if (await hasFreetext(responseId, deps, fetchImpl)) {
+  const claim = await claimModeration(responseId, deps, fetchImpl);
+  if (claim === 'unavailable') {
+    return { status: 503, body: { ok: false, reason: 'unavailable' } };
+  }
+  if (claim === 'used') {
     return { status: 200, body: { ok: true, stored: false, reason: 'already_submitted' } };
   }
 
