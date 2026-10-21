@@ -26,6 +26,8 @@
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 (Session #32)** – `/privacy` in einfacher Sprache als sechs `<details>`-Akkordeons (Überschrift im `summary`), Hilfe-Hinweis 116 111 unten. Textgrundlage: `docs/PRIVACY.md` + Entwurf von MaxAmor (#32-Kommentar). Rechtsbezüge (SchulG NRW, „juristisch geprüft“) bewusst nicht übernommen, da nicht belegt. Lehre: Vitest-Läufe über `supabase/tests` schlagen ohne laufende DB fehl (Hook-Timeout), `npx vitest run src` ist der sinnvolle Check.
+
 - **2026-10-21 12:30** – #11 und #12 umgesetzt. `useParticipantStore` (`moodmap:participant:v1`) hält Schule + Stufe. Check-Flow: `selectQuestions` (9 Kernfragen, deterministisch), reiner Reducer `checkFlow.ts` (Karten = `Question[]`, #31 hängt `swipe` in `cardsOf` ein), `useCheckFlow` sendet über `getDataSource()`. Lokales Flag `moodmap:submitted:<waveId>`. `/check/done` ist Platzhalter bis #29. Lehre: `resetDemoData` kannte nur `moodmap.`-Keys, jetzt auch `moodmap:`.
 
 - **2026-10-21 11:10** – #10 hat der Lead in #63 gebaut. Nachtrag: semantische Tokens (`surface/card/subtle/border/fg/muted/primary/accent`), Utilities `card` + `no-data`, Inter via Fontsource, Header-Slot `data-slot="header-actions"`. Für #35 nur Tokens unter `.dark` umdefinieren. Screenshots 375 px: headless Chrome hat Mindestbreite → playwright-core mit `channel: 'chrome'` nutzen.
