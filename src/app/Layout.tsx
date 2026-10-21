@@ -1,6 +1,7 @@
 import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { DemoBanner } from '@/components/DemoBanner';
+import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -38,7 +39,10 @@ export function Layout() {
             ))}
           </nav>
           {/* Slot für Rollen-Umschalter (#30) und Theme-Toggle (#35) */}
-          <div className="flex items-center gap-2" data-slot="header-actions" />
+          <div className="flex items-center gap-2" data-slot="header-actions">
+            <RoleSwitcher variant="segmented" className="hidden lg:inline-flex" />
+            <RoleSwitcher variant="compact" className="lg:hidden" />
+          </div>
         </div>
       </header>
 
