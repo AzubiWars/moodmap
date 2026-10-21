@@ -1,6 +1,7 @@
 import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { DemoBanner } from '@/components/DemoBanner';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -37,8 +38,9 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          {/* Slot für Rollen-Umschalter (#30) und Theme-Toggle (#35) */}
-          <div className="flex items-center gap-2" data-slot="header-actions" />
+          <div className="flex items-center gap-2" data-slot="header-actions">
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
