@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AppLogo } from '@/components/brand/AppLogo';
+import type { LogoVariant } from '@/components/brand/logoMarkup';
 import { MoodBadge } from '@/components/MoodBadge';
 import { MoodScaleInput, type MoodValue } from '@/components/MoodScaleInput';
 import { ScoreBar } from '@/components/ScoreBar';
@@ -7,6 +9,10 @@ import { WeatherIcon } from '@/components/WeatherIcon';
 import { TOPICS } from '@/data/topics';
 
 const SAMPLE_SCORES = [8, 31, 52, 68, 91, null] as const;
+const LOGO_VARIANTS: { variant: LogoVariant; title: string }[] = [
+  { variant: 'smiley', title: 'Variante A – NRW + Smiley' },
+  { variant: 'handshake', title: 'Variante B – NRW + Handschlag' },
+];
 const SEMANTIC_TOKENS = ['surface', 'card', 'subtle', 'border', 'fg', 'muted', 'primary', 'accent'] as const;
 
 /** /demo/components – Übersicht der Basis-Komponenten für visuelle Reviews (#10). */
@@ -72,6 +78,40 @@ export function ComponentGallery() {
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2">
           {TOPICS.map((t) => (
             <TopicChip key={t.slug} topic={t} selected={topic === t.slug} onClick={setTopic} />
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">App-Icon (#91) – bitte wählen</h2>
+        <p className="text-sm text-muted">
+          NRW-Umriss aus den Regierungsbezirken (BKG, dl-de/by-2-0), je mit Smiley oder Handschlag.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {LOGO_VARIANTS.map(({ variant, title }) => (
+            <div key={variant} className="card space-y-4 p-4">
+              <p className="font-semibold">{title}</p>
+              <div className="flex flex-wrap items-end gap-4">
+                <AppLogo variant={variant} className="size-32" label={title} />
+                <AppLogo variant={variant} className="size-16" />
+                <AppLogo variant={variant} className="size-8" />
+                <AppLogo variant={variant} className="size-6" />
+                <AppLogo variant={variant} className="size-4" />
+              </div>
+              <div className="flex items-center gap-3 text-sm text-muted">
+                <span
+                  className="inline-block size-16 overflow-hidden rounded-full bg-mood-5"
+                  title="Maskable, Kreis-Zuschnitt"
+                >
+                  <img src={`/brand/logo-${variant}-maskable.svg`} alt="" className="size-full" />
+                </span>
+                Maskable (Kreis-Zuschnitt, Safe-Zone)
+              </div>
+              <div className="flex items-center gap-2 font-bold">
+                <AppLogo variant={variant} className="size-7" />
+                Moodmap <span className="text-mood-5">NRW</span>
+              </div>
+            </div>
           ))}
         </div>
       </section>
