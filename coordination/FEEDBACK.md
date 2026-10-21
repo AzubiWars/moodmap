@@ -25,7 +25,17 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 
 > Hier schreibt der Lead nach jedem Meilenstein, was neu ist und wie man es testet.
 
-- *(noch nichts – Setup läuft)*
+**Stand 2026-10-21 11:30 (Lead):** Fundament steht. Vercel ist noch **nicht** verbunden (#3, bitte einrichten). Bis dahin lokal testen:
+
+```bash
+git pull && npm install && npm run dev   # → http://localhost:5173
+```
+
+- `/map`: NRW-Karte mit 53 Kreisen (echte BKG-Grenzen), eingefärbt nach Stimmung. Hover zeigt Details, Klick zoomt hinein. *Die Werte sind noch Platzhalter, echte Demo-Daten kommen mit #8/#9.*
+- `/demo/components`: alle Basis-Bausteine (Wetter-Badges, Balken, Themen-Chips, 5er-Antwortskala). Gut, um Farben und Texte zu bewerten.
+- Auf dem Handy: Bottom-Navigation und kompakte Legende.
+
+Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Template „Feedback“.
 
 ---
 
