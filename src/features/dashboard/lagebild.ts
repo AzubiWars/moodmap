@@ -31,28 +31,6 @@ export interface Combined {
 const LEVELS = [1, 2, 3, 4, 5] as const;
 
 /**
- * Demo-Fallback für Supabase: `get_aggregates` liefert dort (noch) keine Verteilung.
- * Aus Score und n wird eine plausible 5er-Verteilung erzeugt, damit die Pitch-Demo
- * Prozentbalken und Brennpunkte zeigt. Mock-Daten nutzen weiterhin die echte Verteilung.
- */
-function demoDistribution(score: number, n: number): MoodDistribution {
-  const centers = [10, 30, 50, 70, 90];
-  const weights = centers.map((center) => Math.exp(-((center - score) ** 2) / (2 * 20 ** 2)));
-  const total = weights.reduce((sum, value) => sum + value, 0);
-  const exact = weights.map((weight) => (weight / total) * n);
-  const counts = exact.map(Math.floor);
-  let missing = n - counts.reduce((sum, value) => sum + value, 0);
-  const order = exact
-    .map((_, i) => i)
-    .sort((a, b) => exact[b]! - counts[b]! - (exact[a]! - counts[a]!) || a - b);
-  for (const i of order) {
-    if (missing-- <= 0) break;
-    counts[i]! += 1;
-  }
-  return { 1: counts[0]!, 2: counts[1]!, 3: counts[2]!, 4: counts[3]!, 5: counts[4]! };
-}
-
-/**
  * Fasst Zeilen zusammen. n und Verteilungen addieren sich exakt (jede Teilnahme gehört zu genau einer Zeile);
  * Score und Δ sind nach n gewichtet. Bei einer einzelnen Zeile (`level: 'nrw'`) werden die Werte
  * unverändert übernommen.
@@ -77,10 +55,8 @@ export function combineRows(rows: readonly AggregateRow[], kMin: number): Combin
     for (const level of LEVELS) distribution[level] += row.distribution[level];
   }
   if (n < kMin) return { n, score: null, delta: null, distribution: null };
-  const score = weighted((row) => row.score);
-  // Supabase liefert derzeit keine Rohverteilung – für den Pitch aus dem Score ableiten.
-  if (!distribution && score != null) distribution = demoDistribution(score, n);
-  return { n, score, delta: weighted((row) => row.delta), distribution };
+  // Keine Schätzung mehr: SQL und Mock liefern die echte mood5-Verteilung (#222).
+  return { n, score: weighted((row) => row.score), delta: weighted((row) => row.delta), distribution };
 }
 
 export interface Sentiment {

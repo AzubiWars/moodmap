@@ -152,22 +152,26 @@ export function aggregateRows(
     const count = new Set(answers.filter((a) => liveIds.has(a.responseId)).map((a) => a.responseId)).size;
     return count < kMin ? null : count;
   };
-  return [...new Set(schools.map((school) => schoolGroupId(school, query.level)))].sort().map((id) => {
-    const answers = current.get(id) ?? [];
-    const result = summarize(answers, query.topic, kMin);
-    const before = summarize(previous.get(id) ?? [], query.topic, kMin);
-    return {
-      id,
-      ...result.total,
-      delta: delta(result.total, before.total, kMin),
-      // Nur gesetzt, wenn es echte Stimmen ≥ K_MIN gibt – reine Seed-Zeilen bleiben identisch zur SQL-RPC (Paritätstest)
-      ...(liveCount(answers) != null ? { liveN: liveCount(answers) } : {}),
-      topicScores: Object.fromEntries(
-        Object.entries(result.topics).map(([slug, entry]) => [slug, entry.score]),
-      ),
-      ...(query.topic === 'all'
-        ? {}
-        : { distribution: moodDistribution(answers, query.topic, result.total.n, kMin) }),
-    };
-  });
+  const resultRows = [...new Set(schools.map((school) => schoolGroupId(school, query.level)))]
+    .sort()
+    .map((id) => {
+      const answers = current.get(id) ?? [];
+      const result = summarize(answers, query.topic, kMin);
+      const before = summarize(previous.get(id) ?? [], query.topic, kMin);
+      return {
+        id,
+        ...result.total,
+        delta: delta(result.total, before.total, kMin),
+        // Nur gesetzt, wenn es echte Stimmen ≥ K_MIN gibt – reine Seed-Zeilen bleiben identisch zur SQL-RPC (Paritätstest)
+        ...(liveCount(answers) != null ? { liveN: liveCount(answers) } : {}),
+        topicScores: Object.fromEntries(
+          Object.entries(result.topics).map(([slug, entry]) => [slug, entry.score]),
+        ),
+        ...(query.topic === 'all'
+          ? {}
+          : { distribution: moodDistribution(answers, query.topic, result.total.n, kMin) }),
+      };
+    });
+  // Like the SQL RPC (#219): a school without scored answers has no row; districts keep their empty rows.
+  return query.level === 'school' ? resultRows.filter((row) => row.n > 0) : resultRows;
 }

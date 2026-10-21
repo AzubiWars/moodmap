@@ -121,14 +121,11 @@ describe('mock aggregates', () => {
     ).toMatchObject({ n: 4, score: null, topicScores: { ai: null } });
   });
 
-  it('applies every filter before K_MIN and keeps empty units grey', () => {
+  it('applies every filter before K_MIN, omits empty school rows and keeps empty districts grey', () => {
     const data = dataset(cohort(10, 'a', 5));
     expect(
       aggregateRows(data, { level: 'school', topic: 'ai', gradeBand: ['oberstufe'] }, ['current'], [], 10),
-    ).toMatchObject([
-      { id: 'a', n: 0, score: null },
-      { id: 'b', n: 0, score: null },
-    ]);
+    ).toEqual([]);
     expect(
       aggregateRows(data, { level: 'kreis', topic: 'ai', role: 'teacher' }, ['current'], [], 10)[0]?.score,
     ).toBeNull();
