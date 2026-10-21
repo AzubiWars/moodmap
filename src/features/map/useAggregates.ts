@@ -5,7 +5,7 @@ import type { AggregateRow, DataLevel, TopicSlug } from '@/types';
 
 export type MapTopic = TopicSlug | 'all';
 
-export type ScoreMap = ReadonlyMap<string, { score: number | null; n: number }>;
+export type ScoreMap = ReadonlyMap<string, { score: number | null; n: number; delta?: number | null }>;
 
 const EMPTY: ScoreMap = new Map();
 
@@ -34,7 +34,7 @@ export function useAggregates(
 
 export function toScoreMap(rows: readonly AggregateRow[] | undefined): ScoreMap {
   if (!rows) return EMPTY;
-  return new Map(rows.map((row) => [row.id, { score: row.score, n: row.n }]));
+  return new Map(rows.map((row) => [row.id, { score: row.score, n: row.n, delta: row.delta }]));
 }
 
 /** Neue Antwort (Mood-Check, anderer Tab) → alle Aggregate neu laden. Basis für den Live-Modus #24. */

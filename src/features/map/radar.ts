@@ -1,13 +1,6 @@
 import { MOOD_LEVELS, NO_DATA } from '@/lib/colors';
 import type { TensionLevel, TensionRow, TopicSlug } from '@/types';
 
-/** Kartenmodi (#42; Trend & Beteiligung folgen mit #21). */
-export type MapMode = 'mood' | 'radar';
-
-export function parseMapMode(value: string | null): MapMode {
-  return value === 'radar' ? 'radar' : 'mood';
-}
-
 /**
  * Stufen des Spannungs-Index (docs/PRODUCT_SPEC.md §3.10). Bewusst keine Alarm-/Gefahrensprache
  * (docs/PRIVACY.md §7): „Gespräch suchen“ statt „Risiko“.
