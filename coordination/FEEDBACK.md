@@ -32,7 +32,7 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 3. **`/demo`:** Rollen-Umschalter (Schüler:in · Schule · Ministerium), QR-Code, Demo-Daten zurücksetzen.
 4. **Als App installieren** (PWA): Android „App installieren“, iPhone „Zum Home-Bildschirm“.
 
-**Neu auf `main`:** Lagebild mit Prozent-Statistik (#25), Frühwarn-Radar (#42), weitere Kartenfilter (#20), Trend-/Beteiligungsmodus (#21), Demo-/Live-Kennzeichnung (#160), Offline-Puffer für Abgaben (#36), Deutschland-Maske (#132). **In Arbeit:** Beamer-Live-Ansicht (#116), Lasttest (#117), „Politik antwortet“ (#43), App-Icon-Auswahl (#91, zwei Varianten unter `/demo/components`), Zeitachse (#34). Der Supabase-Live-Modus ist im Code fertig (#23), braucht aber noch Function-Deployments und Vercel-Env (#118).
+**Neu auf `main`:** Lagebild mit Prozent-Statistik (#25), Frühwarn-Radar (#42), weitere Kartenfilter (#20), Trend-/Beteiligungsmodus (#21), Demo-/Live-Kennzeichnung (#160), Offline-Puffer für Abgaben (#36), Deutschland-Maske (#132), neues App-Icon Variante B (#91/#182), Freitext-Cluster-Daten für den Beamer (#194). **In Arbeit:** Beamer-Live-Ansicht (#116), Lasttest (#117), „Politik antwortet“ (#43), Zeitachse (#34). Der Supabase-Live-Modus ist im Code fertig (#23), braucht aber noch Function-Deployments und Vercel-Env (#118).
 
 ---
 
@@ -50,7 +50,7 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 - **Gerät/Ansicht:** Pitch
 - **Feedback:** Für den Pitch einen Live-Mood-Check per QR-Code simulieren, den wir in der Demo zurücksetzen können, für einen Test-Kreis bzw. -Standort außerhalb NRW. Etwa 100–200 Leute nehmen live teil (Test-Modus). Außerdem die freie Eingabe testen: Sie wird von einer KI über OpenRouter geprüft, nach Themen geclustert, und Schimpfwörter bzw. unpassende Jugendwörter werden herausgenommen.
 - **Wichtigkeit:** 🔥
-- **Status:** 🟡 in Arbeit. Spec §3.12/§3.13, ADR-015/016. **Fertig/gemergt:** #23 SupabaseDataSource, #24 Live-Modus, #113 Test-Standort+Reset, #114/#115/#126/#152 Freitext (UI, Moderation, Speicherung, Cluster), #170 atomare Moderationsbegrenzung. Migrationen sind im gehosteten Projekt; PITCH-Standort aktiv. **Offen:** #116 Beamer-Ansicht, #117 Lasttest, Deployment der Edge Functions + Secrets/Vercel-Env. Fragen an euch: #118. **Von den Menschen gebraucht:** Ort/Name des Test-Standorts, OpenRouter-API-Key (als Supabase-Secret, nicht im Chat/Repo), Reset-PIN, Supabase-Access-Token für Function-Deployments.
+- **Status:** 🟡 in Arbeit. Spec §3.12/§3.13, ADR-015/016. **Fertig/gemergt:** #23 SupabaseDataSource, #24 Live-Modus, #113 Test-Standort+Reset, #114/#115/#126/#152 Freitext (UI, Moderation, Speicherung, Cluster), #170 atomare Moderationsbegrenzung, #194 Beamer-Datenzugriffe, #195 Publishable-Key-Fix. Migrationen sind im gehosteten Projekt; PITCH-Standort aktiv. **Offen:** #116 Beamer-Ansicht, #117 Lasttest, Deployment der Edge Functions + Secrets/Vercel-Env. Fragen an euch: #118. **Von den Menschen gebraucht:** Ort/Name des Test-Standorts, OpenRouter-API-Key (als Supabase-Secret, nicht im Chat/Repo), Reset-PIN, Supabase-Access-Token für Function-Deployments.
 
 ### FB-005 · Karte: Schulen und Detail je Kreis sehen
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:00
@@ -71,7 +71,7 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 - **Gerät/Ansicht:** Handy, installierte PWA
 - **Feedback:** PWA funktioniert. Das Icon gefällt nicht, ein Wetter-Icon passt nicht zum allgemeinen Mood-Konzept. Besser wäre vielleicht ein Kartensymbol von NRW mit Handschlag oder Smiley.
 - **Wichtigkeit:** 👍
-- **Status:** 🟡 PR #182 (Draft) mit zwei Varianten (Smiley/Handschlag) ist fertig und CI-grün; **die Variantenwahl liegt bei euch**. Die Wetter-Skala in der App bleibt vorerst (Annahme, siehe #91).
+- **Status:** 🟢 erledigt (#91/#182). Variante B (NRW + Handschlag) ist Favicon, Header-Logo und PWA-Icon. Die Wetter-Skala in der App bleibt vorerst (Annahme, siehe #91). Bitte nach dem Deploy die Installation auf einem echten Handy prüfen.
 
 ### FB-002 · Pitch-Fokus: Prävention – Politik und Schüler arbeiten zusammen
 - **Von:** Team · **Datum/Zeit:** 2026-10-21
