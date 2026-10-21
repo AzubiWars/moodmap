@@ -19,6 +19,13 @@ export const NRW_BOUNDS: Bounds = [
   [9.47, 52.54],
 ];
 
+/**
+ * Kartenrahmen um Deutschland (Deutschland: 5,9–15,0° O, 47,3–55,1° N). Im Westen bewusst großzügig: NRW liegt
+ * am Westrand, und die NRW-Startansicht soll auch auf breiten Bildschirmen mittig bleiben. Herauszoomen auf
+ * Europa/Welt und das Laden von Welt-Kacheln verhindert er trotzdem (#132).
+ */
+export const GERMANY_MAX_BOUNDS: [number, number, number, number] = [-4, 45.5, 19.5, 56.5];
+
 export const GEO_URLS = {
   regbez: '/geo/nrw-regbez.geojson',
   kreis: '/geo/nrw-kreise.geojson',
