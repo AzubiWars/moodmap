@@ -416,11 +416,11 @@ export function MoodMap({
       mapStyle={mapStyle}
       onLoad={() => setLoaded(true)}
       onStyleData={() => setMapReady(true)}
-      onZoomEnd={(event) => {
-        // Beim Reinzoomen automatisch in die 3D-Ansicht wechseln, damit Gebäude sichtbar werden.
-        if (event.viewState.zoom >= 15 && !is3d) onPitchChange?.(true);
+      onMoveEnd={(event) => {
+        // Ab Gebäude-Zoom automatisch 3D; darunter normal mit der manuellen Kippung synchronisieren.
+        if (event.viewState.zoom >= 15) onPitchChange?.(true);
+        else onPitchChange?.(event.viewState.pitch > 10);
       }}
-      onMoveEnd={(event) => onPitchChange?.(event.viewState.pitch > 10)}
       interactiveLayerIds={[
         FILL_LAYER_ID,
         SCHOOL_LAYER_ID,
