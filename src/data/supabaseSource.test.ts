@@ -34,6 +34,19 @@ afterEach(() => {
 });
 
 describe('SupabaseDataSource', () => {
+  it('registers the configured live source while keeping an independent mock default', async () => {
+    vi.stubEnv('VITE_DATA_MODE', 'supabase');
+    vi.stubEnv('VITE_SUPABASE_URL', url);
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'sb_publishable_public');
+    const fetcher = vi.fn<typeof fetch>(async () => json({ id: '2026-W43' }));
+    vi.stubGlobal('fetch', fetcher);
+    vi.resetModules();
+    const { getDataSource } = await import('./index');
+    expect(getDataSource()).not.toBe(getDataSource('mock'));
+    expect(await getDataSource().getCurrentWave()).toEqual({ id: '2026-W43' });
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+
   it('notifies other tabs with school IDs only and releases the channel on unsubscribe', async () => {
     const channel = {
       onmessage: null as ((event: MessageEvent) => void) | null,
@@ -103,7 +116,9 @@ describe('SupabaseDataSource', () => {
           ? { id: 'pitch-test', isTest: true }
           : path.endsWith('get_current_wave')
             ? { id: '2026-W43' }
-            : [],
+            : path.endsWith('get_choice_distribution')
+              ? null
+              : [],
       ),
     );
     expect(await source.getSchoolByCode(' PITCH ')).toMatchObject({ id: 'pitch-test', isTest: true });
@@ -111,6 +126,7 @@ describe('SupabaseDataSource', () => {
     await source.getAggregates(query);
     await source.getTrend({ ...query, waveIds: ['2026-W42', '2026-W43'] });
     await source.getTensionIndex(query);
+    await source.getChoiceDistribution('stress.deep', { level: 'kreis', id: '05111' });
     await source.getPolicyAnswers({ topics: ['stress'], regionIds: ['05111'] });
     await source.getTopics();
     const calls = fetcher.mock.calls.map(([target, init]) => ({
@@ -123,6 +139,10 @@ describe('SupabaseDataSource', () => {
       { path: '/rest/v1/rpc/get_aggregates', body: { query } },
       { path: '/rest/v1/rpc/get_trend', body: { query: { ...query, waveIds: ['2026-W42', '2026-W43'] } } },
       { path: '/rest/v1/rpc/get_tension_index', body: { query } },
+      {
+        path: '/rest/v1/rpc/get_choice_distribution',
+        body: { question_id: 'stress.deep', scope: { level: 'kreis', id: '05111' } },
+      },
       {
         path: '/rest/v1/rpc/get_policy_answers',
         body: { filter: { topics: ['stress'], regionIds: ['05111'] } },
