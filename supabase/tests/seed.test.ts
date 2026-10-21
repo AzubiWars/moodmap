@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { buildSeedSql, loadSeedSources, sqlLiteral } from '../../scripts/lib/supabase-seed.ts';
 import { asRole, createTestDb } from './harness.ts';
+import { generateSeedData } from '../../src/data/seed/generateSeed.ts';
 
 const seedSql = readFileSync(fileURLToPath(new URL('../seed.sql', import.meta.url)), 'utf8');
 const sources = loadSeedSources();
@@ -54,6 +55,23 @@ describe('supabase/seed.sql', () => {
     );
     expect(rows[0]!.options).toEqual(choice.options);
     expect(rows[0]!.weight).toBe(choice.weight ?? null);
+  });
+
+  it('accepts generated survey answers through the public submit RPC, including duplicate protection', async () => {
+    const seed = generateSeedData([...sources.schools.slice(0, 5)], { waveCount: 1 });
+    const { rows } = await db.query<{ id: string }>(`select public.get_current_wave() ->> 'id' as id`);
+    const inputs = seed.responses.map((response) => ({ ...response, waveId: rows[0]!.id }));
+    expect(inputs.length).toBeGreaterThan(10);
+    const submit = (input: unknown) =>
+      asRole(db, 'anon', () =>
+        db.query<{ result: unknown }>('select public.submit_response($1::jsonb) as result', [
+          JSON.stringify(input),
+        ]),
+      );
+    for (const input of inputs) expect((await submit(input)).rows[0]!.result).toEqual({ ok: true });
+    expect((await submit(inputs[0]!)).rows[0]!.result).toEqual({ ok: false, reason: 'already_submitted' });
+    const count = await db.query<{ n: number }>('select count(*)::int as n from public.responses');
+    expect(count.rows[0]!.n).toBe(inputs.length);
   });
 
   it('has gapless weekly waves starting Monday 00:00 in Berlin', async () => {

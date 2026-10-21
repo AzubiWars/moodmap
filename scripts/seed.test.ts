@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { School } from '../src/types/domain.ts';
+import { QUESTIONS_BY_ID } from '../src/data/topics.ts';
 import {
   DEFAULT_SEED,
   DEFAULT_WAVE_COUNT,
@@ -16,6 +17,39 @@ const path = (relative: string) => fileURLToPath(new URL(`../${relative}`, impor
 const schools = JSON.parse(readFileSync(path('public/data/schools.json'), 'utf8')) as School[];
 
 describe('seed generator (#8)', () => {
+  it('generates only unique, catalog-valid answers ready for submit_response', () => {
+    const data = generateSeedData(schools);
+    const errors = new Set<string>();
+    for (const response of data.responses) {
+      if (new Set(response.answers.map((a) => a.questionId)).size !== response.answers.length) {
+        errors.add('duplicate question');
+      }
+      for (const answer of response.answers) {
+        const q = QUESTIONS_BY_ID[answer.questionId];
+        if (!q) {
+          errors.add(`unknown question: ${answer.questionId}`);
+          continue;
+        }
+        if (q.audience && q.audience !== response.role) errors.add(`wrong audience: ${q.id}`);
+        if (q.type === 'choice') {
+          if (
+            !answer.choice?.length ||
+            (!q.multiple && answer.choice.length !== 1) ||
+            answer.value !== undefined ||
+            answer.choice.some((value) => !q.options?.some((o) => o.value === value))
+          )
+            errors.add(`invalid choice: ${q.id}`);
+        } else if (
+          !Number.isInteger(answer.value) ||
+          answer.choice !== undefined ||
+          !(q.type === 'swipe' ? [0, 1].includes(answer.value!) : answer.value! >= 1 && answer.value! <= 5)
+        )
+          errors.add(`invalid value: ${q.id}`);
+      }
+    }
+    expect([...errors]).toEqual([]);
+  });
+
   it('generates deterministic waves ending at 2026-W43', () => {
     const waves = generateWaves(10);
     expect(waves).toHaveLength(10);

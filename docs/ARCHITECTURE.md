@@ -285,6 +285,8 @@ Die Demo lebt von glaubwürdigen Mustern. Der Generator soll **deterministisch**
 
 Im Mock-Modus wird derselbe Generator im Browser ausgeführt (oder `public/data/seed.json` geladen).
 
+Die erzeugten Antworten verwenden ausschließlich Frage-IDs und Choice-Optionen aus `src/data/topics.ts`, Swipewerte `0/1` und jede Kernfrage höchstens einmal pro Teilnahme (#128). Regressionen validieren den gesamten Standard-Seed gegen den Katalog und reichen generierte Teilnahmen über das echte `submit_response`-RPC in PGlite ein. Das hält Browser-Demo und späteren Supabase-Import im selben Antwortvertrag. Geänderte Generatorversionen können bei gleichem Seed andere konkrete Stichproben erzeugen; Determinismus gilt innerhalb derselben Version.
+
 ## 8. Live-Demo-Fluss
 
 ```
