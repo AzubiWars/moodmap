@@ -286,7 +286,12 @@ export function MoodMap({
         collapseAttribution();
         setLoaded(true);
       }}
-      onError={() => setMapStyle((s) => (s === BASEMAP_URL ? BLANK_STYLE : s))}
+      onError={(e) => {
+        // Nur wenn der Basemap-Stil gar nicht lädt. Einzelne Kachel-Fehler (tragen eine sourceId) dürfen die
+        // Karte nicht mitten in der Demo auf den leeren Fallback umschalten und die Kamerafahrt abbrechen.
+        if ((e as unknown as { sourceId?: string }).sourceId || loaded) return;
+        setMapStyle((s) => (s === BASEMAP_URL ? BLANK_STYLE : s));
+      }}
       onZoomEnd={(event) => {
         // Ab Schulebene leicht kippen, damit die 3D-Gebäude sichtbar sind.
         const targetPitch = event.viewState.zoom >= 15 ? 45 : 0;
