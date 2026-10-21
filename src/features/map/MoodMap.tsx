@@ -418,7 +418,7 @@ export function MoodMap({
       onStyleData={() => setMapReady(true)}
       onMoveEnd={(event) => {
         // Ab Gebäude-Zoom automatisch 3D; darunter normal mit der manuellen Kippung synchronisieren.
-        if (event.viewState.zoom >= 15) onPitchChange?.(true);
+        if (event.viewState.zoom >= 14) onPitchChange?.(true);
         else onPitchChange?.(event.viewState.pitch > 10);
       }}
       interactiveLayerIds={[
@@ -448,7 +448,7 @@ export function MoodMap({
           source={BUILDING_SOURCE}
           source-layer={BUILDING_SOURCE_LAYER}
           type="fill-extrusion"
-          minzoom={15}
+          minzoom={14}
           beforeId={FIRST_SYMBOL_LAYER_IDS[theme]}
           paint={{
             'fill-extrusion-color': dark ? '#475569' : BUILDING_COLOR,
