@@ -35,6 +35,8 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+        // MapLibre (1,6 MB) nicht beim PWA-Install vorladen; erst bei /map per Runtime-Cache.
+        globIgnores: ['**/maplibre-gl-*.js', '**/maplibre-gl-*.css', '**/maplibre-gl-worker-*.mjs'],
         // der maplibre-gl-Chunk ist größer als das Workbox-Default-Limit (2 MiB)
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [
@@ -42,6 +44,11 @@ export default defineConfig({
             urlPattern: ({ url }) => url.pathname.startsWith('/geo/') || url.pathname.startsWith('/data/'),
             handler: 'StaleWhileRevalidate',
             options: { cacheName: 'moodmap-static-data' },
+          },
+          {
+            urlPattern: /\/assets\/maplibre-gl-/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'moodmap-maplibre', expiration: { maxEntries: 8 } },
           },
         ],
         skipWaiting: true,

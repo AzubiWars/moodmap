@@ -211,18 +211,20 @@ export function MapPage() {
     staleTime: Infinity,
     retry: false,
   });
-  const directoryQuery = useQuery({
-    queryKey: ['schools', 'directory'],
-    queryFn: loadSchoolDirectory,
-    staleTime: Infinity,
-    retry: false,
-  });
-
   const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
   const focusRegbezId = drill.regbez?.properties.id ?? null;
   const city = searchParams.get('city');
   const citySchools =
     city && schoolsQuery.data ? schoolsQuery.data.filter((school) => school.city === city) : [];
+  // Das 1,1-MB-Verzeichnis erst laden, wenn es gebraucht wird: Drill-down oder Suche.
+  const [directoryRequested, setDirectoryRequested] = useState(false);
+  const directoryQuery = useQuery({
+    queryKey: ['schools', 'directory'],
+    queryFn: loadSchoolDirectory,
+    enabled: directoryRequested || drill.level !== 'nrw' || Boolean(city),
+    staleTime: Infinity,
+    retry: false,
+  });
 
   // Landesansicht: Regierungsbezirke (Fallback: Kreise, falls die RegBez-Datei fehlt).
   // Ab Regierungsbezirk: alle Kreise, die außerhalb des Bezirks werden abgeblendet.
@@ -450,6 +452,7 @@ export function MapPage() {
             <MapSearch
               schools={schoolsQuery.data}
               directorySchools={directoryQuery.data}
+              onRequestDirectory={() => setDirectoryRequested(true)}
               kreise={kreiseQuery.data}
               regbez={regbezQuery.data}
               onSelectSchool={(school) => {
