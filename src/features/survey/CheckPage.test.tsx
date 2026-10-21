@@ -69,6 +69,7 @@ describe('CheckPage', () => {
         await answerScale(q.text, 'eher gut');
       }
     }
+    fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     await screen.findByText('FERTIG');
     expect(submit).toHaveBeenCalledTimes(1);
     const input = firstCall(submit);
@@ -92,6 +93,7 @@ describe('CheckPage', () => {
     expect(await screen.findByText('Noch eine kurze Frage')).toBeInTheDocument();
     fireEvent.click(screen.getAllByRole('button', { pressed: false }).at(0) as HTMLElement);
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     await screen.findByText('FERTIG');
     const last = firstCall(submit).answers.at(-1);
     expect(last?.questionId).toBe(`${qs[3]?.topicSlug}.deep`);
@@ -121,14 +123,56 @@ describe('CheckPage', () => {
     for (const q of questions()) await answerScale(q.text, 'geht so');
     // Tiefe Frage kann nur bei ≤ 3 erscheinen: „geht so" = 3
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     expect(await screen.findByText(/Nächster Mood-Check ab Montag/)).toBeInTheDocument();
   });
 
   it('offers a retry after an error and keeps the answers', async () => {
     const submit = setup({ ok: false, reason: 'error' });
     for (const q of questions()) await answerScale(q.text, 'richtig gut');
+    fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Nochmal versuchen' }));
     await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
     expect(submit.mock.calls[1]?.[0].answers).toEqual(firstCall(submit).answers);
+  });
+
+  it('moderates optional free text and stores the cleaned result', async () => {
+    const submit = setup();
+    for (const q of questions()) await answerScale(q.text, 'eher gut');
+
+    expect(
+      await screen.findByRole('heading', {
+        name: 'Was sollte sich an deiner Schule ändern?',
+      }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Dein Freitext' }), {
+      target: { value: 'Herr Müller ist oft zu schnell.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
+
+    await screen.findByText('FERTIG');
+    expect(submit).toHaveBeenCalledTimes(1);
+    const stored = JSON.parse(localStorage.getItem('moodmap.freetext.v1') ?? '{}') as {
+      cleaned?: string;
+    };
+    expect(stored.cleaned).toContain('eine Lehrkraft');
+    expect(stored.cleaned).not.toContain('Müller');
+  });
+
+  it('rejects a threatening free text without submitting it', async () => {
+    const submit = setup();
+    for (const q of questions()) await answerScale(q.text, 'eher gut');
+
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Dein Freitext' }), {
+      target: { value: 'Ich will dich umbringen.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Drohung|Gewalt/);
+    expect(submit).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Überspringen' }));
+    await screen.findByText('FERTIG');
+    expect(submit).toHaveBeenCalledTimes(1);
   });
 });

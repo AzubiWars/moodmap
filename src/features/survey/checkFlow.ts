@@ -1,10 +1,11 @@
 import { QUESTIONS_BY_ID } from '@/data/topics';
+import type { FreeTextModeration } from '@/lib/freeText';
 import type { AnswerInput, Question } from '@/types';
 
 /** Antwort auf eine Karte: Skalenwert (mood5/swipe) oder gewählte Optionen (choice). */
 export type CardAnswer = number | string[];
 
-export type CheckStatus = 'asking' | 'submitting' | 'done' | 'already' | 'error';
+export type CheckStatus = 'asking' | 'freetext' | 'submitting' | 'done' | 'already' | 'error';
 
 export interface CheckState {
   status: CheckStatus;
@@ -14,6 +15,8 @@ export interface CheckState {
   deep: Question | null;
   index: number;
   answers: Record<string, CardAnswer>;
+  /** Ergebnis der optionalen Freitext-Moderation; `null` = übersprungen. */
+  freeText: FreeTextModeration | null;
 }
 
 export type CheckAction =
@@ -21,13 +24,21 @@ export type CheckAction =
   | { type: 'SKIP' }
   | { type: 'BACK' }
   | { type: 'RETRY' }
+  | { type: 'FREETEXT'; freeText: FreeTextModeration | null }
   | { type: 'RESULT'; result: 'ok' | 'already' | 'error' };
 
 /** Vertiefung gibt es nur, wenn ein Thema mit Vertiefungsfrage schlecht bewertet wurde. */
 const DEEP_MAX_VALUE = 3;
 
 export function initialState(core: Question[], alreadySubmitted = false): CheckState {
-  return { status: alreadySubmitted ? 'already' : 'asking', core, deep: null, index: 0, answers: {} };
+  return {
+    status: alreadySubmitted ? 'already' : 'asking',
+    core,
+    deep: null,
+    index: 0,
+    answers: {},
+    freeText: null,
+  };
 }
 
 /** Alle Karten in Anzeige-Reihenfolge. Spätere Kartentypen (Swipe, #31) hängen hier ein. */
@@ -54,7 +65,7 @@ function advance(state: CheckState, answers: Record<string, CardAnswer>): CheckS
     const deep = pickDeepQuestion(state.core, answers);
     if (deep) return { ...state, answers, deep, index: state.index + 1 };
   }
-  return { ...state, answers, status: 'submitting', index: Math.min(state.index, cards.length - 1) };
+  return { ...state, answers, status: 'freetext', index: Math.min(state.index, cards.length - 1) };
 }
 
 export function checkReducer(state: CheckState, action: CheckAction): CheckState {
@@ -74,12 +85,20 @@ export function checkReducer(state: CheckState, action: CheckAction): CheckState
       return advance(state, rest);
     }
     case 'BACK':
-      if (state.status !== 'asking' && state.status !== 'error') return state;
+      if (state.status !== 'asking' && state.status !== 'error' && state.status !== 'freetext') {
+        return state;
+      }
       return {
         ...state,
         status: 'asking',
-        index: Math.max(0, state.index - (state.status === 'error' ? 0 : 1)),
+        index:
+          state.status === 'freetext'
+            ? Math.max(0, cardsOf(state).length - 1)
+            : Math.max(0, state.index - (state.status === 'error' ? 0 : 1)),
       };
+    case 'FREETEXT':
+      if (state.status !== 'freetext') return state;
+      return { ...state, status: 'submitting', freeText: action.freeText };
     case 'RETRY':
       return state.status === 'error' ? { ...state, status: 'submitting' } : state;
     case 'RESULT':

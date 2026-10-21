@@ -8,6 +8,7 @@ import { getDeviceToken } from '@/lib/device';
 import { cn } from '@/lib/utils';
 import { useParticipantStore } from '@/store/participant';
 import type { Question } from '@/types';
+import { FreeTextCard } from './FreeTextCard';
 import { selectQuestions } from './selectQuestions';
 import { useCheckFlow } from './useCheckFlow';
 
@@ -97,6 +98,9 @@ function CheckFlow({ schoolId, waveId }: { schoolId: string; waveId: string }) {
         </div>
       </Message>
     );
+  }
+  if (state.status === 'freetext') {
+    return <FreeTextCard onDone={flow.finish} />;
   }
   if (state.status === 'submitting' || state.status === 'done') {
     return (
