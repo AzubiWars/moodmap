@@ -227,6 +227,8 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 
 ✅ Aggregation in `supabase/migrations/20261021120000_aggregates.sql` (#79):
 - `get_aggregates(query jsonb)` → `AggregateRow[]`, rechnet **exakt** wie `src/lib/score.ts` + `src/data/mockAggregates.ts`. Der Paritätstest `supabase/tests/aggregates.test.ts` lässt dieselben Fixtures (`supabase/tests/fixtures.ts`, inkl. n = 9/10 und reinen Choice-Antworten) durch die echte MockDataSource und durch SQL laufen und vergleicht 150 Abfragen Zeile für Zeile.
+- Seit #219 liefert die Schulebene nur Zellen mit mindestens einer gewerteten Antwort (keine ~5.300 Leerzeilen pro Live-Poll); Kreis-/RegBez-Zellen bleiben für den grauen Leerzustand erhalten.
+- Seit #222 enthält jedes Nicht-`all`-Thema die echte `mood5`-Verteilung (`distribution` 1–5, invertierte Fragen gedreht, unter K_MIN `null`) – identisch zum Mock. Das Lagebild schätzt keine Prozente mehr aus dem Score.
 - K_MIN = 10 serverseitig (`k_min()`); der Client kann nur strenger sein.
 - Gleitkomma wie in JavaScript: `double precision` in derselben Reihenfolge, `Math.round(x)` als `floor(x + 0.5)` (Postgres' `round()` rundet −1,5 zu −2 statt −1).
 - Interne Bausteine `aggregate_rows(query, waveIds, previousWaveIds)` und `previous_wave_ids(waveIds)` sind nicht öffentlich und werden für `get_trend` (#80) wiederverwendet.

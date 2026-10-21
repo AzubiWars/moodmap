@@ -225,8 +225,8 @@ describe('MockDataSource', () => {
 
   it('returns a chronological trend with K_MIN on each wave', async () => {
     const mock = source(fixture(10));
+    // Leere Schulwellen werden seit #219 nicht mehr als Zeile geliefert.
     expect(await mock.getTrend({ ...query, waveIds: ['2026-W43', '2026-W42'] })).toEqual([
-      { id: '900000', waveId: '2026-W42', n: 0, score: null },
       { id: '900000', waveId: '2026-W43', n: 10, score: 50 },
     ]);
   });
