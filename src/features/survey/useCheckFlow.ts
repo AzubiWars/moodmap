@@ -4,7 +4,7 @@ import { getDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
 import { saveFreeText, submitFreeText } from '@/lib/freeText';
 import { enqueueResponse, isOffline } from '@/lib/outbox';
-import type { GradeBand, Question, ResponseInput } from '@/types';
+import type { GradeBand, Question, ResponseInput, Role } from '@/types';
 import { buildAnswers, cardsOf, checkReducer, initialState, type CardAnswer } from './checkFlow';
 
 const submittedKey = (waveId: string) => `moodmap:submitted:${waveId}`;
@@ -39,6 +39,7 @@ interface CheckFlowOptions {
   waveId: string;
   schoolId: string;
   isTest?: boolean;
+  role?: Role;
   gradeBand?: GradeBand;
   onDone: () => void;
 }
@@ -48,6 +49,7 @@ export function useCheckFlow({
   waveId,
   schoolId,
   isTest = false,
+  role = 'student',
   gradeBand,
   onDone,
 }: CheckFlowOptions) {
@@ -77,8 +79,9 @@ export function useCheckFlow({
     const input: ResponseInput = {
       schoolId,
       waveId,
-      role: 'student',
-      gradeBand,
+      role,
+      // Die Stufe gilt nur für Schüler:innen.
+      gradeBand: role === 'student' ? gradeBand : undefined,
       deviceToken: getDeviceToken(),
       answers: buildAnswers(state),
     };
@@ -114,7 +117,7 @@ export function useCheckFlow({
         if (result.ok) onDoneRef.current();
       }, queue)
       .catch(() => mounted.current && dispatch({ type: 'RESULT', result: 'error' }));
-  }, [state, schoolId, isTest, waveId, gradeBand, queryClient]);
+  }, [state, schoolId, isTest, waveId, role, gradeBand, queryClient]);
 
   const cards = cardsOf(state);
   return {

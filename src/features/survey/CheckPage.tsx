@@ -74,21 +74,33 @@ function CheckFlow({
   const navigate = useNavigate();
   const gradeBand = useParticipantStore((s) => s.gradeBand);
   const isTest = useParticipantStore((s) => s.isTest);
-  const questions = useMemo(() => selectQuestions(getDeviceToken(), waveId), [waveId]);
+  const role = useParticipantStore((s) => s.role);
+  const questions = useMemo(() => selectQuestions(getDeviceToken(), waveId, role), [waveId, role]);
   const flow = useCheckFlow({
     questions,
     waveId,
     schoolId,
     isTest,
+    role,
     gradeBand,
     onDone: () => navigate('/check/done'),
   });
-  const { state } = flow;
+  const { state, finish } = flow;
+  const isTeacher = role === 'teacher';
+
+  // Die Freitext-Moderation ist auf Schüler:innen zugeschnitten; Lehrkräfte überspringen den Schritt.
+  useEffect(() => {
+    if (isTeacher && state.status === 'freetext') finish(null);
+  }, [isTeacher, state.status, finish]);
 
   if (state.status === 'already') {
     return (
       <Message title="Danke! 🌤️">
-        <p className="text-muted">Du hast in dieser Woche schon mitgemacht. Nächster Mood-Check ab Montag.</p>
+        <p className="text-muted">
+          {isTeacher
+            ? 'Sie haben in dieser Woche schon mitgemacht. Nächster Mood-Check ab Montag.'
+            : 'Du hast in dieser Woche schon mitgemacht. Nächster Mood-Check ab Montag.'}
+        </p>
         <Link to="/map" className={linkButton}>
           Karte ansehen
         </Link>
@@ -118,7 +130,7 @@ function CheckFlow({
   if (state.status === 'queued') {
     return <QueuedMessage droppedFreeText={!!state.freeText} />;
   }
-  if (state.status === 'freetext') {
+  if (state.status === 'freetext' && !isTeacher) {
     return <FreeTextCard onDone={flow.finish} />;
   }
   if (state.status === 'submitting' || state.status === 'done') {

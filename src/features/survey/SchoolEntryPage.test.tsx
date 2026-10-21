@@ -56,6 +56,24 @@ describe('SchoolEntryPage', () => {
     expect(await screen.findByRole('heading', { name: /Schule insgesamt/ })).toBeInTheDocument();
   });
 
+  it('lets teachers pick their role, hides the grade band and starts the teacher check', async () => {
+    renderAt('/s/ABC123');
+    fireEvent.click(await screen.findByRole('button', { name: 'Lehrkraft' }));
+    expect(screen.queryByRole('button', { name: 'Oberstufe' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: "Los geht's" }));
+
+    const s = useParticipantStore.getState();
+    expect(s.role).toBe('teacher');
+    expect(s.gradeBand).toBeUndefined();
+    expect(await screen.findByRole('heading', { name: /Arbeit an der Schule/ })).toBeInTheDocument();
+  });
+
+  it('defaults to the student role', async () => {
+    renderAt('/s/ABC123');
+    fireEvent.click(await screen.findByRole('button', { name: "Los geht's" }));
+    expect(useParticipantStore.getState().role).toBe('student');
+  });
+
   it('works without a grade band', async () => {
     renderAt('/s/ABC123');
     fireEvent.click(await screen.findByRole('button', { name: "Los geht's" }));

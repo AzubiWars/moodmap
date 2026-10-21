@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MANDATORY_TOPIC_SLUGS, P0_TOPIC_SLUGS } from '@/data/topics';
+import { MANDATORY_TOPIC_SLUGS, P0_TOPIC_SLUGS, getTopic } from '@/data/topics';
 import { CORE_QUESTION_COUNT, selectQuestions } from './selectQuestions';
 
 describe('selectQuestions', () => {
@@ -21,6 +21,25 @@ describe('selectQuestions', () => {
       const slugs = selectQuestions(token, '2026-W43').map((q) => q.topicSlug);
       for (const m of MANDATORY_TOPIC_SLUGS) expect(slugs).toContain(m);
       for (const s of slugs) expect(P0_TOPIC_SLUGS).toContain(s);
+    }
+  });
+
+  it('gives teachers their own fixed set of 10 questions, t_overall first, in Sie-form', () => {
+    for (const token of tokens) {
+      const qs = selectQuestions(token, '2026-W43', 'teacher');
+      expect(qs).toHaveLength(10);
+      expect(qs[0]?.id).toBe('t_overall.core');
+      expect(qs.every((q) => q.type === 'mood5' && q.audience === 'teacher')).toBe(true);
+      expect(qs.every((q) => getTopic(q.topicSlug)?.audience.includes('teacher'))).toBe(true);
+      expect(qs.some((q) => /\b(dir|du|dein\w*)\b/i.test(q.text))).toBe(false);
+    }
+    expect(selectQuestions('a', '2026-W43', 'teacher')).toEqual(selectQuestions('b', '2026-W44', 'teacher'));
+  });
+
+  it('never mixes teacher topics into the student set', () => {
+    for (const token of tokens) {
+      const qs = selectQuestions(token, '2026-W43');
+      expect(qs.every((q) => q.audience === 'student')).toBe(true);
     }
   });
 

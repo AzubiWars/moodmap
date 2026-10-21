@@ -19,7 +19,10 @@ export interface Lagebild {
 
 /** Alle Kennzahlen für Gesamt-NRW in der aktuellen Welle. Testschulen filtert die DataSource (`is_test`). */
 export async function loadLagebild(source: DataSource, kMin: number): Promise<Lagebild> {
-  const topics = [...(await source.getTopics())].sort((a, b) => a.sort - b.sort);
+  // Das Lagebild zeigt die Schüler:innen-Themen; Lehrkräfte-Themen (`t_*`, #37) haben eine eigene Auswertung.
+  const topics = (await source.getTopics())
+    .filter((topic) => topic.audience.includes('student'))
+    .sort((a, b) => a.sort - b.sort);
   // `level: 'nrw'` liefert genau eine Zeile, direkt über alle Antworten aggregiert (#140).
   const [allRows, schoolRows, ...topicRows] = await Promise.all([
     source.getAggregates({ level: 'nrw', topic: 'all' }),

@@ -51,7 +51,8 @@ import {
 
 const MAP_TOPICS: FilterTopic[] = [
   { slug: 'all', title: 'Gesamt-Mood', icon: '🗺️' },
-  ...[...TOPICS].sort((a, b) => a.sort - b.sort),
+  // Lehrkräfte-Themen (`t_*`, #37) gehören nicht in den Schüler:innen-Themenfilter.
+  ...TOPICS.filter((topic) => topic.audience.includes('student')).sort((a, b) => a.sort - b.sort),
 ];
 
 /** Färbt die angezeigte Ebene; Flächen außerhalb des fokussierten Regierungsbezirks erhalten `dim`. */

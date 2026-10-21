@@ -1,5 +1,5 @@
-import { MANDATORY_TOPIC_SLUGS, P0_TOPIC_SLUGS, getCoreQuestion } from '@/data/topics';
-import type { Question } from '@/types';
+import { MANDATORY_TOPIC_SLUGS, P0_TOPIC_SLUGS, getCoreQuestion, topicSlugsFor } from '@/data/topics';
+import type { Question, Role } from '@/types';
 
 /** Anzahl der Kernfragen pro Durchlauf (8–10 laut Issue, damit < 60 s möglich bleiben). */
 export const CORE_QUESTION_COUNT = 9;
@@ -41,8 +41,13 @@ const isQuestion = (q: Question | undefined): q is Question => q !== undefined;
  * Wählt die Kernfragen (mood5): gesamt zuerst, dann alle Pflichtthemen,
  * dann rotierende P0-Themen bis `CORE_QUESTION_COUNT`. Deterministisch je Gerät und Welle,
  * damit ein Neuladen mitten im Durchlauf dieselben Fragen zeigt.
+ *
+ * Lehrkräfte (`role: 'teacher'`) bekommen ihr festes Themenset (`t_*`, SURVEY_TOPICS §4) in Katalogreihenfolge;
+ * es sind genau 10 Fragen, `t_overall` zuerst, ohne Rotation.
  */
-export function selectQuestions(deviceToken: string, waveId: string): Question[] {
+export function selectQuestions(deviceToken: string, waveId: string, role: Role = 'student'): Question[] {
+  if (role === 'teacher') return topicSlugsFor('teacher').map(getCoreQuestion).filter(isQuestion);
+
   const mandatory = MANDATORY_TOPIC_SLUGS.filter((slug) => slug !== 'overall');
   const optional = P0_TOPIC_SLUGS.filter((slug) => !MANDATORY_TOPIC_SLUGS.includes(slug));
   const slots = Math.max(0, CORE_QUESTION_COUNT - 1 - mandatory.length);
