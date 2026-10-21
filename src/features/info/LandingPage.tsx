@@ -47,6 +47,13 @@ export function LandingPage() {
         ))}
       </ul>
 
+      <Link
+        to="/massnahmen"
+        className="card mt-8 inline-flex min-h-11 items-center justify-center rounded-2xl px-5 text-sm font-semibold"
+      >
+        Maßnahmenkatalog für Schulen
+      </Link>
+
       <footer className="mt-10 text-sm text-muted">
         <Link to="/privacy" className="inline-flex min-h-11 items-center underline">
           Datenschutz
