@@ -5,8 +5,9 @@ let memoryToken: string | undefined;
 export function getDeviceToken(): string {
   try {
     const stored = localStorage.getItem(DEVICE_KEY);
-    if (stored) return stored;
+    if (stored) return (memoryToken = stored);
     const token = memoryToken ?? crypto.randomUUID();
+    memoryToken = token;
     localStorage.setItem(DEVICE_KEY, token);
     return token;
   } catch {

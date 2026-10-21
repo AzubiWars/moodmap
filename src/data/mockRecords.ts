@@ -1,4 +1,4 @@
-import type { AnswerInput, GradeBand, Role, School, Wave } from '@/types';
+import type { AnswerInput, GradeBand, PolicyAnswer, Role, School, Wave } from '@/types';
 
 /** Interne Rohdaten des synthetischen Mock-Backends, nie über DataSource ausgeben. */
 export interface MockResponse {
@@ -17,6 +17,7 @@ export interface MockDataset {
   waves: Wave[];
   responses: MockResponse[];
   answers: MockAnswer[];
+  policyAnswers?: PolicyAnswer[];
 }
 
 export interface StoredSubmission {
