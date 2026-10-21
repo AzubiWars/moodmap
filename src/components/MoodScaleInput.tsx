@@ -33,7 +33,7 @@ export function MoodScaleInput({ value, onChange, label, className }: MoodScaleI
               onClick={() => onChange(v)}
               className={cn(
                 'flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl text-3xl ring-2 transition-transform active:scale-95',
-                checked ? 'scale-105 ring-slate-900' : 'ring-transparent',
+                checked ? 'scale-105 ring-primary' : 'ring-transparent',
               )}
               style={{ backgroundColor: l.color }}
             >
@@ -55,9 +55,7 @@ export function MoodScaleInput({ value, onChange, label, className }: MoodScaleI
         aria-pressed={value === null}
         className={cn(
           'mt-3 min-h-11 w-full rounded-2xl text-sm font-medium ring-1',
-          value === null
-            ? 'bg-slate-900 text-white ring-slate-900'
-            : 'bg-white text-slate-600 ring-slate-200',
+          value === null ? 'bg-primary text-primary-fg ring-primary' : 'bg-card text-muted ring-border',
         )}
       >
         🤷 weiß nicht / keine Angabe

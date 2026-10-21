@@ -14,9 +14,11 @@
     "format": "prettier --write .",
     "geo:build": "node scripts/simplify-geo.ts",
     "data:schools": "node scripts/generate-schools.ts",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "pwa:icons": "npx --yes @vite-pwa/assets-generator@2.0.0"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
     "@tanstack/react-query": "^5.104.5",
     "clsx": "^2.1.1",
     "lucide-react": "^1.61.0",
@@ -37,7 +39,6 @@
     "@types/node": "^26.6.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vite-pwa/assets-generator": "^2.0.0",
     "@vitejs/plugin-react": "^6.1.2",
     "eslint": "^10.13.0",
     "eslint-plugin-react-hooks": "^7.1.1",

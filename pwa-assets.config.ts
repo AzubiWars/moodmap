@@ -1,3 +1,4 @@
+// Icons neu erzeugen: `npm run pwa:icons` (Tool wird on demand per npx geladen, keine devDependency – zieht natives sharp)
 import { defineConfig } from '@vite-pwa/assets-generator/config';
 
 export default defineConfig({
