@@ -41,16 +41,23 @@ Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Tem
 
 ## Feedback-Einträge
 
+### FB-003 · PWA läuft – App-Icon passt nicht zum Konzept
+- **Von:** Louis · **Datum/Zeit:** 2026-10-21 11:45
+- **Gerät/Ansicht:** Handy, installierte PWA
+- **Feedback:** PWA funktioniert. Das Icon gefällt nicht, ein Wetter-Icon passt nicht zum allgemeinen Mood-Konzept. Besser wäre vielleicht ein Kartensymbol von NRW mit Handschlag oder Smiley.
+- **Wichtigkeit:** 👍
+- **Status:** 🟡 in Arbeit (#91), 2 Varianten zur Auswahl; die Wetter-Skala in der App bleibt vorerst (Annahme, siehe #91)
+
 ### FB-002 · Pitch-Fokus: Prävention – Politik und Schüler arbeiten zusammen
 - **Von:** Team · **Datum/Zeit:** 2026-10-21
 - **Gerät/Ansicht:** Pitch / Konzept
 - **Feedback:** Im Pitch soll klar werden: Wir wollen Vorkommnissen wie in Frankreich vorbeugen. Politik und Schüler:innen arbeiten zusammen – Moodmap ist der Kanal dafür.
 - **Wichtigkeit:** 🔥
-- **Status:** 🟡 in Doku eingearbeitet (VISION, PRODUCT_SPEC §3.9/3.10, SURVEY_TOPICS `voice`, ARCHITECTURE, PRIVACY §7, PITCH, ADR-007). Lead: Issues MM-42–MM-45 anlegen und hier verlinken. Konkretes Frankreich-Ereignis mit den Menschen klären (MM-44).
+- **Status:** 🟢 Doku erledigt; Umsetzung in #42/#43/#45, Frankreich-Recherche #44 (VISION, PRODUCT_SPEC §3.9/3.10, SURVEY_TOPICS `voice`, ARCHITECTURE, PRIVACY §7, PITCH, ADR-007). Lead: Issues MM-42–MM-45 anlegen und hier verlinken. Konkretes Frankreich-Ereignis mit den Menschen klären (MM-44).
 
 ### FB-001 · Projektstart
 - **Von:** Team · **Datum/Zeit:** 2026-10-21
 - **Gerät/Ansicht:** –
 - **Feedback:** Startet mit M0 aus `docs/ROADMAP.md`. Vercel ist mit dem GitHub-Repo verbunden und wird für Hosting genutzt. Team-Modelle: Claude, Codex, DeepSeek. Ziel: funktionierender, pitchbarer Prototyp – Demo-Fluss Umfrage → Karte hat oberste Priorität.
 - **Wichtigkeit:** 🔥
-- **Status:** 🔴 neu
+- **Status:** 🟢 M0 erledigt (Scaffold, CI, Vercel unter https://moodmap-cyan.vercel.app)
