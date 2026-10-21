@@ -14,6 +14,8 @@ function fakeScore(id: string, topic: string) {
 }
 
 const aggregateCalls: AggregateQuery[] = [];
+/** Zusätzliche Stimmen je Schule – simuliert neue Abgaben im Live-Modus */
+const extraVotes = new Map<string, number>();
 let liveCallback: (() => void) | null = null;
 
 vi.mock('@/data', () => ({
@@ -26,7 +28,12 @@ vi.mock('@/data', () => ({
           : query.level === 'kreis'
             ? ['05111', '05315']
             : ['900001', '900002'];
-      return ids.map((id) => ({ id, n: 50, score: fakeScore(id, query.topic), delta: null }));
+      return ids.map((id) => ({
+        id,
+        n: 50 + (extraVotes.get(id) ?? 0),
+        score: fakeScore(id, query.topic),
+        delta: null,
+      }));
     },
     subscribeToNewResponses: (callback: () => void) => {
       liveCallback = callback;
@@ -46,6 +53,7 @@ vi.mock('./MoodMap', () => ({
     schools,
     selectedSchoolId,
     onSelectSchool,
+    pulses,
   }: {
     regions: RegionCollection | null;
     selectedId: string | null;
@@ -54,6 +62,7 @@ vi.mock('./MoodMap', () => ({
     schools: SchoolCollection | null;
     selectedSchoolId: string | null;
     onSelectSchool: (id: string) => void;
+    pulses?: { id: string }[];
   }) => (
     <div>
       <output data-testid="map-data">{JSON.stringify(regions)}</output>
@@ -65,6 +74,7 @@ vi.mock('./MoodMap', () => ({
         </button>
       ))}
       <output data-testid="map-selected-school">{selectedSchoolId ?? ''}</output>
+      <output data-testid="map-pulses">{(pulses ?? []).map((p) => p.id).join(',')}</output>
       {schools?.features.map((f) => (
         <button key={f.properties.id} type="button" onClick={() => onSelectSchool(f.properties.id)}>
           Schule {f.properties.id}
@@ -146,6 +156,7 @@ const crumbs = () => within(screen.getByRole('navigation', { name: 'Kartenebene'
 
 beforeEach(() => {
   aggregateCalls.length = 0;
+  extraVotes.clear();
   Element.prototype.scrollIntoView = vi.fn();
 });
 
@@ -337,5 +348,29 @@ describe('detail panel (#19)', () => {
     expect(within(panel).getByText('Gymnasium · Testort · Schulnummer 900002')).toBeInTheDocument();
     // 50 Stimmen bei 500 Schüler:innen
     await waitFor(() => expect(within(panel).getByText(/10 % Beteiligung/)).toBeInTheDocument());
+  });
+});
+
+describe('live mode (#24)', () => {
+  it('toggles via ?live=1 without a history entry', async () => {
+    const router = openMap('/map?topic=ai');
+    fireEvent.click(screen.getByRole('button', { name: 'Live' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&live=1'));
+    expect(router.state.historyAction).toBe('REPLACE');
+    expect(screen.getByRole('button', { name: 'Live' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('wartet auf Stimmen …')).toBeInTheDocument();
+  });
+
+  it('pulses a school and counts votes when its n grows, even on NRW level', async () => {
+    openMap('/map?live=1');
+    await waitFor(() =>
+      expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', topic: 'all' })),
+    );
+    expect(screen.getByTestId('map-pulses')).toBeEmptyDOMElement();
+
+    extraVotes.set('900002', 2);
+    act(() => liveCallback?.());
+    await waitFor(() => expect(screen.getByTestId('map-pulses')).toHaveTextContent('900002'));
+    expect(screen.getByText('+2 neue Stimmen')).toBeInTheDocument();
   });
 });
