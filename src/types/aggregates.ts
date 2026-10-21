@@ -23,7 +23,16 @@ export interface AggregateRow {
   /** Δ zur Vorperiode; `null`, wenn nicht berechenbar. */
   delta: number | null;
   topicScores?: Record<TopicSlug, number | null>;
+  /**
+   * Anzahl gewerteter mood5-Antworten je Stimmungsstufe (1 = sehr schlecht … 5 = sehr gut) für das
+   * angefragte Thema; „Weiß nicht" zählt nicht. Bei `invert`-Fragen ist die Stufe bereits gedreht.
+   * `null`, wenn `n < K_MIN`; nicht gesetzt bei `topic: 'all'`.
+   */
+  distribution?: MoodDistribution | null;
 }
+
+/** Zählwerte je Stimmungsstufe 1–5. */
+export type MoodDistribution = Record<1 | 2 | 3 | 4 | 5, number>;
 
 export interface TrendQuery extends AggregateQuery {
   /** Für einen Trend sind die betrachteten Wellen Pflicht. */

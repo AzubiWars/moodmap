@@ -1,4 +1,4 @@
-import type { AggregateQuery, AggregateRow, Scope, School, TopicSlug } from '@/types';
+import type { AggregateQuery, AggregateRow, MoodDistribution, Scope, School, TopicSlug } from '@/types';
 import {
   delta,
   overallScore,
@@ -86,6 +86,33 @@ export function summarize(
   return { total: { n: ids.size, score: ids.size < kMin ? null : overallScore(topics) }, topics };
 }
 
+/**
+ * Verteilung der gewerteten mood5-Antworten eines Themas auf die Stimmungsstufen 1–5.
+ * `invert`-Fragen werden gedreht, damit Stufe 1 immer „schlecht" heißt. Unter `kMin` Teilnahmen → `null`.
+ */
+export function moodDistribution(
+  answers: readonly MockAnswer[],
+  topic: TopicSlug,
+  n: number,
+  kMin: number,
+): MoodDistribution | null {
+  if (n < kMin) return null;
+  const counts: MoodDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  // Je Teilnahme und Frage zählt höchstens eine Antwort (wie `validAnswers`), auch wenn Daten doppelt sind.
+  const seen = new Set<string>();
+  for (const answer of answers) {
+    const question = QUESTIONS_BY_ID[answer.questionId];
+    const value = answer.value;
+    if (question?.topicSlug !== topic || question.type !== 'mood5') continue;
+    if (value == null || !Number.isInteger(value) || value < 1 || value > 5) continue;
+    const key = `${answer.responseId}|${answer.questionId}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    counts[(question.invert ? 6 - value : value) as keyof MoodDistribution] += 1;
+  }
+  return counts;
+}
+
 /** Gruppiert Rohantworten direkt auf der angefragten Ebene, keine Mittelwerte von Schul-Scores. */
 export function aggregateRows(
   dataset: MockDataset,
@@ -117,7 +144,8 @@ export function aggregateRows(
   const current = grouped(waveIds);
   const previous = grouped(previousWaveIds);
   return [...new Set(schools.map((school) => schoolGroupId(school, query.level)))].sort().map((id) => {
-    const result = summarize(current.get(id) ?? [], query.topic, kMin);
+    const answers = current.get(id) ?? [];
+    const result = summarize(answers, query.topic, kMin);
     const before = summarize(previous.get(id) ?? [], query.topic, kMin);
     return {
       id,
@@ -126,6 +154,9 @@ export function aggregateRows(
       topicScores: Object.fromEntries(
         Object.entries(result.topics).map(([slug, entry]) => [slug, entry.score]),
       ),
+      ...(query.topic === 'all'
+        ? {}
+        : { distribution: moodDistribution(answers, query.topic, result.total.n, kMin) }),
     };
   });
 }
