@@ -13,7 +13,7 @@ export function MapLegend() {
   const levels = [...MOOD_LEVELS].reverse();
   return (
     <div
-      className="rounded-2xl bg-white/95 p-2 text-xs shadow-md ring-1 ring-slate-200 backdrop-blur md:p-3"
+      className="rounded-2xl bg-card/95 p-2 text-xs shadow-md ring-1 ring-border backdrop-blur md:p-3"
       role="group"
       aria-label="Legende Stimmungswetter"
     >
@@ -37,7 +37,7 @@ export function MapLegend() {
 
       {/* Desktop: Liste mit Bereichen */}
       <div className="hidden md:block">
-        <div className="mb-2 font-semibold text-slate-700">Stimmungswetter</div>
+        <div className="mb-2 font-semibold text-fg">Stimmungswetter</div>
         <ul className="space-y-1">
           {levels.map((l) => (
             <li key={l.level} className="flex items-center gap-2">
@@ -46,7 +46,7 @@ export function MapLegend() {
                 {l.weather}
               </span>
               <span>
-                {l.label} <span className="text-slate-400">({rangeLabel(l.min, l.level)})</span>
+                {l.label} <span className="text-muted">({rangeLabel(l.min, l.level)})</span>
               </span>
             </li>
           ))}

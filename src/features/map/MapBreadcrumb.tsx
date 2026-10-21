@@ -12,20 +12,20 @@ export function MapBreadcrumb({ crumbs, onNavigate }: MapBreadcrumbProps) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
       <nav aria-label="Kartenebene">
-        <ol className="flex flex-wrap items-center gap-0.5 text-xs text-slate-500">
+        <ol className="flex flex-wrap items-center gap-0.5 text-xs text-muted">
           {crumbs.map((crumb, i) => (
             <li key={crumb.label} className="flex items-center gap-0.5">
               {i > 0 && <ChevronRight aria-hidden className="size-3 shrink-0" />}
               {crumb.params ? (
                 <button
                   type="button"
-                  className="rounded px-0.5 font-medium text-sky-700 underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none"
+                  className="rounded px-0.5 font-medium text-accent underline-offset-2 hover:underline focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
                   onClick={() => onNavigate(crumb.params!)}
                 >
                   {crumb.label}
                 </button>
               ) : (
-                <span aria-current="location" className="px-0.5 font-semibold text-slate-800">
+                <span aria-current="location" className="px-0.5 font-semibold text-fg">
                   {crumb.label}
                 </span>
               )}
@@ -36,7 +36,7 @@ export function MapBreadcrumb({ crumbs, onNavigate }: MapBreadcrumbProps) {
       {drilled && (
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-2.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-slate-700 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1 focus-visible:outline-none"
+          className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-fg shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none"
           onClick={() => onNavigate({})}
         >
           <ArrowLeft aria-hidden className="size-3.5" />
