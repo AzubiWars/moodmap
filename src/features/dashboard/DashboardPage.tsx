@@ -13,11 +13,11 @@ export function DashboardPage() {
   const queryClient = useQueryClient();
   const role = useRoleStore((s) => s.role);
   const [searchParams] = useSearchParams();
-  // Pitch-Default: schnelle, vollständige Demo-Daten. Live-Aggregate gibt es unter ?live=1.
-  const live = searchParams.get('live') === '1';
-  const source = useMemo(() => getDataSource(live ? undefined : 'mock'), [live]);
+  // Live ist nach der Backend-Optimierung (#227) schnell genug; Demo-Daten unter ?demo=1.
+  const demo = searchParams.get('demo') === '1';
+  const source = useMemo(() => getDataSource(demo ? 'mock' : undefined), [demo]);
   const query = useQuery({
-    queryKey: ['aggregates', 'lagebild', live],
+    queryKey: ['aggregates', 'lagebild', demo],
     queryFn: async () => {
       const [wave, lagebild] = await Promise.all([source.getCurrentWave(), loadLagebild(source, K_MIN)]);
       return { wave, ...lagebild };
@@ -28,9 +28,9 @@ export function DashboardPage() {
   useEffect(
     () =>
       source.subscribeToNewResponses(() => {
-        void queryClient.invalidateQueries({ queryKey: ['aggregates', 'lagebild', live] });
+        void queryClient.invalidateQueries({ queryKey: ['aggregates', 'lagebild', demo] });
       }),
-    [queryClient, source, live],
+    [queryClient, source, demo],
   );
 
   return (
@@ -46,15 +46,15 @@ export function DashboardPage() {
           </Link>
         )}
         <Link
-          to={live ? '/dashboard' : '/dashboard?live=1'}
+          to={demo ? '/dashboard' : '/dashboard?demo=1'}
           className="mt-2 ml-3 inline-flex min-h-11 items-center font-medium text-accent underline"
         >
-          {live ? 'Demo-Daten anzeigen' : 'Live-Daten anzeigen'}
+          {demo ? 'Live-Daten anzeigen' : 'Demo-Daten anzeigen'}
         </Link>
         <p className="mt-1 text-sm text-muted">
           {query.data ? `Woche ${query.data.wave.id.replace(/^\d{4}-W/, 'KW ')} · ` : ''}
           Alle Schulformen · Werte erst ab {K_MIN} Stimmen, darunter „zu wenige Daten“.
-          {!live && ' · Demo-Daten'}
+          {demo && ' · Demo-Daten'}
         </p>
       </header>
 
