@@ -85,3 +85,14 @@ Format:
 - **Kontext:** Mit #100 liegt das echte Schulverzeichnis NRW vor (5.327 Schulen, dl-de/by-2-0). Die Umfragewerte im Prototyp sind aber synthetisch. Würde die öffentlich erreichbare Demo echte, namentlich genannte Schulen mit erfundenen Werten zeigen („Städtische Gesamtschule X: ⛈️ sehr schlecht“), wären das falsche Aussagen über reale Einrichtungen. Das schadet Schulen und dem Pitch (Vertrauen, PRIVACY §4 „kein Pranger“).
 - **Entscheidung:** Synthetische Stimmungswerte erscheinen **nur auf synthetischen Schulen** (`public/data/schools.json`, Demo-Schule `DEMO42`). Das echte Verzeichnis (`schools.real.json`) darf für Standorte, Anzahlen und Abdeckung genutzt werden (z. B. „5.327 Schulen in NRW“, Kartenpunkte ohne Wertung) oder mit Namen nur dann, wenn **echte** Antworten vorliegen. `DEMO42` wird im echten Datensatz nie vergeben. Aggregate auf Kreis-/Bezirksebene mit Demo-Daten bleiben ok (klar als Demo gekennzeichnet).
 - **Konsequenzen:** #9 (MockDataSource) und #18 (Schul-Marker) nutzen für Werte die synthetischen Schulen. Ein Umschalten auf echte Schulen kommt erst mit echten Daten (Supabase-Modus).
+
+## ADR-013 · Demo-Daten auf echten Standorten, ohne echte Schulnamen (präzisiert ADR-012)
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen)
+- **Kontext:** Die Menschen bestätigen ADR-012 im Kern: keine echten Schulnamen mit Demo-Werten. Gewünscht ist aber, dass die Demo **echte Schulstandorte** nutzt.
+- **Entscheidung:** Demo-Schulen dürfen auf echten Standorten aus `schools.real.json` liegen (Koordinaten, Kreis, Schulform, Stadt, grobe Schülerzahl). Ihre **Namen werden anonymisiert** (z. B. „Gesamtschule · Düsseldorf #3“), Schulnummern und Join-Codes bleiben synthetisch. Echte Namen erscheinen nur mit echten Antworten. `DEMO42` bleibt die Demo-Schule mit synthetischem Namen.
+- **Konsequenzen:** Den synthetischen Schul-Datensatz für Mock/Seed aus den echten Standorten ableiten (eigenes Issue). Bis dahin gelten die 300 synthetischen Schulen.
+
+## ADR-014 · Agenten wählen ihre Aufgaben selbst
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen)
+- **Kontext:** Kurz testweise hat der Lead Issues aktiv zugewiesen (`coordination/PLAN.md`). Die Menschen bevorzugen den vorherigen Modus, „das lief gut“.
+- **Entscheidung:** Die Agenten claimen selbst nach `AGENTS.md` §5. Der Lead reviewt, merged, löst Konflikte, triagiert Feedback und pingt nur, wenn der kritische Pfad liegen bleibt. `PLAN.md` entfällt.
