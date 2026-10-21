@@ -21,6 +21,8 @@ const load = (name: string) => JSON.parse(readFileSync(geoFile(name), 'utf8')) a
 
 const kreise = load('nrw-kreise.geojson');
 const regbez = load('nrw-regbez.geojson');
+const germany = load('germany.geojson');
+const mask = load('non-germany-mask.geojson');
 
 const REGBEZ = { '051': 'Düsseldorf', '053': 'Köln', '055': 'Münster', '057': 'Detmold', '059': 'Arnsberg' };
 
@@ -64,5 +66,19 @@ describe('public/geo', () => {
         expect(lat).toBeLessThan(52.6);
       }
     }
+  });
+
+  it('contains the Germany boundary and a world mask with Germany as a hole', () => {
+    expect(germany.features).toHaveLength(1);
+    expect(germany.features[0]?.geometry.type).toBe('MultiPolygon');
+
+    expect(mask.features).toHaveLength(1);
+    const geometry = mask.features[0]?.geometry;
+    expect(geometry?.type).toBe('Polygon');
+    if (geometry?.type !== 'Polygon') return;
+
+    expect(geometry.coordinates.length).toBeGreaterThan(1);
+    expect(geometry.coordinates[0]?.[0]).toEqual([-180, -85]);
+    expect(statSync(geoFile('non-germany-mask.geojson')).size).toBeLessThan(1024 * 1024);
   });
 });

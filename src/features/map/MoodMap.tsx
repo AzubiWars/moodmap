@@ -53,11 +53,17 @@ const REGION_FILL_OPACITY = [
   0.12,
 ] as unknown as number;
 
+/** Deutschland-Maske: alles außerhalb Deutschlands ausblenden (#90). */
+const GERMANY_MASK_URL = '/geo/non-germany-mask.geojson';
+const GERMANY_OUTLINE_URL = '/geo/germany.geojson';
+const MASK_FILL_OPACITY = 0.62;
+
 /** Pflicht-Quellenvermerk für die Grenzen (docs/ARCHITECTURE.md §6) */
 const BOUNDARY_ATTRIBUTION =
   '© <a href="https://www.bkg.bund.de" target="_blank" rel="noopener">BKG</a> (2026) ' +
   '<a href="https://www.govdata.de/dl-de/by-2-0" target="_blank" rel="noopener">dl-de/by-2-0</a>, ' +
-  'Datenquellen: <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener">VG250</a> – Geometrien vereinfacht';
+  'Datenquellen: <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener">VG250</a> – Geometrien vereinfacht · ' +
+  'Deutschland: <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> (Public Domain)';
 
 interface HoverInfo {
   lng: number;
@@ -145,6 +151,20 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
           }}
         />
       )}
+      <Source id="germany-mask" type="geojson" data={GERMANY_MASK_URL}>
+        <Layer
+          id="germany-mask-fill"
+          type="fill"
+          paint={{ 'fill-color': '#f8fafc', 'fill-opacity': MASK_FILL_OPACITY }}
+        />
+      </Source>
+      <Source id="germany-outline" type="geojson" data={GERMANY_OUTLINE_URL}>
+        <Layer
+          id="germany-outline-line"
+          type="line"
+          paint={{ 'line-color': '#94a3b8', 'line-width': 1 }}
+        />
+      </Source>
       {regions && (
         <Source id="regions" type="geojson" data={regions} promoteId="id">
           <Layer
