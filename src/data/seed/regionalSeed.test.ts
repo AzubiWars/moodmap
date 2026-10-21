@@ -1,17 +1,14 @@
+/// <reference types="node" />
 // @vitest-environment node
 import { readFileSync } from 'node:fs';
-import type { School } from '../src/types/domain.ts';
-import { createMockSource } from '../src/data/mockSource.ts';
-import { adaptSeed } from '../src/data/mockBootstrap.ts';
-import {
-  generateSeedData,
-  HOTSPOT_CANCELLATION_KREIS,
-  HOTSPOT_TENSION_KREIS,
-} from '../src/data/seed/generateSeed.ts';
-import { scoreToLevel } from '../src/lib/colors.ts';
+import type { School } from '@/types';
+import { createMockSource } from '../mockSource';
+import { adaptSeed } from '../mockBootstrap';
+import { generateSeedData, HOTSPOT_CANCELLATION_KREIS, HOTSPOT_TENSION_KREIS } from './generateSeed';
+import { scoreToLevel } from '@/lib/colors';
 
 const schools = JSON.parse(
-  readFileSync(new URL('../public/data/schools.json', import.meta.url), 'utf8'),
+  readFileSync(new URL('../../../public/data/schools.json', import.meta.url), 'utf8'),
 ) as School[];
 const source = createMockSource({
   loadData: async () => adaptSeed(schools, generateSeedData(schools)),
