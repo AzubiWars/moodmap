@@ -284,3 +284,7 @@ VITE_K_MIN=10
 # nur serverseitig (Supabase Edge Function Secret), NIE im Frontend:
 # LLM_API_KEY=
 ```
+
+## 11. Geplante Schüler-Anmeldung (Vorschlag, #74)
+
+Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN.md](SSO_PLAN.md) beschreibt Anschlusswege, Schul-/Rollenprüfung, die Trennung von Identität und Antworten sowie die offenen Anbieter- und Datenschutzfragen. Anbieterwahl und Umsetzung sind noch nicht freigegeben; das bestehende Datenmodell, das `DataSource`-Interface und der Mock-Modus werden durch diesen Plan nicht geändert.
