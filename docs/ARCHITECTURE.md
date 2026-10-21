@@ -322,8 +322,9 @@ Die Supabase-CLI ist auf **`supabase@2.120.0`** gepinnt und läuft per `npx` (`n
 
 **Neue Migration anlegen:** Datei `supabase/migrations/<YYYYMMDDHHMMSS>_<name>.sql` (Zeitstempel = Reihenfolge). Neue Funktionen sind **nicht** automatisch öffentlich (#77): `grant execute on function … to anon, authenticated` explizit setzen. SQL-Tests in `supabase/tests/` laufen mit `npm test` in PGlite, ohne Docker.
 
-**Gehostetes Projekt:**
+**Gehostetes Projekt:** `moodmap-nrw`, Ref **`woglymwqlremrvkwhban`**, URL `https://woglymwqlremrvkwhban.supabase.co`, Organisation „AzubiWars". Stand: Migrationen #77 + #78 und Seed eingespielt (PostgreSQL 17.11), Zugriffsregeln als `anon` über die REST-API geprüft.
 - Region `eu-central-1` (Frankfurt). Das Konto gehört den Menschen.
+- Admin-SQL ohne `service_role`-Key: `npm run supabase -- db query --linked "<sql>"` (nach `link`).
 - Migrationen spielt nur ein, wer vom Lead/den Menschen dazu bestimmt ist, und nur **gemergte** Migrationen von `main`: `npm run supabase -- link --project-ref <ref>`, dann `npm run supabase -- db push --include-seed`. Das DB-Passwort steht in `SUPABASE_DB_PASSWORD` (nur `.env.local`).
 - Keys: URL + anon/publishable Key sind für das Frontend gedacht, werden aber trotzdem **nicht** committet oder in Issues gepostet (AGENTS.md §9). Die Menschen geben sie weiter und setzen sie in Vercel (ADR-004). Den `service_role`-Key bekommen nur Seed-Skripte (#23), nie das Frontend.
 - `VITE_DATA_MODE` bleibt in Vercel `mock`, bis die SupabaseDataSource (#23) gemergt ist.
