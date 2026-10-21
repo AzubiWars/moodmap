@@ -53,11 +53,14 @@ Ehrlich im Pitch: Ohne Login ist Manipulation nie 0 – aber durch Join-Codes, W
 - API-Key nur serverseitig (Edge Function Secret).
 - Bericht wird als „KI-generiert – bitte prüfen" gekennzeichnet.
 
-## 6b. KI-Moderation von Freitexten (OpenRouter)
+## 6a. KI-Moderation von Freitexten (OpenRouter, ADR-016)
 
-- Der Text geht per Edge Function an OpenRouter. Der API-Key liegt nur als Supabase-Secret vor. Es werden **keine** Metadaten mitgeschickt (keine Schule, kein Gerät), nur der Text und die Themenliste.
-- Hinweis für den Echtbetrieb: Die Übermittlung an einen externen KI-Dienst ist eine Datenverarbeitung durch Dritte (Auftragsverarbeitung, Serverstandort, Speicherdauer beim Anbieter). Vor einem Echtbetrieb muss das geprüft werden. Im Pitch-Test sind nur Freiwillige im Saal beteiligt, mit Hinweis vor der Eingabe.
-- Der Pitch-Test-Standort (`is_test`) wird nach dem Pitch zurückgesetzt, Freitexte inklusive.
+- **Zweck:** Freitexte nach Themen clustern und dafür sorgen, dass keine beleidigenden, hasserfüllten, bedrohenden, sexuellen oder personenbezogenen Inhalte (Namen, Adressen, Telefonnummern) gespeichert oder angezeigt werden. Unpassende Jugendsprache und Schimpfwörter werden entfernt oder neutralisiert.
+- **Ablauf:** Der Text geht an die Supabase Edge Function `moderate-text` (#119, Ausbau in #114). Es werden **keine** Metadaten mitgeschickt (keine Schule, kein Gerät), nur der Text und die Themenliste. Gespeichert wird nur das bereinigte Ergebnis mit Cluster. **Rohtext und abgelehnte Texte werden nie gespeichert und nicht geloggt.**
+- **Fehlerfall:** Ohne Key, bei API-Fehler oder Timeout wird der **Freitext verworfen** (fail-closed). Die übrige Abgabe läuft trotzdem durch.
+- **Schlüssel & Kosten:** Der API-Key liegt nur als Supabase-Secret vor, nie im Frontend oder Repo. Im OpenRouter-Konto muss ein **Budget-Limit** gesetzt sein, weil die Function öffentlich aufrufbar ist.
+- **Transparenz:** Vor dem Absenden steht ein Hinweis, dass der Text zur Prüfung an einen KI-Dienstleister übermittelt wird.
+- **Echtbetrieb:** Die Übermittlung an einen externen KI-Dienst ist eine Datenverarbeitung durch Dritte (Auftragsverarbeitung, Serverstandort, Speicherdauer beim Anbieter, Training ausgeschlossen?). Vor einem Echtbetrieb muss das geprüft werden. Im Pitch-Test nehmen nur Freiwillige im Saal teil. Der Test-Standort (`is_test`) wird nach dem Pitch zurückgesetzt, Freitexte inklusive.
 
 ## 7. Frühwarn-Radar & „Politik antwortet": Dialog, keine Überwachung
 
