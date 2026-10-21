@@ -54,6 +54,7 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 - „Live"-Effekt: Neue Antwort → Marker pulsiert kurz (Ring-Animation). Im Pitch sehr wirkungsvoll.
 - Breadcrumb + „Zurück zu NRW"-Button immer sichtbar.
 - Kartenhintergrund dezent (heller/dunkler Positron-Stil), damit die Mood-Farben dominieren.
+- **Orientierung (#141):** Mood-Flächen und Regionsgrenzen liegen unter 3D-Gebäuden, POIs und Orts-/Straßennamen. Die Basiskarte liefert Stadt-/Ortsnamen passend zur Zoomstufe; Detail-Labels ergänzen Ortsteile und öffentliche Einrichtungen. Einfügepunkte und Text-/Halo-Farben passen zum hellen und dunklen Stil. Im Fallback ohne Basiskarte stehen deren Namen nicht zur Verfügung.
 
 ## 6. Dashboard-UX
 
