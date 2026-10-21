@@ -22,6 +22,8 @@ import {
   withScores,
 } from './geo';
 import { DetailPanel } from './DetailPanel';
+import { LiveToggle } from './LiveToggle';
+import { LIVE_POLL_MS, useLivePulses } from './live';
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
 import { MoodMap } from './MoodMap';
@@ -115,11 +117,17 @@ export function MapPage() {
 
   // Aggregate aus der DataSource (#68), bereits k-anonymisiert (score null unter K_MIN)
   useLiveAggregates();
-  const regionAggregates = useAggregates(regionLevel, topicSlug);
+  const live = searchParams.get('live') === '1';
+  const poll = live ? LIVE_POLL_MS : false;
+  const regionAggregates = useAggregates(regionLevel, topicSlug, { refetchInterval: poll });
   const schoolAggregates = useAggregates('school', topicSlug, {
     parentId: drill.kreis?.properties.id,
     enabled: drill.level !== 'nrw',
+    refetchInterval: poll,
   });
+  // Live (#24): alle Schulen beobachten, damit neue Stimmen auch in der Landesansicht pulsieren
+  const liveSchoolAggregates = useAggregates('school', 'all', { enabled: live, refetchInterval: poll });
+  const { pulsing, added } = useLivePulses(liveSchoolAggregates.data, live, 'all');
 
   const scored = shown ? scoreRegions(shown, toScoreMap(regionAggregates.data), focusRegbezId) : null;
 
@@ -132,6 +140,23 @@ export function MapPage() {
   const focusBounds = drill.school
     ? schoolBounds(drill.school)
     : ((focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
+
+  const pulses = pulsing.flatMap((id) => {
+    const school = schoolsQuery.data?.find((s) => s.id === id);
+    return school ? [{ id, lon: school.lon, lat: school.lat }] : [];
+  });
+
+  function setLive(on: boolean) {
+    setSearchParams(
+      (previous) => {
+        const next = new URLSearchParams(previous);
+        if (on) next.set('live', '1');
+        else next.delete('live');
+        return next;
+      },
+      { replace: true, preventScrollReset: true },
+    );
+  }
 
   function navigate(target: DrillTarget) {
     setSearchParams((previous) => drillParams(previous, target), { preventScrollReset: true });
@@ -165,11 +190,15 @@ export function MapPage() {
           clusterSchools={drill.level === 'regbez'}
           selectedSchoolId={drill.school?.id ?? null}
           onSelectSchool={selectSchool}
+          pulses={pulses}
         />
 
         <div className="pointer-events-none absolute top-0 right-12 left-0 p-3">
           <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl bg-card/95 px-4 py-2 shadow-md ring-1 ring-border">
-            <h1 className="text-base font-bold">Moodmap NRW</h1>
+            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+              <h1 className="text-base font-bold">Moodmap NRW</h1>
+              <LiveToggle live={live} added={added} onChange={setLive} />
+            </div>
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
             <p className="text-xs text-fg" aria-live="polite">
               {topic.icon} {topic.title} · {levelCaption(drill)}

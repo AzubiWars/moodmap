@@ -19,14 +19,16 @@ export const aggregatesKey = (level: DataLevel, topic: MapTopic, parentId?: stri
 export function useAggregates(
   level: DataLevel,
   topic: MapTopic,
-  options: { parentId?: string; enabled?: boolean } = {},
+  options: { parentId?: string; enabled?: boolean; refetchInterval?: number | false } = {},
 ) {
-  const { parentId, enabled = true } = options;
+  const { parentId, enabled = true, refetchInterval = false } = options;
   return useQuery({
     queryKey: aggregatesKey(level, topic, parentId),
     queryFn: () => getDataSource().getAggregates({ level, topic, parentId }),
     placeholderData: keepPreviousData,
     enabled,
+    // Live-Modus (#24): pollen, auch wenn die Datenquelle kein Push-Event schickt
+    refetchInterval,
   });
 }
 
