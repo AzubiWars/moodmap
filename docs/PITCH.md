@@ -7,7 +7,7 @@
 | Zeit | Teil | Inhalt |
 |---|---|---|
 | 0:00 | **Hook** | Bild/Schlagzeile aus Frankreich *(Ereignis aus MM-44 einsetzen)* → „Das ist nicht über Nacht passiert. Davor gab es Monate, in denen sich junge Menschen nicht gehört gefühlt haben. **Wir wollen, dass es in NRW gar nicht erst so weit kommt.**" |
-| 0:30 | **Problem** | Über 5.000 Schulen, Millionen Schüler:innen in NRW *(verifizieren)*. Die Politik erfährt von Stress, Lehrkräftemangel, KI-Chaos, Konflikten oder kaputten Toiletten erst Jahre später aus Studien – zu spät, zu grob, zu selten. Und Schüler:innen erleben selten, dass ihre Meinung etwas bewirkt. |
+| 0:30 | **Problem** | Über 5.400 Schulen und rund 2,5 Millionen Schüler:innen in NRW *(siehe §4)*. Die Politik erfährt von Stress, Lehrkräftemangel, KI-Chaos, Konflikten oder kaputten Toiletten erst Jahre später aus Studien – zu spät, zu grob, zu selten. Und Schüler:innen erleben selten, dass ihre Meinung etwas bewirkt. |
 | 1:00 | **Lösung** | Moodmap – zwei Säulen: **1. Zuhören:** 60-Sekunden-Mood-Check, Live-Stimmungswetter für das Ministerium. **2. Antworten:** Frühwarn-Radar + „Politik antwortet" – Politik und Schüler:innen arbeiten gemeinsam an Lösungen. |
 | 1:30 | **Live-Demo** | Siehe Demo-Skript unten (Herzstück!) |
 | 5:00 | **Datenschutz & Vertrauen** | Anonym by Design: kein Login, keine IP, Mindestanzahl 10, nur Aggregate. Frühwarn-Radar = Unterstützung & Dialog, **keine Überwachung**. |
@@ -54,18 +54,31 @@
 | Warum sollte die Politik antworten? | Weil Zuhören ohne Antwort Vertrauen zerstört. Moodmap macht Antworten einfach (1 Formular) und Wirkung messbar – ein Gewinn für beide Seiten. |
 | Was macht die KI? | Fasst ausschließlich aggregierte Kennzahlen zu einem Lagebericht zusammen. Keine Einzeldaten, gekennzeichnet als KI-generiert. |
 
-## 4. Fakten-Sammlung (mit Quelle füllen!)
+## 4. Fakten-Sammlung (Stand: 21.10.2026)
+
+> Jede Zahl hat eine Quelle. Was nicht belegt ist, bleibt leer – lieber keine Zahl als eine falsche.
+> Die Frankreich-Zeile gehört zu **#44** und wird dort recherchiert.
 
 | Fakt | Wert | Quelle | Geprüft |
 |---|---|---|---|
-| Anzahl Schulen in NRW | ca. 5.000+ | IT.NRW / Schulministerium | ☐ |
-| Anzahl Schüler:innen in NRW | ca. 2,5 Mio. | IT.NRW | ☐ |
-| Anzahl Lehrkräfte in NRW | | | ☐ |
-| Aktuelle Studie zu Schülerwohlbefinden / Stress | | z. B. Deutsches Schulbarometer (Robert Bosch Stiftung) | ☐ |
-| KI-Nutzung durch Schüler:innen | | | ☐ |
-| **Frankreich-Ereignis** (was, wann, Bezug zu Schule/Jugend) | | seriöse Quelle (z. B. tagesschau, Le Monde, AFP) | ☐ |
-| Vertrauen junger Menschen in Politik / Gefühl, gehört zu werden | | z. B. Shell-Jugendstudie, Jugendstudien der Bertelsmann Stiftung | ☐ |
-| Bestehende Beteiligungsformate in NRW (z. B. Landesschüler:innenvertretung) | | | ☐ |
+| Anzahl Schulen in NRW | **5.407** allgemeinbildende und berufliche Schulen (SJ 2024/25); davon **5.045** allgemeinbildende Schulen (SJ 2025/26) | [Q1], [Q2] | ☑ 21.10.2026 |
+| Anzahl Schüler:innen in NRW | **2.516.995** an allgemeinbildenden und beruflichen Schulen (SJ 2024/25); **1.994.055** an allgemeinbildenden Schulen (SJ 2025/26) | [Q1], [Q2] | ☑ 21.10.2026 |
+| Anzahl Lehrkräfte in NRW | **214.290** hauptamtliche und hauptberufliche Lehrkräfte (SJ 2025/26) | [Q3] | ☑ 21.10.2026 |
+| Aktuelle Studie zu Schülerwohlbefinden / Stress | **25 %** psychisch belastet; **16 %** geringes schulisches Wohlbefinden; **30 %** der 11–17-Jährigen mind. monatlich gemobbt | [Q4] | ☑ 21.10.2026 |
+| KI-Nutzung durch Schüler:innen | **65 %** der 14–19-Jährigen haben KI genutzt; **23 %** lassen Hausaufgaben von KI erledigen; **44 %** für ein Verbot bei Hausaufgaben | [Q5] | ☑ 21.10.2026 |
+| **Frankreich-Ereignis** (was, wann, Bezug zu Schule/Jugend) | **offen** – Recherche läuft in #44 | – | ☐ |
+| Vertrauen junger Menschen in Politik / Gefühl, gehört zu werden | **75 %** hohes Vertrauen in Demokratie, Parteien deutlich weniger (Shell 2024, n = 2.509); **50 %** können Unterrichtsinhalte gar nicht mitbestimmen (Schulbarometer 25/26) | [Q6], [Q4] | ☑ 21.10.2026 |
+| Bestehende Beteiligungsformate in NRW | SV nach **§ 74 Schulgesetz NRW**; **LSV NRW** auf Landesebene | [Q7] | ☑ 21.10.2026 |
+
+### Quellen
+
+- **[Q1]** IT.NRW: „NRW: Anteil der Schüler/-innen mit Zuwanderungsgeschichte steigt weiter“, PM 058/25, 5.3.2025 – 2.516.995 Schüler:innen an 5.407 allgemeinbildenden und beruflichen Schulen (SJ 2024/25). <https://www.it.nrw/nrw-anteil-der-schuelerinnen-und-schueler-mit-zuwanderungsgeschichte-steigt-weiter-127215>
+- **[Q2]** IT.NRW: „NRW: Anteil der Schülerinnen und Schüler mit sonderpädagogischem Förderbedarf steigt auf 8,2 %“, PM 057/26, 9.3.2026 – 1.994.055 Schüler:innen; 4.557 allgemeine + 488 Förderschulen (SJ 2025/26). <https://www.it.nrw/nrw-anteil-der-schuelerinnen-und-schueler-mit-sonderpaedagogischem-foerderbedarf-steigt>
+- **[Q3]** IT.NRW: „Schulen in NRW: Zahl der Quer- und Seiteneinsteiger/-innen deutlich gestiegen“, PM 255/26, 7.9.2026 – 214.290 hauptamtliche und hauptberufliche Lehrkräfte (SJ 2025/26). <https://www.it.nrw/schulen-nrw-zahl-der-quer-und-seiteneinsteiger-innen-deutlich-gestiegen-128712>
+- **[Q4]** Robert Bosch Stiftung / Deutsches Schulportal: „Deutsches Schulbarometer Schüler:innen 25/26“, 18.3.2026 – 25 % psychisch belastet, 16 % geringes schulisches Wohlbefinden, 30 % mind. monatlich gemobbt, 50 % ohne Mitbestimmung bei Unterrichtsinhalten; n = 1.507 (8–17 J.). <https://deutsches-schulportal.de/bildungswesen/deutsches-schulbarometer-schuelerbefragung-2026-die-wichtigsten-ergebnisse>
+- **[Q5]** Bitkom: „Digitale Schule 2025“, November 2025 – 65 % KI-Nutzung, 23 % Hausaufgaben durch KI, 44 % für Verbot; n = 502 (14–19 J.). <https://www.bitkom.org/Bitkom/Publikationen/Digitale-Schule-2025> · DOI: [10.64022/2025-digitale-schule](https://doi.org/10.64022/2025-digitale-schule)
+- **[Q6]** BMFSFJ: „19. Shell Jugendstudie veröffentlicht“, 15.10.2024 – 75 % hohes Vertrauen in Demokratie, Parteien deutlich weniger; n = 2.509 (12–25 J.). <https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen/19-shell-jugendstudie-veroeffentlicht--246246>
+- **[Q7]** Ministerium für Schule und Bildung NRW: „Schülervertretung“ – SV nach § 74 Schulgesetz NRW, LSV NRW auf Landesebene. <https://www.schulministerium.nrw/schuelervertretung>
 
 ## 5. Folien-Inhalte (Stichpunkte)
 
