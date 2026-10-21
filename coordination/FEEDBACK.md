@@ -25,17 +25,14 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 
 > Hier schreibt der Lead nach jedem Meilenstein, was neu ist und wie man es testet.
 
-**Stand 2026-10-21 11:30 (Lead):** Fundament steht. Vercel ist noch **nicht** verbunden (#3, bitte einrichten). Bis dahin lokal testen:
+**🎉 Meilenstein „Erster Prototyp“ – Stand 2026-10-21 13:45 (Lead)**, live auf **https://moodmap-cyan.vercel.app** (Demo-Daten, Mock-Modus):
 
-```bash
-git pull && npm install && npm run dev   # → http://localhost:5173
-```
+1. **Mood-Check per QR:** `/s/DEMO42` öffnen (oder QR auf `/demo` scannen) → Stufe wählen → 9 Fragen in ca. 60 s → Danke-Seite. Eine zweite Teilnahme in derselben Woche wird abgefangen.
+2. **Karte `/map`:** Themen-Schnellfilter (KI, Stress, Gehört werden, „Alle Themen“), Drill-down NRW → Bezirk → Kreis → Schule, Schul-Marker, **Detail-Panel mit Top-3-Baustellen** (Tipp: Kreis Recklinghausen, Thema „Gehört werden“), 3D-Gebäude beim Hineinzoomen, Dark Mode (☾ oben rechts).
+3. **`/demo`:** Rollen-Umschalter (Schüler:in · Schule · Ministerium), QR-Code, Demo-Daten zurücksetzen.
+4. **Als App installieren** (PWA): Android „App installieren“, iPhone „Zum Home-Bildschirm“.
 
-- `/map`: NRW-Karte mit 53 Kreisen (echte BKG-Grenzen), eingefärbt nach Stimmung. Hover zeigt Details, Klick zoomt hinein. *Die Werte sind noch Platzhalter, echte Demo-Daten kommen mit #8/#9.*
-- `/demo/components`: alle Basis-Bausteine (Wetter-Badges, Balken, Themen-Chips, 5er-Antwortskala). Gut, um Farben und Texte zu bewerten.
-- Auf dem Handy: Bottom-Navigation und kompakte Legende.
-
-Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Template „Feedback“.
+**In Arbeit (nächste Inkremente):** Lagebild mit Prozent-Statistik und Brennpunkten (#25), Frühwarn-Radar (#42), „Politik antwortet“ (#43), Pitch-Live-Test über Supabase mit Freitext-Moderation (#113–#117, #126), nur Deutschland zeigen (#132), neues App-Icon (#91).
 
 ---
 
