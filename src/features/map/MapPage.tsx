@@ -438,7 +438,7 @@ export function MapPage() {
           onClick={() => setIs3d((value) => !value)}
           aria-pressed={is3d}
           aria-label="3D-Ansicht umschalten"
-          className="absolute top-24 right-3 z-10 inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl bg-card/95 px-2.5 text-sm font-semibold shadow-md ring-1 ring-border backdrop-blur hover:bg-subtle"
+          className="absolute top-24 right-3 z-10 inline-flex min-h-10 min-w-10 md:right-[25rem] items-center justify-center rounded-xl bg-card/95 px-2.5 text-sm font-semibold shadow-md ring-1 ring-border backdrop-blur hover:bg-subtle"
         >
           {is3d ? '2D' : '3D'}
         </button>
