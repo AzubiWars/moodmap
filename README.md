@@ -1,5 +1,7 @@
 # 🗺️ Moodmap NRW
 
+[![CI](https://github.com/AzubiWars/moodmap/actions/workflows/ci.yml/badge.svg)](https://github.com/AzubiWars/moodmap/actions/workflows/ci.yml)
+
 > **Wie geht's NRWs Schulen?** – Die Stimmung an Schulen in Nordrhein-Westfalen, anonym erfasst, live auf der Karte.
 
 Moodmap ist eine moderne, mobile-first Umfrage-App (Web-App + PWA). Schülerinnen und Schüler – später auch Lehrkräfte – geben in **60 Sekunden** ihre aktuelle Stimmung zu Themen wie Lernstoff, Stress, KI-Nutzung, digitale Ausstattung oder Schulgebäude ab.
