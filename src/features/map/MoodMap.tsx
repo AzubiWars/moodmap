@@ -19,6 +19,8 @@ interface MoodMapProps {
   onSelect?: (id: string | null) => void;
   /** Kartenausschnitt der aktuellen Drill-down-Ebene; Änderungen lösen eine Kamerafahrt aus. */
   focusBounds?: Bounds;
+  /** Detail-Panel (#19) offen: Desktop-Sidebar rechts bzw. Mobile-Sheet unten – Kamera spart den Platz aus */
+  detailOpen?: boolean;
   /** Flächen zurücknehmen, damit Schul-Marker in derselben Farbskala lesbar sind (Kreis-/Schulebene) */
   muted?: boolean;
   /** Schul-Marker (#18) */
@@ -184,6 +186,9 @@ type HoverInfo = { lng: number; lat: number } & (
 /** Platz für Info-Box (oben) und Legende (unten), damit die fokussierte Fläche nicht verdeckt wird */
 const FOCUS_PADDING = { top: 120, bottom: 72, left: 24, right: 56 };
 const MOBILE_FOCUS_PADDING = { top: 128, bottom: 80, left: 16, right: 16 };
+/** Platz, den das Detail-Panel (#19) belegt: Sidebar-Breite inkl. Rand bzw. Höhe des eingeklappten Sheets */
+const PANEL_WIDTH = 392;
+const SHEET_PEEK = 120;
 
 export function MoodMap({
   regions,
@@ -191,6 +196,7 @@ export function MoodMap({
   onSelect,
   focusBounds = NRW_BOUNDS,
   muted = false,
+  detailOpen = false,
   schools,
   clusterSchools = true,
   selectedSchoolId,
@@ -213,11 +219,17 @@ export function MoodMap({
     const map = mapRef.current;
     if (!loaded || !map) return;
     // Mobile: Info-Box mit Breadcrumb ist zweizeilig, unten liegt der Quellenvermerk.
-    const padding = map.getContainer().clientWidth < 480 ? MOBILE_FOCUS_PADDING : FOCUS_PADDING;
+    const width = map.getContainer().clientWidth;
+    const base = width < 480 ? MOBILE_FOCUS_PADDING : FOCUS_PADDING;
+    const padding = !detailOpen
+      ? base
+      : width >= 768
+        ? { ...base, right: base.right + PANEL_WIDTH }
+        : { ...base, bottom: base.bottom + SHEET_PEEK };
     map.fitBounds(focusBounds, { padding, duration: 800 });
     // boundsKey statt focusBounds: das Array ist bei jedem Render neu
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded, boundsKey]);
+  }, [loaded, boundsKey, detailOpen]);
 
   const selectedFilter = useMemo(
     () => ['==', ['get', 'id'], selectedId ?? ''] as ['==', ['get', string], string],
