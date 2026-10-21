@@ -14,6 +14,16 @@ const meta = readJson<{ license: string; count: number; source: string; usage: s
   'schools.real.meta.json',
 );
 const kreise = readJson<KreisCollection>('../geo/nrw-kreise.geojson');
+const min = readJson<{
+  ids: string[];
+  names: string[];
+  forms: string[];
+  kreisIds: string[];
+  cities: string[];
+  lats: number[];
+  lons: number[];
+  studentCounts: (number | null)[];
+}>('schools.min.json');
 
 describe('public/data/schools.real.json', () => {
   it('contains the expected number of officially imported schools', () => {
@@ -22,6 +32,18 @@ describe('public/data/schools.real.json', () => {
     expect(meta.count).toBe(schools.length);
     expect(meta.license).toBe('dl-de/by-2-0');
     expect(meta.source).toContain('ogc-api.nrw.de');
+  });
+
+  it('has a compact map file with the same schools and no join codes', () => {
+    expect(min.ids).toHaveLength(schools.length);
+    expect(min.names).toHaveLength(schools.length);
+    expect(min.forms).toHaveLength(schools.length);
+    expect(min.kreisIds).toHaveLength(schools.length);
+    expect(min.cities).toHaveLength(schools.length);
+    expect(min.lats).toHaveLength(schools.length);
+    expect(min.lons).toHaveLength(schools.length);
+    expect(min.studentCounts).toHaveLength(schools.length);
+    expect(JSON.stringify(min)).not.toContain('joinCode');
   });
 
   it('has unique school numbers and join codes', () => {
