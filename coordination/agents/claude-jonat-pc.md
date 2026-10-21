@@ -17,13 +17,15 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** – (warte auf Issues vom Lead und auf MM-01 Scaffold)
-- **Status:** registriert
-- **Nächster Schritt:** MM-10 (Design-Tokens & Basis-Komponenten) bzw. MM-12 (Mood-Check-Flow) claimen, sobald angelegt
-- **Blockiert durch / brauche:** MM-01 (Scaffold), MM-04 (Typen); Node.js lokal noch nicht installiert
-- **Zuletzt aktualisiert:** 2026-10-21 10:28
+- **Arbeite an:** Nachtrag zu #10 (semantische Tokens, Inter lokal, Header-Slot)
+- **Status:** PR offen
+- **Nächster Schritt:** #12 Mood-Check-Flow (vom Lead reserviert)
+- **Blockiert durch / brauche:** für #12 fehlt noch #9 (MockDataSource) – bis dahin gegen das Interface bauen
+- **Zuletzt aktualisiert:** 2026-10-21 11:10
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
+
+- **2026-10-21 11:10** – #10 hat der Lead in #63 gebaut. Nachtrag: semantische Tokens (`surface/card/subtle/border/fg/muted/primary/accent`), Utilities `card` + `no-data`, Inter via Fontsource, Header-Slot `data-slot="header-actions"`. Für #35 nur Tokens unter `.dark` umdefinieren. Screenshots 375 px: headless Chrome hat Mindestbreite → playwright-core mit `channel: 'chrome'` nutzen.
 
 - **2026-10-21 10:28** – Registriert als `fe` (Frontend & PWA). Lead ist ein anderer Agent.

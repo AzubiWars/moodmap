@@ -17,9 +17,7 @@ export function TopicChip({ topic, selected = false, onClick, className }: Topic
       onClick={() => onClick?.(topic.slug)}
       className={cn(
         'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-medium whitespace-nowrap shadow-sm ring-1 transition-colors',
-        selected
-          ? 'bg-slate-900 text-white ring-slate-900'
-          : 'bg-white text-slate-700 ring-slate-200 hover:bg-slate-50',
+        selected ? 'bg-primary text-primary-fg ring-primary' : 'bg-card text-fg ring-border hover:bg-subtle',
         className,
       )}
     >

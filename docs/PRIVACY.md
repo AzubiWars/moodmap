@@ -14,7 +14,7 @@
 
 ## 2. Mindestanzahl (k-Anonymität)
 
-- Jede angezeigte Zelle (Einheit × Thema × Filterkombination × Zeitraum) braucht **mindestens `K_MIN = 10` Antworten**. Darunter wird kein Wert angezeigt („zu wenige Daten").
+- Jede angezeigte Zelle (Einheit × Thema × Filterkombination × Zeitraum) braucht **mindestens `K_MIN = 10` unterschiedliche Teilnahmen mit gewerteten Antworten**. Mehrere Fragen derselben Teilnahme zählen für diese Mindestanzahl nur einmal. Darunter wird kein Wert angezeigt („zu wenige Daten").
 - Die Prüfung passiert **serverseitig** (in Views/RPCs) **und** clientseitig (Defense in Depth). Im Mock-Modus in `src/lib/score.ts`.
 - **Differenzangriffe vermeiden:** Kombinationen aus feinen Filtern (z. B. Schule × Oberstufe × Berufskolleg × 1 Woche) erreichen schnell < 10 → werden ausgeblendet. P2: Für Schulebene nur Filter „Thema" + „Zeitraum" erlauben, feinere Filter erst ab Kreisebene.
 - `choice`-Verteilungen ebenfalls erst ab `K_MIN`, und einzelne Optionen mit < 3 Nennungen als „< 3" anzeigen.

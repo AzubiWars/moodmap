@@ -28,6 +28,7 @@ describe('MoodBadge', () => {
   it('hides the score below K_MIN', () => {
     render(<MoodBadge score={null} />);
     expect(screen.getByText('zu wenige Daten')).toBeInTheDocument();
+    expect(screen.getByText('zu wenige Daten').parentElement).toHaveClass('no-data');
   });
 });
 

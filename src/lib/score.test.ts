@@ -16,7 +16,10 @@ import {
   type TopicScore,
 } from './score';
 
+let nextResponseId = 0;
+
 const mood = (value: number, topicSlug = 'ai', weight?: number, invert?: boolean): AnswerScoreInput => ({
+  responseId: `mood-${nextResponseId++}`,
   topicSlug,
   type: 'mood5',
   value,
@@ -25,6 +28,7 @@ const mood = (value: number, topicSlug = 'ai', weight?: number, invert?: boolean
 });
 
 const swipe = (value: number, topicSlug = 'ai', weight?: number): AnswerScoreInput => ({
+  responseId: `swipe-${nextResponseId++}`,
   topicSlug,
   type: 'swipe',
   value,
@@ -54,9 +58,9 @@ describe('scoreAnswer', () => {
   });
 
   it('does not score choice, missing or invalid values', () => {
-    expect(scoreAnswer({ topicSlug: 'ai', type: 'choice', value: 1 })).toBeNull();
-    expect(scoreAnswer({ topicSlug: 'ai', type: 'mood5', value: null })).toBeNull();
-    expect(scoreAnswer({ topicSlug: 'ai', type: 'mood5', value: undefined })).toBeNull();
+    expect(scoreAnswer({ ...mood(1), type: 'choice' })).toBeNull();
+    expect(scoreAnswer({ ...mood(1), value: null })).toBeNull();
+    expect(scoreAnswer({ ...mood(1), value: undefined })).toBeNull();
     expect(scoreAnswer(mood(0))).toBeNull();
     expect(scoreAnswer(mood(6))).toBeNull();
     expect(scoreAnswer(mood(2.5))).toBeNull();
@@ -100,6 +104,44 @@ describe('topicScore', () => {
         5,
       ),
     ).toEqual({ n: 5, score: 100 });
+  });
+
+  it('suppresses four participants answering three questions each', () => {
+    const answers = Array.from({ length: 4 }, (_, participant) =>
+      [mood(5), swipe(1), swipe(0)].map((answer) => ({
+        ...answer,
+        responseId: `participant-${participant}`,
+      })),
+    ).flat();
+
+    expect(topicScore(answers, 'ai')).toEqual({ n: 4, score: null });
+    expect(topicScores(answers).ai).toEqual({ n: 4, score: null });
+  });
+
+  it('uses distinct participants for K_MIN while preserving answer weights', () => {
+    const answers = Array.from({ length: 10 }, (_, participant) =>
+      [mood(5), swipe(0)].map((answer) => ({
+        ...answer,
+        responseId: `participant-${participant}`,
+      })),
+    ).flat();
+
+    expect(topicScore(answers.slice(0, 18), 'ai')).toEqual({ n: 9, score: null });
+    expect(topicScore(answers, 'ai')).toEqual({ n: 10, score: 66.7 });
+  });
+
+  it('counts only participants with a scored answer to the requested topic', () => {
+    const answers = [
+      ...repeat(9, () => mood(5)),
+      { ...mood(5), value: null },
+      { ...swipe(1), weight: 0 },
+      { ...mood(5), type: 'choice' as const },
+      mood(5, 'stress'),
+      { ...mood(5), responseId: '' },
+      { ...mood(5), responseId: '  ' },
+    ];
+
+    expect(topicScore(answers, 'ai')).toEqual({ n: 9, score: null });
   });
 
   it('excludes weight 0 and unknown topics', () => {

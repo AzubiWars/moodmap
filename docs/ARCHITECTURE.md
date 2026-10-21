@@ -19,7 +19,7 @@
 | Backend | **Supabase** (Postgres + Realtime + Row Level Security + Edge Functions) | DB, API, Live-Updates ohne eigenen Server |
 | Mock-Backend | Lokaler In-Memory-/localStorage-Store mit gleichem Interface | Demo-Versicherung |
 | KI-Lagebericht | Supabase Edge Function → LLM-API (z. B. Claude) mit **nur aggregierten Daten**; im Mock-Modus statischer Bericht | Wow-Feature, sicher vorführbar |
-| Tests | **Vitest** (+ Testing Library), **Playwright** (1–3 Smoke-Tests) | |
+| Tests | **Vitest** (+ Testing Library), **Playwright** (1–3 Smoke-Tests), **PGlite** für SQL-Tests der Migrationen (#76) | |
 | Lint/Format | ESLint + Prettier | |
 | Hosting | **Vercel** (festgelegt, mit GitHub-Repo verbunden): `main` → Production, jeder PR → Preview-URL | Menschen können jeden PR auf dem Handy testen |
 | CI | GitHub Actions: lint, typecheck, test, build | `main` bleibt grün |
@@ -39,10 +39,14 @@ moodmap/
 │   └── data/                # schools.json (aus Open Data aufbereitet)
 ├── scripts/
 │   ├── import-schools.ts    # Schulverzeichnis NRW → public/data/schools.json
-│   ├── simplify-geo.ts      # GeoJSON vereinfachen (mapshaper)
+│   ├── simplify-geo.ts      # npm run geo:build – Grenzen + Gemeinden aus BKG-Daten (mapshaper)
+│   ├── generate-schools.ts  # npm run data:schools – synthetische Schulen (Fallback bis #33)
+│   ├── lib/                 # reine, getestete Logik der Skripte
+│   ├── data/                # Zwischendaten der Skripte (nicht ausgeliefert), z. B. nrw-gemeinden.json
 │   └── generate-seed.ts     # synthetische Antworten erzeugen
 ├── supabase/
-│   ├── migrations/          # SQL-Schema, Views, RLS
+│   ├── migrations/          # SQL-Schema, Views, RLS, RPCs (Dateiname = Zeitstempel = Reihenfolge)
+│   ├── tests/               # SQL-Tests: Migrationen in PGlite (#76), laufen mit `npm test`
 │   └── functions/
 │       └── situation-report/ # KI-Lagebericht
 └── src/
@@ -137,7 +141,7 @@ export interface AggregateQuery {
 
 export interface AggregateRow {
   id: string;                      // regbez-/kreis-ID oder Schulnummer
-  n: number;                       // Anzahl Antworten
+  n: number;                       // Anzahl unterschiedlicher gewerteter Teilnahmen
   score: number | null;            // 0–100, null wenn n < K_MIN
   delta: number | null;            // Δ zur Vorperiode
   topicScores?: Record<string, number | null>;
@@ -183,6 +187,18 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - `anon` darf **INSERT** auf `responses`/`answers` (über eine RPC-Funktion `submit_response`, die alles validiert) – **kein SELECT** auf Rohdaten.
 - Gelesen werden ausschließlich **Aggregations-Views/RPCs**, die die Mindestanzahl erzwingen.
 
+✅ Umgesetzt in `supabase/migrations/20261021091500_schema.sql` (#77):
+- `anon`/`authenticated` haben **keinerlei Rechte** auf `responses`, `answers` und `policy_answer_ratings` (kein SELECT/INSERT/UPDATE/DELETE). Schreiben nur über `security definer`-RPCs (#78, #81).
+- Lesbar: `regbez`, `kreise`, `topics`, `questions`, `waves`, `policy_answers` und `schools` **ohne** `join_code` (Spalten-Grant). Codes werden nur über `get_school_by_code` aufgelöst (#78).
+- RLS ist auf jeder Tabelle aktiv. Weil Supabase neuen Objekten standardmäßig alle Rechte gibt, entzieht die Migration sie und setzt die Default-Privileges so, dass **spätere Tabellen und Funktionen nicht automatisch erreichbar sind**. Jede neue RPC braucht ein explizites `grant execute … to anon`.
+- Typ-spezifische Wertebereiche der Antworten (mood5 1–5, swipe 0/1, gültige `choice`-Optionen) prüft zusätzlich ein Trigger.
+- SQL-Tests (`supabase/tests/`) laufen mit `npm test` gegen PGlite und prüfen Rechte, RLS, Constraints und die Gleichheit der Enums mit `src/types/domain.ts`.
+
+✅ Umfrage-RPCs in `supabase/migrations/20261021094500_survey_rpcs.sql` (#78). Alle sind `security definer` und liefern camelCase-JSON wie `src/types`:
+- `submit_response(input jsonb)` → `SubmitResult`. Prüft Schule, **aktuelle** Welle, Rolle, Gerät-Token (16–200 Zeichen), Frage-IDs (keine Duplikate, Zielgruppe passt zur Rolle) und Werte je Fragetyp. Speichert `device_hash = sha256(deviceToken + ':' + waveId)`, nie das Token. Doppelte Teilnahme → `{ ok: false, reason: 'already_submitted' }` (atomar per `on conflict`). Ungültige Eingaben lösen einen Fehler aus und speichern nichts; die Supabase-DataSource (#23) macht daraus `reason: 'error'`.
+- `get_school_by_code(code text)` → `School | null`, Groß-/Kleinschreibung und Leerzeichen egal. Einziger Weg zum `joinCode`.
+- `get_current_wave()` → `Wave | null`: die Welle, die `now()` enthält. Bei Lücken im Wellenkalender die zuletzt begonnene, damit die Live-Demo nie an einer fehlenden Welle scheitert. `submit_response` nutzt dieselbe Definition.
+
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
 - `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`
@@ -196,7 +212,7 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
    gewichteter Mittelwert aller gewerteten Antworten zu *t* (Kernfrage Gewicht 1.0, Swipe 0.5).
 3. **Gesamt-Mood einer Einheit:** Mittelwert der Themen-Scores der Themen 1–n mit ausreichendem n (gleich gewichtet), **plus** die direkte Frage `overall` als eigenes Thema. → Ein schlecht abgedecktes Thema verzerrt nicht.
 4. **Aggregation nach oben (Schule → Kreis → RegBez → NRW):** Berechnung direkt über alle Antworten der Ebene (nicht Mittelwert der Schul-Mittelwerte), damit große Schulen nicht untergewichtet werden. *(Optional P2: Gewichtung nach Schülerzahl, um Beteiligungsunterschiede auszugleichen.)*
-5. **Mindestanzahl:** `K_MIN = 10` Antworten pro angezeigter Zelle (Einheit × Thema × Filterkombination). Darunter: `score = null` → grau „zu wenige Daten". Siehe `docs/PRIVACY.md`.
+5. **Mindestanzahl:** `K_MIN = 10` unterschiedliche Teilnahmen pro angezeigter Zelle (Einheit × Thema × Filterkombination). `n` zählt nur Teilnahmen mit mindestens einer gültigen, gewerteten Antwort (Gewicht > 0) in dieser Zelle. Mehrere Kern-/Swipe-Fragen derselben Teilnahme erhöhen `n` nicht. TypeScript: `AnswerScoreInput.responseId`; SQL-Views/RPCs (#22): `COUNT(DISTINCT response_id)` nach derselben Filterung. Die Score-Berechnung bleibt der gewichtete Mittelwert aller gewerteten Antworten. Darunter: `score = null` → grau „zu wenige Daten". Siehe `docs/PRIVACY.md`.
 6. **Trend (Δ):** Score aktuelle Periode − Score Vorperiode (nur wenn beide ≥ `K_MIN`).
 7. **Hotspot-Regel (Dashboard):** Einheit mit `score < 40` **oder** `delta ≤ −10` und `n ≥ 30`.
 8. **Spannungs-Index (Frühwarn-Radar)**, 0–100, hoch = mehr Spannung:
@@ -214,13 +230,22 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
 |---|---|---|
 | Schulverzeichnis NRW (Schulnummer, Name, Schulform, Adresse, Koordinaten) | Open Data des Schulministeriums NRW („Schuldaten"/Schulverzeichnis, CSV, Koordinaten i. d. R. in UTM32 / EPSG:25832) | `scripts/import-schools.ts`: filtern, nach WGS84 umrechnen (`proj4`), Kreis zuordnen (Point-in-Polygon oder Gemeindeschlüssel), → `public/data/schools.json` |
 | Kreise & kreisfreie Städte, Regierungsbezirke (Grenzen) | ✅ **BKG VG250** (Verwaltungsgebiete 1:250 000, Ebenen, Stand 01.01.2026), Lizenz **dl-de/by-2-0** | `npm run geo:build` (`scripts/simplify-geo.ts`): NRW filtern, WGS84, mapshaper `interval=100` m, Koordinaten auf 4 Nachkommastellen; RegBez werden aus den Kreisen gebildet (identische Grenzen). → `public/geo/nrw-kreise.geojson` (53 Features: `id` = AGS, `name`, `regbez_id`, `type` = `kreis`\|`kreisfreie_stadt`, ~290 KB) und `public/geo/nrw-regbez.geojson` (5 Features: `id` = `051`…`059`, `name`, ~105 KB). Für MapLibre-`feature-state`: `promoteId: 'id'`. |
+| Deutschland-Grenze (Maske für „nicht Deutschland ausblenden") | **Natural Earth** (Public Domain), via [datasets/geo-countries](https://github.com/datasets/geo-countries) | `public/geo/germany.geojson` (MultiPolygon) + `public/geo/non-germany-mask.geojson` (Weltpolygon mit Deutschland als Loch); MapLibre-Layer `germany-mask-fill` + `germany-outline-line`. |
+| Gemeinden mit Einwohnerzahl (nur Skript-Eingabe) | ✅ **BKG VG250-EW** (Stand 31.12.2024), Lizenz **dl-de/by-2-0** | ebenfalls `npm run geo:build`: 396 Gemeinden mit `ags`, `name`, `kreisId`, `population`, `areaKm2` und einem garantiert innenliegenden Punkt → `scripts/data/nrw-gemeinden.json` (~46 KB). Basis für die Verteilung der synthetischen Schulen. |
 | Schulsozialindex (optional, P2) | Schulministerium NRW (veröffentlicht pro Schule) | Spannende Korrelation im Dashboard: Stimmung vs. Sozialindex |
 
 **Lizenzangaben** (z. B. „Datenlizenz Deutschland – Namensnennung 2.0") in der App unter „Quellen" anzeigen.
+Die Deutschland-Maske nutzt **Natural Earth** (Public Domain); die Attribution nennt sie trotzdem.
 Pflicht-Quellenvermerk für die Grenzen (sichtbar an der Karte, z. B. MapLibre-Attribution; „BKG" → https://www.bkg.bund.de, „dl-de/by-2-0" → https://www.govdata.de/dl-de/by-2-0 verlinken):
 `© BKG (2026) dl-de/by-2-0, Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf – Geometrien vereinfacht`
 
-**Fallback, falls Open Data nicht rechtzeitig klappt:** ~300 synthetische Schulen, gleichmäßig über die echten Kreis-Polygone verteilt, mit plausiblen Namen („Gesamtschule Musterstadt-Nord"). Die Karte muss zuerst funktionieren, echte Schulen sind ein Upgrade.
+**Fallback, falls Open Data nicht rechtzeitig klappt:** ~300 synthetische Schulen mit plausiblen Namen. Die Karte muss zuerst funktionieren, echte Schulen sind ein Upgrade.
+✅ Umgesetzt (#7): `npm run data:schools` erzeugt deterministisch `public/data/schools.json` – ein Array von `School` (`src/types/domain.ts`), eine Schule pro Zeile. Regeln:
+- 300 Schulen, jeder Kreis ≥ 2, der Rest nach Einwohnerzahl verteilt; innerhalb des Kreises in echten Gemeinden (gewichtet nach Einwohnern, Berufskollegs bevorzugt in größeren Städten), Koordinate nahe dem Gemeindepunkt und garantiert im eigenen Kreis-Polygon.
+- Schulform-Mix bewusst nicht wie in NRW (> 50 % Grundschulen), sondern auf die Zielgruppe ab Klasse 5 ausgerichtet; jeder Kreis hat mindestens ein Gymnasium oder eine Gesamtschule.
+- `id` = synthetische Schulnummer `9xxxxx` (kollidiert nicht mit echten Schulnummern), `joinCode` = 6 Zeichen ohne verwechselbare Zeichen (0/O, 1/I/L).
+- **Demo-Schule:** `900000` „Gesamtschule Düsseldorf-Mitte", `joinCode` **`DEMO42`**.
+- Das echte Schulverzeichnis (#33) soll dasselbe Format nach `public/data/schools.json` schreiben. Im Mock-Modus sind die Join-Codes damit öffentlich lesbar (für die Demo ok). Im Supabase-Modus darf `join_code` nicht per anon-SELECT lesbar sein, nur über `getSchoolByCode` (#22).
 
 ## 7. Synthetische Demo-Daten (`scripts/generate-seed.ts`)
 
@@ -274,3 +299,7 @@ VITE_K_MIN=10
 # nur serverseitig (Supabase Edge Function Secret), NIE im Frontend:
 # LLM_API_KEY=
 ```
+
+## 11. Geplante Schüler-Anmeldung (Vorschlag, #74)
+
+Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN.md](SSO_PLAN.md) beschreibt Anschlusswege, Schul-/Rollenprüfung, die Trennung von Identität und Antworten sowie die offenen Anbieter- und Datenschutzfragen. Anbieterwahl und Umsetzung sind noch nicht freigegeben; das bestehende Datenmodell, das `DataSource`-Interface und der Mock-Modus werden durch diesen Plan nicht geändert.

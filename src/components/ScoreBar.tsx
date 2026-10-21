@@ -14,7 +14,7 @@ export function ScoreBar({ score, compare, compareLabel = 'NRW', className }: Sc
   const hasScore = score != null;
   return (
     <div
-      className={cn('relative h-3 w-full rounded-full bg-slate-200', className)}
+      className={cn('relative h-3 w-full rounded-full bg-border', className)}
       role="meter"
       aria-valuemin={0}
       aria-valuemax={100}
@@ -29,7 +29,7 @@ export function ScoreBar({ score, compare, compareLabel = 'NRW', className }: Sc
       )}
       {compare != null && (
         <div
-          className="absolute -top-1 h-5 w-0.5 rounded bg-slate-900"
+          className="absolute -top-1 h-5 w-0.5 rounded bg-fg"
           style={{ left: `calc(${Math.min(100, Math.max(0, compare))}% - 1px)` }}
           title={`${compareLabel}: ${Math.round(compare)}`}
           aria-hidden

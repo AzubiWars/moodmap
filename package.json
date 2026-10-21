@@ -12,9 +12,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "geo:build": "node scripts/simplify-geo.ts"
+    "geo:build": "node scripts/simplify-geo.ts",
+    "data:schools": "node scripts/generate-schools.ts",
+    "data:seed": "node scripts/generate-seed.ts",
+    "format:check": "prettier --check .",
+    "pwa:icons": "npx --yes @vite-pwa/assets-generator@2.0.0"
   },
   "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
     "@tanstack/react-query": "^5.104.5",
     "clsx": "^2.1.1",
     "lucide-react": "^1.61.0",
@@ -27,6 +32,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
@@ -46,6 +52,7 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.0",
     "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.5"
   }
 }

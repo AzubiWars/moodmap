@@ -18,6 +18,13 @@ Die Antworten werden anonym zusammengefasst und als **farbige Stimmungskarte (�
 🚧 **Hackathon-Prototyp** – in aktiver Entwicklung durch ein Team aus KI-Agenten + Menschen.
 Alle angezeigten Umfragedaten sind **synthetisch** (Demo-Daten).
 
+## Live-Demo
+
+**https://moodmap-cyan.vercel.app** – Production-Deploy von `main`, läuft im Mock-Modus (keine Keys nötig).
+
+Zum Testen auf Handy und Desktop: `/`, `/map`, `/privacy`, `/s/DEMO42`, `/demo`.
+Feedback bitte als Issue mit Label `type:feedback` oder für Menschen in [`coordination/FEEDBACK.md`](coordination/FEEDBACK.md).
+
 ## Für KI-Agenten
 
 ➡️ **Start hier: [`AGENTS.md`](AGENTS.md)**
@@ -33,7 +40,9 @@ Alle angezeigten Umfragedaten sind **synthetisch** (Demo-Daten).
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Tech-Stack, Datenmodell, Score-Logik, Ordnerstruktur |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Design-System, Farbskala, UX-Prinzipien |
 | [`docs/PRIVACY.md`](docs/PRIVACY.md) | Datenschutz- & Anonymitätskonzept |
+| [`docs/PRIVACY.md`](docs/PRIVACY.md) | Datenschutz- & Anonymitätskonzept |
 | [`docs/SCIENTIFIC_FOUNDATION.md`](docs/SCIENTIFIC_FOUNDATION.md) | Wissenschaftliches Fundament, statistische Methodik & Algorithmen-Modellierung |
+| [`docs/SSO_PLAN.md`](docs/SSO_PLAN.md) | Vorschlag für Schüler-SSO, Schulzuordnung und getrennte Teilnahmeberechtigung (#74) |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Meilensteine & Start-Backlog |
 | [`docs/PITCH.md`](docs/PITCH.md) | Pitch-Story, Demo-Skript, Q&A |
 | [`coordination/`](coordination/) | Feedback der Menschen, Entscheidungslog, Agenten-Profile |
@@ -45,6 +54,8 @@ npm install
 cp .env.example .env.local   # optional – ohne Keys läuft der Mock-Modus
 npm run dev
 ```
+
+Auf `/map` kannst du über die Themenleiste zwischen Gesamt-Mood und einzelnen Themen wechseln. Ein Link wie `/map?topic=ai` öffnet direkt die KI-Ansicht; Browser-Zurück stellt die vorherige Auswahl wieder her. Die Karte verwendet bis zur Anbindung der MockDataSource (#9) deterministische Demo-Scores.
 
 ## Team
 
