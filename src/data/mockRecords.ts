@@ -8,6 +8,8 @@ export interface MockResponse {
   role: Role;
   gradeBand?: GradeBand | null;
   createdAt: string;
+  /** Echte Abgabe aus dem Mood-Check (nicht Seed) – für die Kennzeichnung Demo vs. Live (#160) */
+  live?: boolean;
 }
 
 export type MockAnswer = AnswerInput & { responseId: string };

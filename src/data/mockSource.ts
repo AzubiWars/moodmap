@@ -124,7 +124,7 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
     return extra.length
       ? {
           ...seed,
-          responses: [...seed.responses, ...extra.map((entry) => entry.response)],
+          responses: [...seed.responses, ...extra.map((entry) => ({ ...entry.response, live: true }))],
           answers: [...seed.answers, ...extra.flatMap((entry) => entry.answers)],
         }
       : seed;

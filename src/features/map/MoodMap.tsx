@@ -592,6 +592,9 @@ export function MoodMap({
                 {hover.props.form} · {hover.props.city}
               </div>
             )}
+            {hover.kind === 'school' && pulses.some((p) => p.id === hover.props.id) && (
+              <div className="text-xs font-semibold text-mood-1">● Live-aktiv: neue Stimme</div>
+            )}
             {mode === 'trend' && modeProps ? (
               hasTrend(modeProps.tdelta) ? (
                 <div>{formatTrend(modeProps.tdelta!)}</div>
