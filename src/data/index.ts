@@ -1,7 +1,8 @@
 import { DATA_MODE } from '@/lib/env';
 import type { DataSource, DataSourceMode } from './api';
+import { mockSource } from './mockBootstrap';
 
-const sources = new Map<DataSourceMode, DataSource>();
+const sources = new Map<DataSourceMode, DataSource>([['mock', mockSource]]);
 
 /**
  * Registriert eine DataSource-Implementierung.

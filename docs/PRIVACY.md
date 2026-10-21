@@ -7,7 +7,7 @@
 
 1. **Keine personenbezogenen Daten erheben.** Kein Name, keine E-Mail, kein Account, keine Telefonnummer, keine Klasse (nur grobe Stufe), **keine IP-Adressen speichern**, keine Tracking-/Analytics-Cookies.
 2. **Datenminimierung:** Nur Schule, grobe Stufe (`5–7`, `8–10`, `Oberstufe`, `Berufskolleg`), Rolle, Welle, Antworten.
-3. **Keine Freitexte im Prototyp** – Freitext kann Namen, Beleidigungen oder Hilferufe enthalten, die wir nicht verantwortungsvoll bearbeiten können.
+3. **Freitext nur mit KI-Moderation** (ADR-016, PRODUCT_SPEC §3.13): optional, max. 280 Zeichen. Eine serverseitige Moderation entfernt Namen/persönliche Angaben, Beleidigungen und unpassende Sprache. **Gespeichert wird nur der bereinigte Text mit Themen-Cluster, nie der Rohtext** (auch nicht in Logs). Angezeigt werden Cluster und bereinigte Beispiele erst ab K_MIN. Bei Krisensignalen: sofort Hilfsangebote anzeigen, keine Weiterleitung.
 4. **Zeitstempel grob:** auf Tag gerundet speichern (verhindert Zuordnung über Uhrzeit, z. B. „wer war gerade in Stunde 3 am Handy").
 5. **Nur Aggregate sichtbar** – nie Einzelantworten, in keiner Rolle, auch nicht im Ministerium.
 6. **Synthetische Daten im Hackathon.** Alle Umfrageergebnisse in der Demo sind generiert und als „Demo-Daten" gekennzeichnet.
@@ -52,6 +52,16 @@ Ehrlich im Pitch: Ohne Login ist Manipulation nie 0 – aber durch Join-Codes, W
 - Das LLM erhält **ausschließlich aggregierte, bereits k-anonymisierte Kennzahlen** (Scores, n, Deltas, Verteilungen) – keine Rohdaten, keine Einzelantworten.
 - API-Key nur serverseitig (Edge Function Secret).
 - Bericht wird als „KI-generiert – bitte prüfen" gekennzeichnet.
+
+## 6a. KI-Moderation von Freitexten (OpenRouter, ADR-016)
+
+- **Zweck:** Freitexte nach Themen clustern und dafür sorgen, dass keine beleidigenden, hasserfüllten, bedrohenden, sexuellen oder personenbezogenen Inhalte (Namen, Adressen, Telefonnummern) gespeichert oder angezeigt werden. Unpassende Jugendsprache und Schimpfwörter werden entfernt oder neutralisiert.
+- **Ablauf:** Der Text geht an die Supabase Edge Function `moderate-text` (#119, strukturiert umgesetzt). Es werden **keine** Metadaten mitgeschickt (keine Schule, kein Gerät), nur der Text und die Themenliste. Gespeichert wird nur das bereinigte Ergebnis mit Cluster. **Rohtext und abgelehnte Texte werden nie gespeichert und nicht geloggt.**
+- **Ergebnis:** `allowed`, `reason`, `cleaned`, `topics`, `cluster`, `concern`; max. **280 Zeichen**, Timeout **5 s**. Nur `cleaned` + `topics` + `cluster` werden gespeichert.
+- **Fehlerfall:** Ohne Key, bei API-Fehler oder Timeout wird der **Freitext verworfen** (fail-closed für den Freitext); die übrige Abgabe läuft trotzdem durch (fail-open für die Umfrage).
+- **Schlüssel & Kosten:** Der API-Key liegt nur als Supabase-Secret vor, nie im Frontend oder Repo. Im OpenRouter-Konto muss ein **Budget-Limit** gesetzt sein, weil die Function öffentlich aufrufbar ist.
+- **Transparenz:** Vor dem Absenden steht ein Hinweis, dass der Text zur Prüfung an einen KI-Dienstleister übermittelt wird.
+- **Echtbetrieb:** Die Übermittlung an einen externen KI-Dienst ist eine Datenverarbeitung durch Dritte (Auftragsverarbeitung, Serverstandort, Speicherdauer beim Anbieter, Training ausgeschlossen?). Vor einem Echtbetrieb muss das geprüft werden. Im Pitch-Test nehmen nur Freiwillige im Saal teil. Der Test-Standort (`is_test`) wird nach dem Pitch zurückgesetzt, Freitexte inklusive.
 
 ## 7. Frühwarn-Radar & „Politik antwortet": Dialog, keine Überwachung
 

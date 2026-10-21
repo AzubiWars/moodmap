@@ -45,7 +45,8 @@ export interface Scope {
 
 export interface DistributionOption {
   value: string;
-  count: number;
+  /** `null` bedeutet unterdrückt (< 3); die genaue kleine Anzahl wird nicht ausgeliefert. */
+  count: number | null;
 }
 
 export interface Distribution {

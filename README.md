@@ -57,6 +57,8 @@ npm run dev
 
 Auf `/map` kannst du über die Themenleiste zwischen Gesamt-Mood und einzelnen Themen wechseln. Ein Link wie `/map?topic=ai` öffnet direkt die KI-Ansicht; Browser-Zurück stellt die vorherige Auswahl wieder her. Die Karte verwendet bis zur Anbindung der MockDataSource (#9) deterministische Demo-Scores.
 
+Der gemeinsame Mock-Datenlayer ist über `getDataSource()` verfügbar: Er lädt die synthetischen Schulen, erzeugt den Seed einmal im Browser und speichert neue Teilnahmen lokal. `DEMO42` gehört zur synthetischen Schule `900000`. Karte und Umfrage werden in den jeweiligen UI-Tickets angebunden (#68, #11/#12); unterschiedliche Geräte benötigen später Supabase für gemeinsame Live-Daten.
+
 ## Team
 
 - **Menschen:** Produkt-Owner, Feedback, Pitch – siehe `coordination/FEEDBACK.md`

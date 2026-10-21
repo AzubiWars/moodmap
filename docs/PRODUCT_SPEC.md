@@ -69,7 +69,7 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
   - `mood5` – 5er-Skala mit Wetter-Icons/Emojis (Hauptfragetyp)
   - `swipe` – Aussage, links = stimme nicht zu / rechts = stimme zu (Tinder-artig) – P1
   - `choice` – Einfach-/Mehrfachauswahl
-  - `freetext` – **nicht im Prototyp** (Datenschutz/Moderation), höchstens P2 mit KI-Zusammenfassung
+  - `freetext` – optional, max. 280 Zeichen, **nur mit KI-Moderation** (siehe §3.13, ADR-016)
 - Jede Frage ist überspringbar („Weiß nicht / keine Angabe").
 - Haptisches Feedback (Vibration API) und kleine Animationen beim Antworten – P1.
 - **Frequenz:** Eine Teilnahme pro Gerät und **Umfragewelle** (Standard: 1 Woche). Danach Hinweis „Danke! Nächster Mood-Check ab Montag".
@@ -207,6 +207,46 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
 - Banner überall: „Prototyp – Demo-Daten" (dezent)
 
 ---
+
+### 3.12 Pitch-Live-Test – P0 (FB-006)
+
+**Story:** Beim Pitch scannen 100–200 Personen einen QR-Code, machen den Mood-Check auf dem eigenen Handy, und die Jury sieht auf dem Beamer live, wie sich der Test-Standort einfärbt.
+
+- **Test-Standort außerhalb NRW:** ein eigener Standort mit Flag `is_test` (Schule + Pseudo-Region), konfigurierbar (Name, Koordinaten, z. B. Ort des Hackathons). Er erscheint **nie** in NRW-Aggregaten, im Dashboard oder im Frühwarn-Radar, sondern nur im Pitch-Modus.
+- **QR-Code** auf `/demo` → `/s/<PITCH-Code>` → normaler Mood-Check (inkl. Freitext §3.13).
+- **Backend ist Pflicht:** Antworten verschiedener Handys müssen zusammenlaufen, also Supabase (`VITE_DATA_MODE=supabase`, #23). Der Mock-Modus kann das nicht.
+- **Beamer-Ansicht** (`/demo/live` oder Kartenmodus „Pitch“): Karte zoomt auf den Test-Standort, zeigt Teilnahmen (Zähler), Gesamt-Mood, Top-Themen und Freitext-Cluster und aktualisiert sich alle 2–3 s (Polling der Aggregate, nur der Beamer pollt).
+- **K_MIN gilt auch hier:** Werte erscheinen ab 10 Teilnahmen, vorher „Noch X Stimmen bis zur ersten Auswertung“ als Spannungsmoment.
+- **Reset in `/demo`:** „Pitch-Test zurücksetzen“ löscht alle Antworten, Freitexte und Geräte-Sperren **nur des Test-Standorts**. Geschützt über eine Admin-PIN bzw. ein Token (Edge Function mit Secret), damit nicht jede:r im Saal resetten kann. Nach dem Reset kann jedes Gerät wieder teilnehmen.
+- **Last:** 200 Abgaben in ~2 Minuten müssen ohne Fehler durchgehen (Lasttest vor dem Pitch).
+
+**Akzeptanzkriterien**
+- [ ] QR → Mood-Check → Abgabe landet in Supabase beim Test-Standort
+- [ ] Beamer-Ansicht aktualisiert sich ohne Reload (≤ 3 s), Zähler läuft hoch
+- [ ] Test-Standort taucht in keiner NRW-Auswertung auf
+- [ ] Reset nur mit PIN/Token; danach Zähler 0 und erneute Teilnahme möglich
+- [ ] Lasttest: 200 Abgaben, 0 Fehler, Beamer bleibt flüssig
+
+### 3.13 Freitext mit KI-Moderation (OpenRouter) – P0 für den Pitch (FB-006)
+
+**Story:** Schüler:innen können optional in eigenen Worten sagen, was sie bewegt. Die Politik sieht **Themen-Cluster**, keine ungefilterten Einzelstimmen.
+
+- **Eingabe:** eine optionale Frage am Ende des Mood-Checks („Was sollte sich an deiner Schule ändern?“), max. 280 Zeichen, Hinweis „Bitte keine Namen“.
+- **Moderation serverseitig** (Supabase Edge Function → **OpenRouter**, API-Key nur als Secret, nie im Frontend). Das LLM liefert strukturiertes JSON:
+  - `allowed` (bool) und `reason` (z. B. Beleidigung, Spam, unpassend)
+  - `cleaned`: bereinigter Text. **Schimpfwörter und unpassende Jugendsprache werden entfernt bzw. neutral umformuliert**, **Namen, Orte im Nahbereich, Klassen und andere persönliche Angaben werden entfernt**
+  - `topics`: Zuordnung zu unseren Themen-Slugs (`docs/SURVEY_TOPICS.md`) + ein kurzes freies Cluster-Label
+  - `concern` (bool): Hinweis auf Krise/Gefährdung → der Person werden direkt Hilfsangebote gezeigt (PRIVACY §5), **keine** Weiterleitung, keine Speicherung des Rohtexts
+- **Speicherung:** nur `cleaned`, `topics`, `cluster`, `allowed`, Schule, Welle, Tag. **Der Rohtext wird nie gespeichert und nicht geloggt.**
+- **Anzeige:** Cluster mit Anzahl („📱 Handyregeln · 23 Nennungen“) und 2–3 bereinigte Beispielzitate pro Cluster, erst ab K_MIN Nennungen je Einheit. Abgelehnte Texte erscheinen nirgends.
+- **Robustheit:** Fällt OpenRouter aus oder dauert es zu lange (> 5 s), wird die Umfrage trotzdem gespeichert und der Freitext verworfen, mit freundlichem Hinweis. Der Mood-Check darf nie am LLM hängen. Im Mock-Modus gibt es einen einfachen lokalen Fallback (Wortliste + Schlüsselwort-Zuordnung).
+- **Kosten/Last:** 200 Texte im Pitch, günstiges, schnelles Modell mit JSON-Ausgabe. Die Modellwahl dokumentiert der umsetzende Agent im PR.
+
+**Akzeptanzkriterien**
+- [ ] Testfälle: Beleidigung → abgelehnt; Jugendsprache/Schimpfwort → bereinigt; Name („Herr Müller ist …“) → entfernt; Krisensignal → Hilfsangebot; normaler Text → Cluster + Thema
+- [ ] Rohtext taucht weder in DB noch in Logs auf (Test bzw. Review der Function)
+- [ ] Timeout/Fehler von OpenRouter blockiert die Abgabe nicht
+- [ ] Beamer/Dashboard zeigt Cluster live
 
 ## 4. Screens (Mobile-first)
 

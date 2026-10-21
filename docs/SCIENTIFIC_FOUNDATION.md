@@ -136,7 +136,7 @@ Statische Querschnitte erfassen nur Momentaufnahmen. Eine kontinuierliche Stimmu
 * **Referenz-Spezifikation (`docs/ARCHITECTURE.md` §5.8):**  
   Die Basis-Trendberechnung basiert auf der Differenz zur Vorwelle ($\Delta S = S_{\text{aktuell}} - S_{\text{vorher}}$).
 * **Heuristische Verfeinerung für das Frühwarn-Radar:**  
-  Fällt der Stimmungs-Score in Kernbereichen (`voice` oder `safety`) über drei aufeinanderfolgende Erhebungswellen signifikant ab (z. B. $\Delta S_t \le -3$ Punkte pro Welle), kann ein dynamischer Trend-Aufschlag von $+10$ Punkten vergeben werden:
+  Fällt der Stimmungs-Score in Kernbereichen (`voice` oder `safety`) über drei aufeinanderfolgende Erhebungswellen deutlich ab (z. B. $\Delta S_t \le -3$ Punkte pro Welle), kann ein dynamischer Trend-Aufschlag von $+10$ Punkten vergeben werden:
 
 $$T = \min\left(100, \, T_{\text{raw}} + T_{\text{trend\_bonus}}\right)$$
 

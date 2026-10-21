@@ -41,6 +41,27 @@ Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Tem
 
 ## Feedback-Einträge
 
+### FB-006 · Pitch: Live-Mood-Check per QR + Freitext mit KI-Moderation
+- **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:45
+- **Gerät/Ansicht:** Pitch
+- **Feedback:** Für den Pitch einen Live-Mood-Check per QR-Code simulieren, den wir in der Demo zurücksetzen können, für einen Test-Kreis bzw. -Standort außerhalb NRW. Etwa 100–200 Leute nehmen live teil (Test-Modus). Außerdem die freie Eingabe testen: Sie wird von einer KI über OpenRouter geprüft, nach Themen geclustert, und Schimpfwörter bzw. unpassende Jugendwörter werden herausgenommen.
+- **Wichtigkeit:** 🔥
+- **Status:** 🟡 in Arbeit. Spec §3.12/§3.13, ADR-015/016. Issues: #113 Test-Standort+Reset, #114 KI-Moderation, #115 Freitext-UI, #116 Beamer-Ansicht, #117 Lasttest; #23/#24 auf P0. Fragen an euch: #118. **Von den Menschen gebraucht:** Ort/Name des Test-Standorts, OpenRouter-API-Key (als Supabase-Secret, nicht im Chat/Repo), Reset-PIN.
+
+### FB-005 · Karte: Schulen und Detail je Kreis sehen
+- **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:00
+- **Gerät/Ansicht:** /map
+- **Feedback:** Eine Karten-Einstellung, mit der man Schulen sehen kann, falls noch nicht geplant. Einzelne Kreise sollen sich detaillierter ansehen lassen: wo genau die Haken sind und die Ergebnisse je Standort.
+- **Wichtigkeit:** 🔥
+- **Status:** 🟡 in Arbeit. Drill-down bis zum Kreis ist fertig (#17), 3D-Gebäude bei hohem Zoom (#89). Offen: **#18 Schul-Marker** und **#19 Detail-Panel mit „Top 3 Baustellen“ je Kreis/Schule**, beide auf P0 hochgestuft (`claude-henrik-nixos`, Rolle map). Werte nur für synthetische Schulen (ADR-012).
+
+### FB-004 · Darkmode
+- **Von:** Yanic (im Chat beauftragt, durch Codex eingetragen) · **Datum/Zeit:** 2026-10-21
+- **Gerät/Ansicht:** nicht angegeben
+- **Feedback:** „Darkmode“
+- **Wichtigkeit:** nicht angegeben
+- **Status:** 🔴 neu; vorhandenes Umsetzungsticket: #35
+
 ### FB-003 · PWA läuft – App-Icon passt nicht zum Konzept
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 11:45
 - **Gerät/Ansicht:** Handy, installierte PWA

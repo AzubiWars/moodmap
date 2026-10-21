@@ -190,6 +190,15 @@ describe('overallScore', () => {
     expect(overallScore({})).toBeNull();
     expect(overallScore({ a: topic(null), b: topic(null) })).toBeNull();
   });
+
+  it('rounds the exact mean and does not depend on the topic order', () => {
+    // Exakt 62,35 → 62,4. Eine Float-Summe ergäbe 62,349999… → 62,3.
+    expect(overallScore({ a: topic(62.3), b: topic(62.4) })).toBe(62.4);
+    const scores = [55.1, 62.3, 70.2, 48.7, 66.6];
+    const forward = Object.fromEntries(scores.map((s, i) => [`t${i}`, topic(s)]));
+    const backward = Object.fromEntries([...scores].reverse().map((s, i) => [`t${i}`, topic(s)]));
+    expect(overallScore(forward)).toBe(overallScore(backward));
+  });
 });
 
 describe('delta', () => {

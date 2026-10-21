@@ -1,0 +1,8 @@
+{
+  "source": "https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice/items?f=json&limit=10000",
+  "license": "dl-de/by-2-0",
+  "attribution": "Schuldaten: Ministerium für Schule und Bildung NRW, dl-de/by-2-0",
+  "retrievedAt": "2026-10-21",
+  "count": 5327,
+  "usage": "Nur Standorte/Stammdaten. Keine synthetischen Stimmungswerte an echte Schulnamen hängen (ADR-012)."
+}

@@ -58,3 +58,16 @@ export const MOOD_FILL_EXPRESSION = [
   NO_DATA.color,
   ['step', ['get', 'score'], MOOD_LEVELS[0]!.color, ...MOOD_LEVELS.slice(1).flatMap((l) => [l.min, l.color])],
 ] as const;
+
+/**
+ * Wie `MOOD_FILL_EXPRESSION`, aber für eine beliebige Score-Expression
+ * (z. B. Ø-Score eines Schul-Clusters, #18). Negativ = zu wenige Daten.
+ */
+export function moodColorExpression(score: unknown): unknown[] {
+  return [
+    'case',
+    ['<', score, 0],
+    NO_DATA.color,
+    ['step', score, MOOD_LEVELS[0]!.color, ...MOOD_LEVELS.slice(1).flatMap((l) => [l.min, l.color])],
+  ];
+}
