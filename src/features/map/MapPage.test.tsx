@@ -404,6 +404,18 @@ describe('map search', () => {
   });
 });
 
+describe('3D toggle (#153)', () => {
+  it('toggles the map between 2D and 3D without auto-pitch', () => {
+    openMap('/map');
+    const button = screen.getByRole('button', { name: '3D-Ansicht umschalten' });
+    expect(button).toHaveTextContent('3D');
+    expect(button).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(button);
+    expect(button).toHaveTextContent('2D');
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
 describe('live mode (#24)', () => {
   it('toggles via ?live=1 without a history entry', async () => {
     const router = openMap('/map?topic=ai');

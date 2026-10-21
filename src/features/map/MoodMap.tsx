@@ -50,6 +50,10 @@ interface MoodMapProps {
   pulses?: readonly { id: string; lon: number; lat: number }[];
   selectedSchoolId?: string | null;
   onSelectSchool?: (id: string) => void;
+  /** 3D-Ansicht (#153): Gebäude und Kamera-Neigung nur auf Wunsch, nicht automatisch. */
+  is3d?: boolean;
+  /** Synchronisiert den Button, falls die Kameraneigung anderweitig geändert wurde. */
+  onPitchChange?: (is3d: boolean) => void;
 }
 
 const BASEMAP_URLS = {
@@ -233,6 +237,8 @@ export function MoodMap({
   mode = 'mood',
   selectedSchoolId,
   onSelectSchool,
+  is3d = false,
+  onPitchChange,
 }: MoodMapProps) {
   const theme = useTheme();
   const dark = theme === 'dark';
@@ -249,6 +255,12 @@ export function MoodMap({
 
   // Kamera folgt der Ebene – auch bei Browser-Zurück und geteilten Links.
   const boundsKey = focusBounds.flat().join(',');
+  // 2D/3D nur auf Wunsch – keine automatische Kippung beim Zoomen (#153).
+  useEffect(() => {
+    if (!loaded) return;
+    mapRef.current?.easeTo({ pitch: is3d ? 50 : 0, duration: 500 });
+  }, [is3d, loaded]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!loaded || !map) return;
@@ -381,13 +393,7 @@ export function MoodMap({
         if ((e as unknown as { sourceId?: string }).sourceId || loaded) return;
         setBasemapFailed(true);
       }}
-      onZoomEnd={(event) => {
-        // Ab Schulebene leicht kippen, damit die 3D-Gebäude sichtbar sind.
-        const targetPitch = event.viewState.zoom >= 15 ? 45 : 0;
-        if (Math.abs(event.viewState.pitch - targetPitch) > 1) {
-          mapRef.current?.easeTo({ pitch: targetPitch, duration: 400 });
-        }
-      }}
+      onMoveEnd={(event) => onPitchChange?.(event.viewState.pitch > 10)}
       interactiveLayerIds={[
         FILL_LAYER_ID,
         SCHOOL_LAYER_ID,
@@ -409,7 +415,7 @@ export function MoodMap({
       style={{ width: '100%', height: '100%' }}
     >
       <NavigationControl position="top-right" showCompass={false} />
-      {!basemapFailed && (
+      {is3d && !basemapFailed && (
         <Layer
           id={BUILDING_LAYER_ID}
           source={BUILDING_SOURCE}
