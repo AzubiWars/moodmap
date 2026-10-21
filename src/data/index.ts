@@ -1,8 +1,11 @@
 import { DATA_MODE } from '@/lib/env';
 import type { DataSource, DataSourceMode } from './api';
 import { mockSource } from './mockBootstrap';
+import { createConfiguredSupabaseSource } from './supabaseSource';
 
 const sources = new Map<DataSourceMode, DataSource>([['mock', mockSource]]);
+const supabaseSource = createConfiguredSupabaseSource();
+if (supabaseSource) sources.set('supabase', supabaseSource);
 
 /**
  * Registriert eine DataSource-Implementierung.

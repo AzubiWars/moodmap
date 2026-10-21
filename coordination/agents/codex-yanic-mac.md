@@ -13,13 +13,14 @@
 - **Bevorzugte Labels:** `fit:data`, `fit:reasoning`, `fit:fast`, `fit:ui`
 
 ## Aktueller Stand
-- **Arbeite an:** #113 – getrennter Pitch-Teststandort mit PIN-Reset.
-- **Status:** SQL-/Edge-Reset, getrennte Hashes, K_MIN und Ausschluss aus NRW/Trend/Verteilung/Radar sowie Freitext-Clustern umgesetzt. Freitext-Speicherung und Löschkaskade aus #155 integriert; Testteilnahmen umgehen nur die lokale Wochensperre, die Datenbank schützt weiterhin vor Duplikaten. Nach Rebase auf main inklusive #162/#165/#166: 417 Tests + Format/Lint/Typecheck/Build grün; Deno-Check/Lint der Reset-Function grün.
-- **Nächster Schritt:** PR mit Review-Anfrage an Lead, danach P0-Live-Anbindung #23 prüfen. Eigenständige Moderationsbegrenzung als #170 erfasst.
-- **Blockiert durch / brauche:** Für Hosted-Pitch noch echte Ortsangaben/PIN (#118), Lead-Deployment, Beamer #116 und Lasttest #117. Synthetischer Berlin-Default ist kein bestätigter Veranstaltungsort. Eigene Browserprüfung automatisch abgelehnt; funktionalen Browser-Smoke übernimmt Lead.
-- **Zuletzt aktualisiert:** 2026-10-21 13:00
+- **Arbeite an:** #23 – SupabaseDataSource und expliziter synthetischer Antwort-Import.
+- **Status:** Alle DataSource-Methoden über REST/RPC umgesetzt, inklusive `deleteOwnResponse` aus #169. 13 gezielte Tests für Adapter, SQL-Import und Mock-Parität sowie Lint grün. Vollständiges lokal erzeugtes SQL importiert: 21.122 Teilnahmen / 324.220 Antworten in PGlite, ohne Hosted-Verbindung. #113/PR #171 mit Lead-LGTM gemerged.
+- **Nächster Schritt:** Nach Merge des macOS-Modul-Fixes #174/PR #177 auf main rebasen, vollständige Projektchecks ausführen und #23-PR öffnen. #177 hat bereits grüne CI und 433 lokale Tests/Build; Review angefragt.
+- **Blockiert durch / brauche:** Aktuell nur fremder main-Typecheck-Fehler #174 für den Vollcheck. Lokal sind keine Supabase-URL/Keys vorhanden; Hosted-Smoke muss der Lead mit der Projektkonfiguration durchführen. Pitch-Ort/PIN #118, Deployment, Beamer #116 und Lasttest #117 bleiben offen. Moderationsbegrenzung separat in #170.
+- **Zuletzt aktualisiert:** 2026-10-21 13:15
 
 ## Journal
+- **2026-10-21 13:15** – #23 implementiert: paginierte öffentliche Schulen ohne Join-Codes, bestehende RPC-Verträge, anon/publishable-Key-Unterstützung, keine Rohdaten oder neue SDK-Dependency. Fehler im konfigurierten Live-Modus werden nicht mit Mock-Ergebnissen verdeckt. Live über vorhandenes Aggregat-Polling, lokale/Tab-Benachrichtigungen nur mit Schul-ID. Synthetischer Import explizit erzeugt, stabil/idempotent und von Live-DB getrennt; kompletter lokaler Import mit 324.220 Antworten erfolgreich. #176 auf falsche themenübergreifende liveN-Zählung und fehlende SQL-Herkunftskennung hingewiesen.
 - **2026-10-21 13:11** – #174 isoliert in eigenem Worktree behoben: `mapSearch.ts` heißt jetzt `searchCatalog.ts`, zwei Importe angepasst. Damit löst macOS `./MapSearch` wieder auf die TSX-Komponente auf. Format/Lint/Typecheck/Build und alle 433 Tests grün; keine UI-Verhaltensänderung. #23 läuft parallel im Haupt-Worktree, #171 inzwischen mit Lead-LGTM gemerged.
 - **2026-10-21 13:00** – Abschließender Rebase auf main (#162/#165/#166) ohne Konflikte. Alle 417 Tests sowie Format/Lint/Typecheck/Build grün. Nicht atomare Moderationsbegrenzung als eigenständiges P0-Issue #170 dokumentiert; kein eigener Live-Key/Hosted-Reset verwendet.
 - **2026-10-21 12:59** – #113 implementiert und gegen #155 integriert: normaler und Pitch-Hash, Freitext-Teilnahmeprüfung vor LLM, K_MIN 9/10, getrennte Cluster und Reset mit nachgewiesener Freitext-Kaskade. 390 Tests grün; Deno-Check/Lint der Reset-Function grün. #128/PR #144 sowie #141/PR #149 inzwischen mit Lead-Review gemerged. Bei #155 fehlendes Krisensignal und nicht atomare Moderationsbegrenzung gemeldet; Krisensignal vom Lead in #165 korrigiert, Kostenbegrenzung bleibt separates Follow-up.
