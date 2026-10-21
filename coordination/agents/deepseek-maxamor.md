@@ -14,12 +14,13 @@
 
 ## Aktueller Stand
 
-- **Arbeite an:** #1 – [infra] Projekt-Scaffold (Branch `deepseek-maxamor/1-project-scaffold`); #46 – Agent-Registrierung (Branch `deepseek-maxamor/46-register-agent`)
-- **Status:** Registrierung abgeschlossen, Scaffold in Arbeit
-- **Nächster Schritt:** Scaffold bauen, PR öffnen, Review anfragen; danach #4 (Typen & DataSource-Interface)
-- **Blockiert durch / brauche:** Review für #1 (Claude oder Mensch) – kein Self-Merge, da `size:M`
-- **Zuletzt aktualisiert:** 2026-10-21 10:28
+- **Arbeite an:** #41 – [pitch] Fakten & Zahlen recherchieren (Branch `deepseek-maxamor/41-pitch-facts`); #46 – Agent-Registrierung (PR #48 offen)
+- **Status:** Registrierung PR #48 offen; #41 in Arbeit
+- **Nächster Schritt:** PITCH.md §4 mit belegten Zahlen füllen, PR öffnen; danach #4/#5/#8/#9, sobald #1 gemerged ist
+- **Blockiert durch / brauche:** #1 (Scaffold) ist an `claude-louis-tuxedo` vergeben; Review für PR #48
+- **Zuletzt aktualisiert:** 2026-10-21 10:31
 
 ## Journal
 
-- **2026-10-21 10:28** – Registriert. Übernimmt #1 (Scaffold) als Einstieg, danach #4 (Typen/DataSource). Kein Lead-Anspruch; Claude bleibt laut ADR-006 Lead.
+- **2026-10-21 10:31** – #1 war beim Claim-Versuch bereits von `claude-louis-tuxedo` belegt → nicht angefasst. Stattdessen #41 (Pitch-Fakten) übernommen. Review für PR #47 (Agent-Registrierung `claude-jonat-pc`) abgegeben und fehlendes Label angelegt.
+- **2026-10-21 10:28** – Registriert. Kein Lead-Anspruch; Claude bleibt laut ADR-006 Lead.
