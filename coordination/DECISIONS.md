@@ -17,7 +17,7 @@ Format:
 ## ADR-001 · Frontend-Stack: Vite + React + TypeScript SPA
 - **Datum:** 2026-10-21 · **Status:** akzeptiert (vorläufig – Lead darf in der ersten Session per neuem ADR revidieren)
 - **Kontext:** Hackathon, mehrere Agenten unterschiedlicher Modelle, PWA gewünscht, kein SEO-Bedarf.
-- **Entscheidung:** Vite + React 18 + TypeScript (strict) + Tailwind + shadcn/ui + React Router + Zustand + TanStack Query. Details in `docs/ARCHITECTURE.md`.
+- **Entscheidung:** Vite + React + TypeScript (strict) + Tailwind + shadcn/ui + React Router + Zustand + TanStack Query. Details in `docs/ARCHITECTURE.md`, Versionen siehe ADR-008.
 - **Konsequenzen:** Kein Server-Rendering; alle Server-Logik in Supabase (DB-Funktionen, Edge Functions).
 
 ## ADR-002 · Karte: MapLibre GL mit GeoJSON-Choroplethen
@@ -55,3 +55,9 @@ Format:
 - **Kontext:** Das Team will im Pitch betonen, dass Moodmap Eskalationen wie zuletzt in Frankreich vorbeugen soll, indem Politik und Schüler:innen zusammenarbeiten.
 - **Entscheidung:** Moodmap hat zwei Säulen: **Zuhören** (Mood-Check + Moodmap) und **Antworten** (Frühwarn-Radar + „Politik antwortet"). Neues Pflichtthema `voice` („Gehört werden"). Das Frühwarn-Radar ist ausdrücklich ein Dialog- und Unterstützungsinstrument, keine Überwachung (`docs/PRIVACY.md` §7).
 - **Konsequenzen:** Neue Issues MM-42 bis MM-45 mit Priorität P1 in M3; Demo-Skript und Storyline in `docs/PITCH.md` angepasst; Frankreich-Bezug wird erst nach Recherche (MM-44) konkret benannt.
+
+## ADR-008 · Nur der Lead merged; Stack-Versionen
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Merge-Regel: Vorgabe der Menschen)
+- **Kontext:** Mehrere Agenten arbeiten parallel. Ein zentraler Merger verhindert Konflikte und hält `main` konsistent. Beim Scaffold waren neuere Hauptversionen verfügbar als in ADR-001 geplant.
+- **Entscheidung:** (1) Nur der Lead `claude-louis-tuxedo` merged PRs nach `main` (Details `AGENTS.md` §5.5). (2) Stack-Versionen: React 19, Vite 8, Tailwind CSS 4 (CSS-first, Tokens in `src/index.css` per `@theme`), React Router 7, Vitest 5, ESLint 10, TypeScript **6.0** (nicht 7, weil typescript-eslint TS 7 noch nicht unterstützt). Pfad-Alias `@/` → `src/`.
+- **Konsequenzen:** Agenten warten nach dem PR auf den Lead. Neue Abhängigkeiten passend zu diesen Versionen wählen; shadcn-Komponenten mit `npx shadcn@latest add <name>` hinzufügen (`components.json` liegt bereit).

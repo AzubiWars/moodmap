@@ -178,11 +178,14 @@ gh issue create --title "[map] Schul-Marker clustern ab Zoom < 9" \
 
 ### 5.5 Review & Merge
 
-- Jeder PR braucht **1 Review durch einen anderen Agenten** (bevorzugt `lead` oder ein Agent mit `fit:reasoning`). Review-Anfrage als PR-Kommentar: `Review bitte: @agent:<id>`.
-- Reviewer prüft: Akzeptanzkriterien erfüllt? Build grün? Mock-Modus läuft? Datenschutz-Regeln eingehalten? Mobile ok?
-- Review-Ergebnis als PR-Kommentar: `✅ LGTM` oder `🔁 Changes requested: …`.
-- **Merge:** Squash-Merge, Branch löschen. Der Autor merged nach LGTM selbst (`gh pr merge <nr> --squash --delete-branch`).
-- **Hackathon-Ausnahme:** Wartet ein PR > 30 min auf Review und ist nur `size:S` + `fit:fast`, darf der Autor nach grünem Build selbst mergen und schreibt `⚡ Self-merged (kein Reviewer verfügbar)` in den PR.
+- **Nur der Lead (`claude-louis-tuxedo`) merged PRs nach `main`.** Andere Agenten mergen nie selbst. (Vorgabe der Menschen, ADR-008)
+- Wenn dein PR fertig ist: Label `status:review` am Issue setzen und im PR kommentieren `Review bitte: @agent:claude-louis-tuxedo`.
+- Der Lead prüft: Akzeptanzkriterien erfüllt? CI grün? Mock-Modus läuft? Datenschutz-Regeln eingehalten? Mobile ok? Passt es zur Architektur?
+- Ergebnis als PR-Kommentar: `✅ LGTM – merged` oder `🔁 Changes requested: …`. Bei Änderungswünschen pusht der Autor auf denselben Branch und fragt erneut an.
+- **Merge:** Squash-Merge, Branch löschen (`gh pr merge <nr> --squash --delete-branch`). Merge-Konflikte löst der Lead (siehe §10). Danach setzt der Lead abhängige Issues von `status:blocked` auf `status:ready`.
+- **Eigene PRs des Leads:** Der Lead darf sie nach grüner CI selbst mergen. Wenn ein anderer Agent frei ist, bittet er ihn vorher um ein kurzes Review, vor allem bei `fit:reasoning`.
+- Agenten dürfen sich gegenseitig reviewen (Kommentar mit Befund). Das ist erwünscht, ersetzt aber nicht den Merge durch den Lead.
+- **Reihenfolge:** Der Lead arbeitet PRs in der Reihenfolge ab, in der sie eingereicht wurden (älteste zuerst), P0 vor P1.
 
 ### 5.6 Session-Ende-Ritual (auch bei Abbruch!)
 
@@ -262,7 +265,7 @@ Ein Issue ist **done**, wenn:
 | Situation | Vorgehen |
 |---|---|
 | `main` ist kaputt | Sofort Issue `prio:P0` + `type:bug` anlegen. Wer es verursacht hat, fixt es; sonst der Lead. Ggf. `git revert` per PR. |
-| Merge-Konflikt | Rebase auf `origin/main`, Konflikt lösen. Betrifft er fremden Code wesentlich: Autor im Issue fragen. |
+| Merge-Konflikt | **Der Lead löst Merge-Konflikte** – er hat den Überblick über alle offenen PRs. Hat dein PR einen Konflikt: kurz rebasen (`git fetch && git rebase origin/main`), wenn der Konflikt nur deinen eigenen Code betrifft. Betrifft er fremden Code: nicht raten, sondern im PR `Konflikt: @agent:claude-louis-tuxedo` kommentieren – der Lead löst ihn beim Merge. |
 | Zwei Agenten haben dasselbe gebaut | Lead entscheidet, welcher PR gemerged wird; der andere wird geschlossen mit Verweis. |
 | Unklare Anforderung | Vernünftige Annahme treffen, im Issue dokumentieren, weiterarbeiten. Bei großer Tragweite `needs:human`. |
 | Agent antwortet nicht (> 45 min kein Lebenszeichen am Issue) | Lead darf das Issue freigeben (`status:ready`) und neu vergeben. |
