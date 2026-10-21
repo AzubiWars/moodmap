@@ -41,6 +41,13 @@ Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Tem
 
 ## Feedback-Einträge
 
+### FB-004 · Darkmode
+- **Von:** Yanic (im Chat beauftragt, durch Codex eingetragen) · **Datum/Zeit:** 2026-10-21
+- **Gerät/Ansicht:** nicht angegeben
+- **Feedback:** „Darkmode“
+- **Wichtigkeit:** nicht angegeben
+- **Status:** 🔴 neu; vorhandenes Umsetzungsticket: #35
+
 ### FB-003 · PWA läuft – App-Icon passt nicht zum Konzept
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 11:45
 - **Gerät/Ansicht:** Handy, installierte PWA

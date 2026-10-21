@@ -99,11 +99,13 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
 | Landesansicht | 5 Regierungsbezirke (Düsseldorf, Köln, Münster, Detmold, Arnsberg) | Choropleth (Flächen eingefärbt) |
 | Mittel | 53 Kreise & kreisfreie Städte | Choropleth |
 | Nah | Einzelne Schulen | Farbige Kreis-Marker (Größe ~ Anzahl Antworten), Clustering bei vielen Punkten |
+| Sehr nah (ab Zoom 15, max. 18) | Schulgelände & Umgebung | **3D-Gebäude** aus OpenFreeMap (`fill-extrusion`), Karte kippt automatisch auf 45°, Mood-Flächen treten zurück (#85) |
 
 - Klick auf Fläche → zoomt hinein + öffnet **Detail-Panel** (Bottom-Sheet auf Mobile, Sidebar auf Desktop).
 - Breadcrumb: `NRW › Reg.-Bez. Köln › Stadt Köln › Schule XY`.
 - **Farbe** = Mood-Score (0–100) auf der Stimmungs-Skala (siehe `docs/DESIGN.md`). Flächen/Schulen unter Mindestanzahl → **grau schraffiert** „zu wenige Daten".
 - **Legende** mit Wetter-Icons und Skala, immer sichtbar.
+- **Fokus auf Deutschland/NRW:** Alles außerhalb Deutschlands wird ausgeblendet (Maske aus Natural Earth, Public Domain), damit der Blick auf NRW bleibt (#98).
 
 **Filter (Filterleiste / Filter-Sheet):**
 

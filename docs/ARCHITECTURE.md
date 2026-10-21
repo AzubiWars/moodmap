@@ -194,6 +194,11 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - Typ-spezifische Wertebereiche der Antworten (mood5 1–5, swipe 0/1, gültige `choice`-Optionen) prüft zusätzlich ein Trigger.
 - SQL-Tests (`supabase/tests/`) laufen mit `npm test` gegen PGlite und prüfen Rechte, RLS, Constraints und die Gleichheit der Enums mit `src/types/domain.ts`.
 
+✅ Umfrage-RPCs in `supabase/migrations/20261021094500_survey_rpcs.sql` (#78). Alle sind `security definer` und liefern camelCase-JSON wie `src/types`:
+- `submit_response(input jsonb)` → `SubmitResult`. Prüft Schule, **aktuelle** Welle, Rolle, Gerät-Token (16–200 Zeichen), Frage-IDs (keine Duplikate, Zielgruppe passt zur Rolle) und Werte je Fragetyp. Speichert `device_hash = sha256(deviceToken + ':' + waveId)`, nie das Token. Doppelte Teilnahme → `{ ok: false, reason: 'already_submitted' }` (atomar per `on conflict`). Ungültige Eingaben lösen einen Fehler aus und speichern nichts; die Supabase-DataSource (#23) macht daraus `reason: 'error'`.
+- `get_school_by_code(code text)` → `School | null`, Groß-/Kleinschreibung und Leerzeichen egal. Einziger Weg zum `joinCode`.
+- `get_current_wave()` → `Wave | null`: die Welle, die `now()` enthält. Bei Lücken im Wellenkalender die zuletzt begonnene, damit die Live-Demo nie an einer fehlenden Welle scheitert. `submit_response` nutzt dieselbe Definition.
+
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
 - `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`
@@ -225,10 +230,12 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
 |---|---|---|
 | Schulverzeichnis NRW (echte Standorte) | ✅ **INSPIRE Schulstandorte NRW**, OGC API Features (`https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice`), Lizenz **dl-de/by-2-0** | `npm run data:schools:real` (`scripts/import-schools.ts`): 5.426 Features, WGS84, Schulform-Mapping, Kreis per Point-in-Polygon, `occupancy` als Schülerzahl, deterministische Join-Codes. → `public/data/schools.real.json` (5.327 Schulen: `id` = Schulnummer, `name`, `schoolForm`, `kreisId`, `city`, `lat`, `lon`, `studentCount`, `joinCode`) + `schools.real.meta.json`. Demo-Schule: **199916** (Städtische Gesamtschule Stettiner Straße, Düsseldorf) mit `joinCode` **DEMO42**. |
 | Kreise & kreisfreie Städte, Regierungsbezirke (Grenzen) | ✅ **BKG VG250** (Verwaltungsgebiete 1:250 000, Ebenen, Stand 01.01.2026), Lizenz **dl-de/by-2-0** | `npm run geo:build` (`scripts/simplify-geo.ts`): NRW filtern, WGS84, mapshaper `interval=100` m, Koordinaten auf 4 Nachkommastellen; RegBez werden aus den Kreisen gebildet (identische Grenzen). → `public/geo/nrw-kreise.geojson` (53 Features: `id` = AGS, `name`, `regbez_id`, `type` = `kreis`\|`kreisfreie_stadt`, ~290 KB) und `public/geo/nrw-regbez.geojson` (5 Features: `id` = `051`…`059`, `name`, ~105 KB). Für MapLibre-`feature-state`: `promoteId: 'id'`. |
+| Deutschland-Grenze (Maske für „nicht Deutschland ausblenden") | **Natural Earth** (Public Domain), via [datasets/geo-countries](https://github.com/datasets/geo-countries) | `public/geo/germany.geojson` (MultiPolygon) + `public/geo/non-germany-mask.geojson` (Weltpolygon mit Deutschland als Loch); MapLibre-Layer `germany-mask-fill` + `germany-outline-line`. |
 | Gemeinden mit Einwohnerzahl (nur Skript-Eingabe) | ✅ **BKG VG250-EW** (Stand 31.12.2024), Lizenz **dl-de/by-2-0** | ebenfalls `npm run geo:build`: 396 Gemeinden mit `ags`, `name`, `kreisId`, `population`, `areaKm2` und einem garantiert innenliegenden Punkt → `scripts/data/nrw-gemeinden.json` (~46 KB). Basis für die Verteilung der synthetischen Schulen. |
 | Schulsozialindex (optional, P2) | Schulministerium NRW (veröffentlicht pro Schule) | Spannende Korrelation im Dashboard: Stimmung vs. Sozialindex |
 
 **Lizenzangaben** (z. B. „Datenlizenz Deutschland – Namensnennung 2.0") in der App unter „Quellen" anzeigen.
+Die Deutschland-Maske nutzt **Natural Earth** (Public Domain); die Attribution nennt sie trotzdem.
 Pflicht-Quellenvermerk für die Grenzen (sichtbar an der Karte, z. B. MapLibre-Attribution; „BKG" → https://www.bkg.bund.de, „dl-de/by-2-0" → https://www.govdata.de/dl-de/by-2-0 verlinken):
 `© BKG (2026) dl-de/by-2-0, Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf – Geometrien vereinfacht`
 
