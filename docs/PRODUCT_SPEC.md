@@ -144,6 +144,7 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
 **Story:** Als Ministerin will ich in 2 Minuten wissen, was die drängendsten Themen sind und wo.
 
 - **KPI-Kacheln:** Gesamt-Mood NRW (+ Δ), Antworten diese Woche, teilnehmende Schulen, Beteiligung
+- **🔥 Brennpunkt-Themen NRW:** Top 3–5 Themen nach **Anzahl unzufriedener Stimmen** (😫+😕, absolut), also viele Stimmen *und* schlecht bewertet. Je Thema % unzufrieden, n Stimmen, Trend. Ein Klick öffnet die Karte mit diesem Thema (#25)
 - **Themen in Prozent (Gesamtüberblick NRW, Wunsch der Menschen):** Pro Thema ein divergierender Balken über die mood5-Antworten, links % unzufrieden (😫+😕), Mitte % neutral (😐), rechts % zufrieden (🙂+🤩). „Weiß nicht“ wird nicht gezählt, die Prozentzahlen stehen immer als Text daneben. Standardmäßig sortiert nach % unzufrieden. Daten: `AggregateRow.distribution` (Anzahl je Stufe, `null` unter K_MIN), Ebene `nrw` (#25)
 - **Themen-Ranking:** Alle Themen sortiert nach Score, mit Trendpfeil
 - **Hotspots:** Top 5 Kreise/Schulen mit stärkster Verschlechterung oder niedrigstem Score je Thema („⚠️ Kreis Recklinghausen: Unterrichtsausfall −14 Punkte in 4 Wochen")
