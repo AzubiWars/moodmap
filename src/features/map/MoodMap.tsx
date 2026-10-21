@@ -404,6 +404,10 @@ export function MoodMap({
     radar: TENSION_FILL_EXPRESSION,
   }[mode];
 
+  // Ohne 3D-Layer darf nicht davor eingefügt werden, sonst schlägt MapLibre das Anlegen der Regions-Layer fehl.
+  const regionBeforeId =
+    is3d && !basemapFailed ? BUILDING_LAYER_ID : basemapFailed ? undefined : LABEL_INSERT_BEFORE[theme];
+
   return (
     <MapGL
       ref={mapRef}
@@ -531,7 +535,7 @@ export function MoodMap({
             id={FILL_LAYER_ID}
             type="fill"
             // Below 3D/POIs and all basemap labels; otherwise the 78%-opaque fill hides city names.
-            beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
+            beforeId={regionBeforeId}
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
               'fill-color': fillExpression as unknown as string,
@@ -541,13 +545,13 @@ export function MoodMap({
           <Layer
             id="regions-outline"
             type="line"
-            beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
+            beforeId={regionBeforeId}
             paint={{ 'line-color': '#ffffff', 'line-width': 1 }}
           />
           <Layer
             id="regions-selected"
             type="line"
-            beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
+            beforeId={regionBeforeId}
             filter={selectedFilter}
             paint={{ 'line-color': dark ? '#f1f5f9' : '#0f172a', 'line-width': 3 }}
           />
