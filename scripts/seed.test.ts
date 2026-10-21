@@ -101,7 +101,7 @@ describe('seed generator (#8)', () => {
     }
   });
 
-  it('includes both schools >= K_MIN and schools < K_MIN for demo purposes', () => {
+  it('gives every school enough data in every wave', () => {
     const data = generateSeedData(schools, { seed: DEFAULT_SEED, waveCount: 2 });
     const countsBySchoolWave = new Map<string, number>();
 
@@ -111,11 +111,16 @@ describe('seed generator (#8)', () => {
     }
 
     const counts = [...countsBySchoolWave.values()];
-    const belowKMin = counts.filter((c) => c < 10);
-    const atOrAboveKMin = counts.filter((c) => c >= 10);
+    expect(counts).toHaveLength(schools.length * 2);
+    expect(Math.min(...counts)).toBeGreaterThanOrEqual(10);
 
-    expect(belowKMin.length).toBeGreaterThan(0);
-    expect(atOrAboveKMin.length).toBeGreaterThan(0);
+    const current = data.responses.filter((resp) => resp.waveId === '2026-W43');
+    const currentBySchool = new Map<string, number>();
+    for (const resp of current) {
+      currentBySchool.set(resp.schoolId, (currentBySchool.get(resp.schoolId) ?? 0) + 1);
+    }
+    expect(currentBySchool.size).toBe(schools.length);
+    expect(Math.min(...currentBySchool.values())).toBeGreaterThanOrEqual(24);
   });
 
   it('always includes demo school 900000 with high participation', () => {

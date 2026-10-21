@@ -165,6 +165,7 @@ function openMap(url: string) {
   client.setQueryData(['geo', 'regbez'], regbez);
   client.setQueryData(['geo', 'kreis'], regions);
   client.setQueryData(['schools'], schools);
+  client.setQueryData(['schools', 'directory'], []);
   const router = createMemoryRouter([{ path: '/map', element: <MapPage /> }], { initialEntries: [url] });
   render(
     <QueryClientProvider client={client}>

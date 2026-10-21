@@ -264,6 +264,7 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
 | `/school/:schoolId` | Schul-Dashboard | P2 |
 | `/privacy` | Datenschutz in einfacher Sprache | P1 |
 | `/demo` | Demo-Steuerung | P0 |
+| `/demo/live` | Beamer für den isolierten Pitch-Test: QR, Zähler, Stimmung, Cluster, PIN-Reset | P0 |
 
 ## 5. Nicht-funktionale Anforderungen
 

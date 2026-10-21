@@ -5,6 +5,7 @@ import { SchoolDashboardPage } from '@/features/dashboard/SchoolDashboardPage';
 import { SchoolPosterPage } from '@/features/dashboard/SchoolPosterPage';
 import { ComponentGallery } from '@/features/demo/ComponentGallery';
 import { DemoPage } from '@/features/demo/DemoPage';
+import { LazyPitchPage } from '@/features/demo/LazyPitchPage';
 import { LandingPage } from '@/features/info/LandingPage';
 import { NotFoundPage } from '@/features/info/NotFoundPage';
 import { PrivacyPage } from '@/features/info/PrivacyPage';
@@ -16,6 +17,7 @@ import { Layout } from './Layout';
 
 // Routen laut docs/PRODUCT_SPEC.md §4
 export const router = createBrowserRouter([
+  { path: '/demo/live', element: <LazyPitchPage /> },
   {
     element: <Layout />,
     children: [

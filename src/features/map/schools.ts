@@ -37,6 +37,40 @@ export interface SchoolPointProperties {
 
 export type SchoolCollection = FeatureCollection<Point, SchoolPointProperties>;
 
+/** Neutraler Standort aus dem offiziellen NRW-Schulverzeichnis – ohne Stimmungswerte (ADR-012). */
+export interface DirectoryPointProperties {
+  id: string;
+  name: string;
+  form: string;
+  city: string;
+}
+
+export type SchoolDirectoryCollection = FeatureCollection<Point, DirectoryPointProperties>;
+
+/** Lädt das offizielle, bereits importierte Schulverzeichnis NRW (5.327 Standorte). */
+export async function loadSchoolDirectory(): Promise<School[]> {
+  const response = await fetch('/data/schools.real.json');
+  if (!response.ok) throw new Error(`Schulverzeichnis: HTTP ${response.status}`);
+  return (await response.json()) as School[];
+}
+
+export function directoryToGeoJSON(schools: readonly School[]): SchoolDirectoryCollection {
+  return {
+    type: 'FeatureCollection',
+    features: schools.map((school) => ({
+      type: 'Feature',
+      id: school.id,
+      geometry: { type: 'Point', coordinates: [school.lon, school.lat] },
+      properties: {
+        id: school.id,
+        name: school.name,
+        form: SCHOOL_FORM_LABELS[school.schoolForm],
+        city: school.city,
+      },
+    })),
+  };
+}
+
 export function schoolsToGeoJSON(
   schools: readonly School[],
   scores: ReadonlyMap<string, { score: number | null; n: number }>,

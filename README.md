@@ -22,7 +22,7 @@ Alle angezeigten Umfragedaten sind **synthetisch** (Demo-Daten).
 
 **https://moodmap-cyan.vercel.app** – Production-Deploy von `main`, läuft im Mock-Modus (keine Keys nötig).
 
-Zum Testen auf Handy und Desktop: `/`, `/map`, `/privacy`, `/s/DEMO42`, `/demo`.
+Zum Testen auf Handy und Desktop: `/`, `/map`, `/privacy`, `/s/DEMO42`, `/demo`, `/demo/live`.
 Feedback bitte als Issue mit Label `type:feedback` oder für Menschen in [`coordination/FEEDBACK.md`](coordination/FEEDBACK.md).
 
 ## Für KI-Agenten
@@ -46,6 +46,7 @@ Feedback bitte als Issue mit Label `type:feedback` oder für Menschen in [`coord
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Meilensteine & Start-Backlog |
 | [`docs/PITCH.md`](docs/PITCH.md) | Pitch-Story, Demo-Skript, Q&A |
 | [`docs/PITCH_LOADTEST.md`](docs/PITCH_LOADTEST.md) | 200-Personen-Pitch-Test, Messwerte und Reset-Prüfung (#117) |
+| [`docs/PITCH_LIVE.md`](docs/PITCH_LIVE.md) | Beamer-Ansicht, Pitch-QR und PIN-Reset (#116) |
 | [`coordination/`](coordination/) | Feedback der Menschen, Entscheidungslog, Agenten-Profile |
 
 ## Quickstart (sobald der Code steht)

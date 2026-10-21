@@ -342,37 +342,22 @@ export function generateSeedData(schools: School[], options: GenerateSeedOptions
   for (let wIdx = 0; wIdx < waves.length; wIdx++) {
     const wave = waves[wIdx]!;
 
-    // Identify schools to include in this wave:
-    // - Wave 9 (current / last wave): all schools are included
-    // - Previous waves: the core sample (at least 2 schools per Kreis + story schools)
-    for (let sIdx = 0; sIdx < schools.length; sIdx++) {
-      const school = schools[sIdx]!;
+    // Every school participates in every wave so the map and timeline have no gray gaps.
+    for (const school of schools) {
       const isDemoSchool = school.id === '900000';
-      const isHotspotKreis =
-        school.kreisId === HOTSPOT_TENSION_KREIS || school.kreisId === HOTSPOT_CANCELLATION_KREIS;
-
-      // In earlier waves, keep historical time-series for core schools + hotspots
-      const isCoreSchool = sIdx % 2 === 0 || isDemoSchool || isHotspotKreis;
-      if (wIdx < waves.length - 1 && !isCoreSchool) {
-        continue;
-      }
 
       // Determine number of respondents for this school and wave:
-      // - Demo school gets ~25–35 respondents
-      // - ~15 % of schools get < K_MIN (3–7 respondents) to test grayed-out UI
-      // - Normal schools get 11–16 respondents (safely above K_MIN = 10)
+      // - Demo school gets ~45–60 respondents in every wave
+      // - Current wave gets 24–36 respondents per school (stable school/topic scores)
+      // - Older waves get 12–18 respondents per school (above K_MIN, enough for the timeline)
+      // K_MIN edge cases are covered by fixtures/unit tests, not by intentionally empty demo schools.
       let respondentCount: number;
       if (isDemoSchool) {
-        respondentCount = 28 + Math.floor(random() * 8);
+        respondentCount = 45 + Math.floor(random() * 16);
+      } else if (wIdx === waves.length - 1) {
+        respondentCount = 24 + Math.floor(random() * 13);
       } else {
-        const roll = random();
-        if (roll < 0.15) {
-          // Below K_MIN (K_MIN = 10) -> tests 'zu wenige Daten'
-          respondentCount = 3 + Math.floor(random() * 5); // 3..7
-        } else {
-          // Standard sample size (11..16) -> tests robust scores
-          respondentCount = 11 + Math.floor(random() * 6);
-        }
+        respondentCount = 12 + Math.floor(random() * 7);
       }
 
       for (let r = 0; r < respondentCount; r++) {
