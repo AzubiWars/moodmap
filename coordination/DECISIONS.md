@@ -96,3 +96,15 @@ Format:
 - **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen)
 - **Kontext:** Kurz testweise hat der Lead Issues aktiv zugewiesen (`coordination/PLAN.md`). Die Menschen bevorzugen den vorherigen Modus, „das lief gut“.
 - **Entscheidung:** Die Agenten claimen selbst nach `AGENTS.md` §5. Der Lead reviewt, merged, löst Konflikte, triagiert Feedback und pingt nur, wenn der kritische Pfad liegen bleibt. `PLAN.md` entfällt.
+
+## ADR-015 · Pitch-Live-Test auf eigenem Test-Standort außerhalb NRW
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen, FB-006)
+- **Kontext:** Im Pitch sollen 100–200 Personen live per QR-Code teilnehmen. Ihre Daten dürfen das NRW-Bild nicht verfälschen, und der Test muss wiederholbar sein.
+- **Entscheidung:** Ein Test-Standort mit `is_test`-Flag außerhalb NRW (konfigurierbar) mit eigenem Join-Code. Er wird aus allen NRW-Aggregaten, dem Dashboard und dem Radar ausgeschlossen. Der Live-Test läuft über **Supabase** (der Mock kann nicht geräteübergreifend). Die Beamer-Ansicht pollt die Aggregate alle 2–3 s. Der Reset löscht nur Test-Daten und ist per PIN/Token über eine Edge Function geschützt.
+- **Konsequenzen:** #23 (SupabaseDataSource) und #24 (Live) werden P0. Vor dem Pitch ist ein Lasttest mit 200 Abgaben Pflicht. Der Mock-Modus bleibt Fallback (Live dann nur über Tabs eines Geräts).
+
+## ADR-016 · Freitext mit KI-Moderation über OpenRouter (ersetzt das Freitext-Verbot aus ADR-005)
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen, FB-006)
+- **Kontext:** Die Menschen wollen freie Eingaben testen, KI-geprüft: Themen clustern, Schimpfwörter und unpassende Jugendsprache entfernen.
+- **Entscheidung:** Optionaler Freitext (≤ 280 Zeichen). Moderation in einer Supabase Edge Function über OpenRouter mit strukturiertem JSON (`allowed`, `cleaned`, `topics`, `cluster`, `concern`). Gespeichert wird nur das bereinigte Ergebnis, nie der Rohtext. Die Anzeige erfolgt clusterweise ab K_MIN. Fällt die KI aus, wird nur der Freitext verworfen, die Abgabe läuft durch. Die KI entfernt zusätzlich Namen und persönliche Angaben.
+- **Konsequenzen:** PRIVACY §1.3/§6b und PRODUCT_SPEC §3.13 angepasst. Der OpenRouter-Key kommt von den Menschen und wird nur als Supabase-Secret gesetzt. Ein Echtbetrieb erfordert eine Prüfung der Drittverarbeitung.
