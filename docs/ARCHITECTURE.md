@@ -7,7 +7,7 @@
 | Bereich | Wahl | Warum |
 |---|---|---|
 | Sprache | **TypeScript** (strict) | Mehrere Agenten → Typen sind unser Vertrag |
-| Build/Framework | **Vite + React 18** (SPA) | Schnell, simpel, keine Server-Komplexität, alle Modelle kennen es gut |
+| Build/Framework | **Vite 8 + React 19** (SPA) | Schnell, simpel, keine Server-Komplexität, alle Modelle kennen es gut |
 | Routing | **React Router** | Standard |
 | Styling | **Tailwind CSS** + **shadcn/ui** (Radix) | Schnelles, konsistentes UI, gute A11y |
 | Animation | **Framer Motion** | Swipe-Karten, Übergänge |

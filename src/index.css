@@ -1,0 +1,26 @@
+@import 'tailwindcss';
+
+/* Design-Tokens – Quelle: docs/DESIGN.md §2. Ausbau in #10. */
+@theme {
+  --color-mood-1: #c2263c;
+  --color-mood-2: #f07b4f;
+  --color-mood-3: #f6d365;
+  --color-mood-4: #7fc4de;
+  --color-mood-5: #2f7fc1;
+  --color-mood-none: #b8bcc6;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
