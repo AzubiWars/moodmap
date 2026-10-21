@@ -260,6 +260,7 @@ Pflicht-Quellenvermerk für die Grenzen (sichtbar an der Karte, z. B. MapLibre-A
 Die Demo lebt von glaubwürdigen Mustern. Der Generator soll **deterministisch** (fester Seed) sein und Muster enthalten, die eine Geschichte erzählen:
 
 - Grundrauschen: Scores um 55–65, Normalverteilung pro Schule.
+- **Regionale Demo-Kontraste (#120):** feste, gehashte Kreis-/Schulklima-Effekte (±1,05 bzw. ±0,45 auf der 1–5-Zielskala), unabhängig von der Antwort-Zufallsfolge. Sie erzeugen sichtbar unterschiedliche Kreis-/Schulwerte; es sind erfundene Szenarien, keine Aussagen über reale Kreise. Die Story-Kreise Recklinghausen/Duisburg und DEMO42 behalten ihre bisherigen Regeln. Score-Berechnung und K_MIN bleiben unverändert.
 - **Stress** höher (Score niedriger) an Gymnasien und in der Oberstufe; Peak in Wellen vor Zeugnissen/Abitur.
 - **Digitale Ausstattung** schlechter in einigen ländlichen Kreisen, besser in Großstädten mit Förderprogrammen.
 - **KI**: überall niedriger Score (Regeln unklar) → landesweites Thema = Aha-Moment im Pitch.

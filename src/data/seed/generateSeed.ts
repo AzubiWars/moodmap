@@ -142,6 +142,13 @@ function determineGradeBand(form: SchoolForm, random: () => number): GradeBand {
   return random() < 0.5 ? '5-7' : '8-10';
 }
 
+/** Stable demo climate per identity; independent of response RNG and school ordering. */
+function climateOffset(id: string, amplitude: number): number {
+  let hash = 2166136261;
+  for (const character of id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
+  return (createRandom(hash)() * 2 - 1) * amplitude;
+}
+
 /**
  * Calculates the target mood5 score (1–5 scale) for a specific question,
  * school, wave index, and student profile based on story rules.
@@ -185,6 +192,16 @@ function sampleMoodScore(
     } else if (METROPOL_KREISE.has(school.kreisId)) {
       targetMean = 3.9;
     }
+  }
+
+  // Synthetic regional contrast for the choropleth (#120), not observations about real districts.
+  // Keep the two pitch-story districts and the positive demo school at their authored baselines.
+  if (
+    school.id !== '900000' &&
+    school.kreisId !== HOTSPOT_TENSION_KREIS &&
+    school.kreisId !== HOTSPOT_CANCELLATION_KREIS
+  ) {
+    targetMean += climateOffset(`kreis:${school.kreisId}`, 1.05) + climateOffset(`school:${school.id}`, 0.45);
   }
 
   // 5. Cancellation: hotspot Duisburg drops heavily over last 4 weeks
