@@ -61,12 +61,26 @@ const BASEMAP_URLS = {
   dark: 'https://tiles.openfreemap.org/styles/dark',
 };
 
-/** Fallback ohne Tile-Server: nur Hintergrund, die Mood-Flächen reichen für die Demo. */
-const blankStyle = (dark: boolean): StyleSpecification => ({
+/** Fallback, falls der Vektor-Style nicht lädt: OSM-Raster mit sichtbaren Ortsnamen. */
+const fallbackStyle = (dark: boolean): StyleSpecification => ({
   version: 8,
-  sources: {},
+  sources: {
+    osm: {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: '© OpenStreetMap contributors',
+    },
+  },
   layers: [
     { id: 'background', type: 'background', paint: { 'background-color': dark ? '#0f172a' : '#eef2f6' } },
+    {
+      id: 'osm-raster',
+      type: 'raster',
+      source: 'osm',
+      paint: { 'raster-opacity': dark ? 0.62 : 1 },
+    },
   ],
 });
 
@@ -247,7 +261,7 @@ export function MoodMap({
   const mapRef = useRef<MapRef>(null);
   const [basemapFailed, setBasemapFailed] = useState(false);
   const mapStyle = useMemo(
-    () => (basemapFailed ? blankStyle(dark) : BASEMAP_URLS[theme]),
+    () => (basemapFailed ? fallbackStyle(dark) : BASEMAP_URLS[theme]),
     [basemapFailed, dark, theme],
   );
   const [hover, setHover] = useState<HoverInfo | null>(null);
