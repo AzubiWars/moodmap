@@ -1,0 +1,3566 @@
+[
+  {
+    "ags": "05111000",
+    "name": "Düsseldorf",
+    "kreisId": "05111",
+    "population": 618685,
+    "areaKm2": 217.54,
+    "lon": 6.80475,
+    "lat": 51.23499
+  },
+  {
+    "ags": "05112000",
+    "name": "Duisburg",
+    "kreisId": "05112",
+    "population": 502270,
+    "areaKm2": 233.17,
+    "lon": 6.74179,
+    "lat": 51.43551
+  },
+  {
+    "ags": "05113000",
+    "name": "Essen",
+    "kreisId": "05113",
+    "population": 574682,
+    "areaKm2": 210.36,
+    "lon": 7.03135,
+    "lat": 51.43174
+  },
+  {
+    "ags": "05114000",
+    "name": "Krefeld",
+    "kreisId": "05114",
+    "population": 231406,
+    "areaKm2": 136.54,
+    "lon": 6.57966,
+    "lat": 51.34521
+  },
+  {
+    "ags": "05116000",
+    "name": "Mönchengladbach",
+    "kreisId": "05116",
+    "population": 267213,
+    "areaKm2": 170.63,
+    "lon": 6.40954,
+    "lat": 51.16706
+  },
+  {
+    "ags": "05117000",
+    "name": "Mülheim an der Ruhr",
+    "kreisId": "05117",
+    "population": 173050,
+    "areaKm2": 91.26,
+    "lon": 6.87846,
+    "lat": 51.41376
+  },
+  {
+    "ags": "05119000",
+    "name": "Oberhausen",
+    "kreisId": "05119",
+    "population": 213646,
+    "areaKm2": 77.42,
+    "lon": 6.84061,
+    "lat": 51.52914
+  },
+  {
+    "ags": "05120000",
+    "name": "Remscheid",
+    "kreisId": "05120",
+    "population": 113828,
+    "areaKm2": 74.05,
+    "lon": 7.22394,
+    "lat": 51.18669
+  },
+  {
+    "ags": "05122000",
+    "name": "Solingen",
+    "kreisId": "05122",
+    "population": 165626,
+    "areaKm2": 88.96,
+    "lon": 7.065,
+    "lat": 51.16464
+  },
+  {
+    "ags": "05124000",
+    "name": "Wuppertal",
+    "kreisId": "05124",
+    "population": 358193,
+    "areaKm2": 168.38,
+    "lon": 7.16825,
+    "lat": 51.25327
+  },
+  {
+    "ags": "05154004",
+    "name": "Bedburg-Hau",
+    "kreisId": "05154",
+    "population": 13599,
+    "areaKm2": 60.96,
+    "lon": 6.21167,
+    "lat": 51.76252
+  },
+  {
+    "ags": "05154008",
+    "name": "Emmerich am Rhein",
+    "kreisId": "05154",
+    "population": 31829,
+    "areaKm2": 80.4,
+    "lon": 6.24836,
+    "lat": 51.84887
+  },
+  {
+    "ags": "05154012",
+    "name": "Geldern",
+    "kreisId": "05154",
+    "population": 34962,
+    "areaKm2": 97.61,
+    "lon": 6.31201,
+    "lat": 51.51732
+  },
+  {
+    "ags": "05154016",
+    "name": "Goch",
+    "kreisId": "05154",
+    "population": 34907,
+    "areaKm2": 115.87,
+    "lon": 6.12372,
+    "lat": 51.69551
+  },
+  {
+    "ags": "05154020",
+    "name": "Issum",
+    "kreisId": "05154",
+    "population": 12428,
+    "areaKm2": 54.93,
+    "lon": 6.42322,
+    "lat": 51.50863
+  },
+  {
+    "ags": "05154024",
+    "name": "Kalkar",
+    "kreisId": "05154",
+    "population": 14513,
+    "areaKm2": 88.21,
+    "lon": 6.31814,
+    "lat": 51.7356
+  },
+  {
+    "ags": "05154028",
+    "name": "Kerken",
+    "kreisId": "05154",
+    "population": 13186,
+    "areaKm2": 58.01,
+    "lon": 6.38876,
+    "lat": 51.44739
+  },
+  {
+    "ags": "05154032",
+    "name": "Kevelaer",
+    "kreisId": "05154",
+    "population": 28296,
+    "areaKm2": 100.15,
+    "lon": 6.2748,
+    "lat": 51.57739
+  },
+  {
+    "ags": "05154036",
+    "name": "Kleve",
+    "kreisId": "05154",
+    "population": 53028,
+    "areaKm2": 97.96,
+    "lon": 6.13397,
+    "lat": 51.80487
+  },
+  {
+    "ags": "05154040",
+    "name": "Kranenburg",
+    "kreisId": "05154",
+    "population": 11303,
+    "areaKm2": 76.82,
+    "lon": 6.03045,
+    "lat": 51.79335
+  },
+  {
+    "ags": "05154044",
+    "name": "Rees",
+    "kreisId": "05154",
+    "population": 21913,
+    "areaKm2": 109.87,
+    "lon": 6.44317,
+    "lat": 51.77452
+  },
+  {
+    "ags": "05154048",
+    "name": "Rheurdt",
+    "kreisId": "05154",
+    "population": 6450,
+    "areaKm2": 30.13,
+    "lon": 6.47424,
+    "lat": 51.45168
+  },
+  {
+    "ags": "05154052",
+    "name": "Straelen",
+    "kreisId": "05154",
+    "population": 16458,
+    "areaKm2": 74.08,
+    "lon": 6.25643,
+    "lat": 51.43056
+  },
+  {
+    "ags": "05154056",
+    "name": "Uedem",
+    "kreisId": "05154",
+    "population": 8163,
+    "areaKm2": 60.95,
+    "lon": 6.28981,
+    "lat": 51.67374
+  },
+  {
+    "ags": "05154060",
+    "name": "Wachtendonk",
+    "kreisId": "05154",
+    "population": 8217,
+    "areaKm2": 48.19,
+    "lon": 6.32636,
+    "lat": 51.3994
+  },
+  {
+    "ags": "05154064",
+    "name": "Weeze",
+    "kreisId": "05154",
+    "population": 12766,
+    "areaKm2": 79.44,
+    "lon": 6.18226,
+    "lat": 51.62105
+  },
+  {
+    "ags": "05158004",
+    "name": "Erkrath",
+    "kreisId": "05158",
+    "population": 43706,
+    "areaKm2": 26.63,
+    "lon": 6.93054,
+    "lat": 51.21529
+  },
+  {
+    "ags": "05158008",
+    "name": "Haan",
+    "kreisId": "05158",
+    "population": 30086,
+    "areaKm2": 24.33,
+    "lon": 7.01464,
+    "lat": 51.2066
+  },
+  {
+    "ags": "05158012",
+    "name": "Heiligenhaus",
+    "kreisId": "05158",
+    "population": 26252,
+    "areaKm2": 27.44,
+    "lon": 6.96607,
+    "lat": 51.32936
+  },
+  {
+    "ags": "05158016",
+    "name": "Hilden",
+    "kreisId": "05158",
+    "population": 55157,
+    "areaKm2": 26.09,
+    "lon": 6.93758,
+    "lat": 51.17106
+  },
+  {
+    "ags": "05158020",
+    "name": "Langenfeld (Rhld.)",
+    "kreisId": "05158",
+    "population": 59975,
+    "areaKm2": 42.5,
+    "lon": 6.95594,
+    "lat": 51.11182
+  },
+  {
+    "ags": "05158024",
+    "name": "Mettmann",
+    "kreisId": "05158",
+    "population": 39542,
+    "areaKm2": 42.99,
+    "lon": 6.97663,
+    "lat": 51.25802
+  },
+  {
+    "ags": "05158026",
+    "name": "Monheim am Rhein",
+    "kreisId": "05158",
+    "population": 43630,
+    "areaKm2": 22.03,
+    "lon": 6.90081,
+    "lat": 51.09288
+  },
+  {
+    "ags": "05158028",
+    "name": "Ratingen",
+    "kreisId": "05158",
+    "population": 89368,
+    "areaKm2": 88.45,
+    "lon": 6.87576,
+    "lat": 51.31462
+  },
+  {
+    "ags": "05158032",
+    "name": "Velbert",
+    "kreisId": "05158",
+    "population": 82463,
+    "areaKm2": 75.17,
+    "lon": 7.09039,
+    "lat": 51.33811
+  },
+  {
+    "ags": "05158036",
+    "name": "Wülfrath",
+    "kreisId": "05158",
+    "population": 20731,
+    "areaKm2": 32.17,
+    "lon": 7.03504,
+    "lat": 51.28946
+  },
+  {
+    "ags": "05162004",
+    "name": "Dormagen",
+    "kreisId": "05162",
+    "population": 63799,
+    "areaKm2": 85.28,
+    "lon": 6.79531,
+    "lat": 51.10465
+  },
+  {
+    "ags": "05162008",
+    "name": "Grevenbroich",
+    "kreisId": "05162",
+    "population": 65983,
+    "areaKm2": 102.21,
+    "lon": 6.60106,
+    "lat": 51.08759
+  },
+  {
+    "ags": "05162012",
+    "name": "Jüchen",
+    "kreisId": "05162",
+    "population": 23926,
+    "areaKm2": 72.02,
+    "lon": 6.5138,
+    "lat": 51.10936
+  },
+  {
+    "ags": "05162016",
+    "name": "Kaarst",
+    "kreisId": "05162",
+    "population": 43295,
+    "areaKm2": 38.21,
+    "lon": 6.60985,
+    "lat": 51.22078
+  },
+  {
+    "ags": "05162020",
+    "name": "Korschenbroich",
+    "kreisId": "05162",
+    "population": 34600,
+    "areaKm2": 55.42,
+    "lon": 6.54443,
+    "lat": 51.19198
+  },
+  {
+    "ags": "05162022",
+    "name": "Meerbusch",
+    "kreisId": "05162",
+    "population": 57078,
+    "areaKm2": 64.56,
+    "lon": 6.66785,
+    "lat": 51.28239
+  },
+  {
+    "ags": "05162024",
+    "name": "Neuss",
+    "kreisId": "05162",
+    "population": 154317,
+    "areaKm2": 98.54,
+    "lon": 6.69511,
+    "lat": 51.17051
+  },
+  {
+    "ags": "05162028",
+    "name": "Rommerskirchen",
+    "kreisId": "05162",
+    "population": 14079,
+    "areaKm2": 60.16,
+    "lon": 6.68692,
+    "lat": 51.05323
+  },
+  {
+    "ags": "05166004",
+    "name": "Brüggen",
+    "kreisId": "05166",
+    "population": 16198,
+    "areaKm2": 61.15,
+    "lon": 6.16805,
+    "lat": 51.26557
+  },
+  {
+    "ags": "05166008",
+    "name": "Grefrath",
+    "kreisId": "05166",
+    "population": 15117,
+    "areaKm2": 31,
+    "lon": 6.34995,
+    "lat": 51.34111
+  },
+  {
+    "ags": "05166012",
+    "name": "Kempen",
+    "kreisId": "05166",
+    "population": 34105,
+    "areaKm2": 68.39,
+    "lon": 6.43237,
+    "lat": 51.37698
+  },
+  {
+    "ags": "05166016",
+    "name": "Nettetal",
+    "kreisId": "05166",
+    "population": 41955,
+    "areaKm2": 83.02,
+    "lon": 6.25033,
+    "lat": 51.31709
+  },
+  {
+    "ags": "05166020",
+    "name": "Niederkrüchten",
+    "kreisId": "05166",
+    "population": 14619,
+    "areaKm2": 67.15,
+    "lon": 6.14672,
+    "lat": 51.21258
+  },
+  {
+    "ags": "05166024",
+    "name": "Schwalmtal",
+    "kreisId": "05166",
+    "population": 18826,
+    "areaKm2": 48.23,
+    "lon": 6.27182,
+    "lat": 51.21619
+  },
+  {
+    "ags": "05166028",
+    "name": "Tönisvorst",
+    "kreisId": "05166",
+    "population": 29251,
+    "areaKm2": 44.38,
+    "lon": 6.4522,
+    "lat": 51.31682
+  },
+  {
+    "ags": "05166032",
+    "name": "Viersen",
+    "kreisId": "05166",
+    "population": 78373,
+    "areaKm2": 91.83,
+    "lon": 6.36227,
+    "lat": 51.2626
+  },
+  {
+    "ags": "05166036",
+    "name": "Willich",
+    "kreisId": "05166",
+    "population": 49413,
+    "areaKm2": 68.51,
+    "lon": 6.51862,
+    "lat": 51.26203
+  },
+  {
+    "ags": "05170004",
+    "name": "Alpen",
+    "kreisId": "05170",
+    "population": 12515,
+    "areaKm2": 59.4,
+    "lon": 6.48933,
+    "lat": 51.59131
+  },
+  {
+    "ags": "05170008",
+    "name": "Dinslaken",
+    "kreisId": "05170",
+    "population": 66993,
+    "areaKm2": 47.54,
+    "lon": 6.76851,
+    "lat": 51.56767
+  },
+  {
+    "ags": "05170012",
+    "name": "Hamminkeln",
+    "kreisId": "05170",
+    "population": 26873,
+    "areaKm2": 164.23,
+    "lon": 6.61628,
+    "lat": 51.74931
+  },
+  {
+    "ags": "05170016",
+    "name": "Hünxe",
+    "kreisId": "05170",
+    "population": 13676,
+    "areaKm2": 106.88,
+    "lon": 6.75707,
+    "lat": 51.63123
+  },
+  {
+    "ags": "05170020",
+    "name": "Kamp-Lintfort",
+    "kreisId": "05170",
+    "population": 38217,
+    "areaKm2": 62.66,
+    "lon": 6.51753,
+    "lat": 51.51304
+  },
+  {
+    "ags": "05170024",
+    "name": "Moers",
+    "kreisId": "05170",
+    "population": 101503,
+    "areaKm2": 68.09,
+    "lon": 6.63098,
+    "lat": 51.45162
+  },
+  {
+    "ags": "05170028",
+    "name": "Neukirchen-Vluyn",
+    "kreisId": "05170",
+    "population": 27140,
+    "areaKm2": 43.19,
+    "lon": 6.55018,
+    "lat": 51.44592
+  },
+  {
+    "ags": "05170032",
+    "name": "Rheinberg",
+    "kreisId": "05170",
+    "population": 31172,
+    "areaKm2": 75.04,
+    "lon": 6.62435,
+    "lat": 51.5437
+  },
+  {
+    "ags": "05170036",
+    "name": "Schermbeck",
+    "kreisId": "05170",
+    "population": 13516,
+    "areaKm2": 110.47,
+    "lon": 6.83484,
+    "lat": 51.69991
+  },
+  {
+    "ags": "05170040",
+    "name": "Sonsbeck",
+    "kreisId": "05170",
+    "population": 8688,
+    "areaKm2": 55.82,
+    "lon": 6.37744,
+    "lat": 51.6186
+  },
+  {
+    "ags": "05170044",
+    "name": "Voerde (Niederrhein)",
+    "kreisId": "05170",
+    "population": 35661,
+    "areaKm2": 53.62,
+    "lon": 6.65193,
+    "lat": 51.60151
+  },
+  {
+    "ags": "05170048",
+    "name": "Wesel",
+    "kreisId": "05170",
+    "population": 60785,
+    "areaKm2": 122.7,
+    "lon": 6.5803,
+    "lat": 51.66497
+  },
+  {
+    "ags": "05170052",
+    "name": "Xanten",
+    "kreisId": "05170",
+    "population": 21179,
+    "areaKm2": 72.49,
+    "lon": 6.43113,
+    "lat": 51.67258
+  },
+  {
+    "ags": "05314000",
+    "name": "Bonn",
+    "kreisId": "05314",
+    "population": 323336,
+    "areaKm2": 141.56,
+    "lon": 7.10855,
+    "lat": 50.70621
+  },
+  {
+    "ags": "05315000",
+    "name": "Köln",
+    "kreisId": "05315",
+    "population": 1024621,
+    "areaKm2": 406.65,
+    "lon": 6.97343,
+    "lat": 50.94558
+  },
+  {
+    "ags": "05316000",
+    "name": "Leverkusen",
+    "kreisId": "05316",
+    "population": 168581,
+    "areaKm2": 78.76,
+    "lon": 7.01559,
+    "lat": 51.05292
+  },
+  {
+    "ags": "05334002",
+    "name": "Aachen",
+    "kreisId": "05334",
+    "population": 262670,
+    "areaKm2": 163.57,
+    "lon": 6.10892,
+    "lat": 50.76063
+  },
+  {
+    "ags": "05334004",
+    "name": "Alsdorf",
+    "kreisId": "05334",
+    "population": 48810,
+    "areaKm2": 31.62,
+    "lon": 6.17556,
+    "lat": 50.8686
+  },
+  {
+    "ags": "05334008",
+    "name": "Baesweiler",
+    "kreisId": "05334",
+    "population": 29206,
+    "areaKm2": 27.92,
+    "lon": 6.18437,
+    "lat": 50.9186
+  },
+  {
+    "ags": "05334012",
+    "name": "Eschweiler",
+    "kreisId": "05334",
+    "population": 57534,
+    "areaKm2": 75.99,
+    "lon": 6.26943,
+    "lat": 50.82848
+  },
+  {
+    "ags": "05334016",
+    "name": "Herzogenrath",
+    "kreisId": "05334",
+    "population": 48574,
+    "areaKm2": 33.28,
+    "lon": 6.10976,
+    "lat": 50.87307
+  },
+  {
+    "ags": "05334020",
+    "name": "Monschau",
+    "kreisId": "05334",
+    "population": 12389,
+    "areaKm2": 93.18,
+    "lon": 6.27429,
+    "lat": 50.53841
+  },
+  {
+    "ags": "05334024",
+    "name": "Roetgen",
+    "kreisId": "05334",
+    "population": 8786,
+    "areaKm2": 35.73,
+    "lon": 6.22234,
+    "lat": 50.67341
+  },
+  {
+    "ags": "05334028",
+    "name": "Simmerath",
+    "kreisId": "05334",
+    "population": 16612,
+    "areaKm2": 110.88,
+    "lon": 6.32923,
+    "lat": 50.61372
+  },
+  {
+    "ags": "05334032",
+    "name": "Stolberg (Rhld.)",
+    "kreisId": "05334",
+    "population": 57684,
+    "areaKm2": 99.06,
+    "lon": 6.26342,
+    "lat": 50.74425
+  },
+  {
+    "ags": "05334036",
+    "name": "Würselen",
+    "kreisId": "05334",
+    "population": 40145,
+    "areaKm2": 33.31,
+    "lon": 6.1503,
+    "lat": 50.82535
+  },
+  {
+    "ags": "05358004",
+    "name": "Aldenhoven",
+    "kreisId": "05358",
+    "population": 14324,
+    "areaKm2": 44.08,
+    "lon": 6.26014,
+    "lat": 50.89699
+  },
+  {
+    "ags": "05358008",
+    "name": "Düren",
+    "kreisId": "05358",
+    "population": 94568,
+    "areaKm2": 84.72,
+    "lon": 6.46545,
+    "lat": 50.79783
+  },
+  {
+    "ags": "05358012",
+    "name": "Heimbach",
+    "kreisId": "05358",
+    "population": 4487,
+    "areaKm2": 64.98,
+    "lon": 6.48986,
+    "lat": 50.63196
+  },
+  {
+    "ags": "05358016",
+    "name": "Hürtgenwald",
+    "kreisId": "05358",
+    "population": 9196,
+    "areaKm2": 87.78,
+    "lon": 6.37301,
+    "lat": 50.71134
+  },
+  {
+    "ags": "05358020",
+    "name": "Inden",
+    "kreisId": "05358",
+    "population": 7624,
+    "areaKm2": 35.4,
+    "lon": 6.37131,
+    "lat": 50.86276
+  },
+  {
+    "ags": "05358024",
+    "name": "Jülich",
+    "kreisId": "05358",
+    "population": 34890,
+    "areaKm2": 90.9,
+    "lon": 6.36857,
+    "lat": 50.92857
+  },
+  {
+    "ags": "05358028",
+    "name": "Kreuzau",
+    "kreisId": "05358",
+    "population": 18149,
+    "areaKm2": 41.94,
+    "lon": 6.49057,
+    "lat": 50.73238
+  },
+  {
+    "ags": "05358032",
+    "name": "Langerwehe",
+    "kreisId": "05358",
+    "population": 14976,
+    "areaKm2": 42.03,
+    "lon": 6.37192,
+    "lat": 50.80499
+  },
+  {
+    "ags": "05358036",
+    "name": "Linnich",
+    "kreisId": "05358",
+    "population": 13653,
+    "areaKm2": 65.23,
+    "lon": 6.28198,
+    "lat": 50.97602
+  },
+  {
+    "ags": "05358040",
+    "name": "Merzenich",
+    "kreisId": "05358",
+    "population": 10508,
+    "areaKm2": 38.03,
+    "lon": 6.54871,
+    "lat": 50.83546
+  },
+  {
+    "ags": "05358044",
+    "name": "Nideggen",
+    "kreisId": "05358",
+    "population": 10764,
+    "areaKm2": 64.87,
+    "lon": 6.48811,
+    "lat": 50.67977
+  },
+  {
+    "ags": "05358048",
+    "name": "Niederzier",
+    "kreisId": "05358",
+    "population": 15060,
+    "areaKm2": 63.52,
+    "lon": 6.47496,
+    "lat": 50.89312
+  },
+  {
+    "ags": "05358052",
+    "name": "Nörvenich",
+    "kreisId": "05358",
+    "population": 12131,
+    "areaKm2": 66.12,
+    "lon": 6.65471,
+    "lat": 50.80457
+  },
+  {
+    "ags": "05358056",
+    "name": "Titz",
+    "kreisId": "05358",
+    "population": 9052,
+    "areaKm2": 68.29,
+    "lon": 6.41545,
+    "lat": 51.00084
+  },
+  {
+    "ags": "05358060",
+    "name": "Vettweiß",
+    "kreisId": "05358",
+    "population": 9903,
+    "areaKm2": 82.57,
+    "lon": 6.59629,
+    "lat": 50.74708
+  },
+  {
+    "ags": "05362004",
+    "name": "Bedburg",
+    "kreisId": "05362",
+    "population": 25316,
+    "areaKm2": 79.91,
+    "lon": 6.53543,
+    "lat": 51.00201
+  },
+  {
+    "ags": "05362008",
+    "name": "Bergheim",
+    "kreisId": "05362",
+    "population": 61611,
+    "areaKm2": 96.68,
+    "lon": 6.67949,
+    "lat": 50.9629
+  },
+  {
+    "ags": "05362012",
+    "name": "Brühl",
+    "kreisId": "05362",
+    "population": 45555,
+    "areaKm2": 36.92,
+    "lon": 6.88734,
+    "lat": 50.8208
+  },
+  {
+    "ags": "05362016",
+    "name": "Elsdorf",
+    "kreisId": "05362",
+    "population": 21424,
+    "areaKm2": 65.63,
+    "lon": 6.5631,
+    "lat": 50.93154
+  },
+  {
+    "ags": "05362020",
+    "name": "Erftstadt",
+    "kreisId": "05362",
+    "population": 48772,
+    "areaKm2": 119.15,
+    "lon": 6.77047,
+    "lat": 50.79194
+  },
+  {
+    "ags": "05362024",
+    "name": "Frechen",
+    "kreisId": "05362",
+    "population": 52309,
+    "areaKm2": 44.57,
+    "lon": 6.78603,
+    "lat": 50.91247
+  },
+  {
+    "ags": "05362028",
+    "name": "Hürth",
+    "kreisId": "05362",
+    "population": 62160,
+    "areaKm2": 49.89,
+    "lon": 6.85847,
+    "lat": 50.87327
+  },
+  {
+    "ags": "05362032",
+    "name": "Kerpen",
+    "kreisId": "05362",
+    "population": 66585,
+    "areaKm2": 114.85,
+    "lon": 6.67343,
+    "lat": 50.87458
+  },
+  {
+    "ags": "05362036",
+    "name": "Pulheim",
+    "kreisId": "05362",
+    "population": 56150,
+    "areaKm2": 72.08,
+    "lon": 6.79631,
+    "lat": 51.00043
+  },
+  {
+    "ags": "05362040",
+    "name": "Wesseling",
+    "kreisId": "05362",
+    "population": 38106,
+    "areaKm2": 23.22,
+    "lon": 6.97354,
+    "lat": 50.81579
+  },
+  {
+    "ags": "05366004",
+    "name": "Bad Münstereifel",
+    "kreisId": "05366",
+    "population": 18297,
+    "areaKm2": 150.89,
+    "lon": 6.82335,
+    "lat": 50.5308
+  },
+  {
+    "ags": "05366008",
+    "name": "Blankenheim",
+    "kreisId": "05366",
+    "population": 8434,
+    "areaKm2": 148.86,
+    "lon": 6.6884,
+    "lat": 50.40986
+  },
+  {
+    "ags": "05366012",
+    "name": "Dahlem",
+    "kreisId": "05366",
+    "population": 4416,
+    "areaKm2": 95.15,
+    "lon": 6.52247,
+    "lat": 50.40064
+  },
+  {
+    "ags": "05366016",
+    "name": "Euskirchen",
+    "kreisId": "05366",
+    "population": 60021,
+    "areaKm2": 139.14,
+    "lon": 6.80414,
+    "lat": 50.64399
+  },
+  {
+    "ags": "05366020",
+    "name": "Hellenthal",
+    "kreisId": "05366",
+    "population": 7834,
+    "areaKm2": 138.37,
+    "lon": 6.4324,
+    "lat": 50.45186
+  },
+  {
+    "ags": "05366024",
+    "name": "Kall",
+    "kreisId": "05366",
+    "population": 11180,
+    "areaKm2": 65.74,
+    "lon": 6.554,
+    "lat": 50.52051
+  },
+  {
+    "ags": "05366028",
+    "name": "Mechernich",
+    "kreisId": "05366",
+    "population": 29187,
+    "areaKm2": 136.35,
+    "lon": 6.64794,
+    "lat": 50.59121
+  },
+  {
+    "ags": "05366032",
+    "name": "Nettersheim",
+    "kreisId": "05366",
+    "population": 8902,
+    "areaKm2": 94.42,
+    "lon": 6.66305,
+    "lat": 50.49207
+  },
+  {
+    "ags": "05366036",
+    "name": "Schleiden",
+    "kreisId": "05366",
+    "population": 13578,
+    "areaKm2": 122.14,
+    "lon": 6.45182,
+    "lat": 50.55705
+  },
+  {
+    "ags": "05366040",
+    "name": "Weilerswist",
+    "kreisId": "05366",
+    "population": 18980,
+    "areaKm2": 58.31,
+    "lon": 6.83727,
+    "lat": 50.73161
+  },
+  {
+    "ags": "05366044",
+    "name": "Zülpich",
+    "kreisId": "05366",
+    "population": 21780,
+    "areaKm2": 100.69,
+    "lon": 6.66035,
+    "lat": 50.68522
+  },
+  {
+    "ags": "05370004",
+    "name": "Erkelenz",
+    "kreisId": "05370",
+    "population": 45315,
+    "areaKm2": 117.42,
+    "lon": 6.33887,
+    "lat": 51.06787
+  },
+  {
+    "ags": "05370008",
+    "name": "Gangelt",
+    "kreisId": "05370",
+    "population": 13410,
+    "areaKm2": 48.95,
+    "lon": 6.01464,
+    "lat": 51.00791
+  },
+  {
+    "ags": "05370012",
+    "name": "Geilenkirchen",
+    "kreisId": "05370",
+    "population": 28494,
+    "areaKm2": 83.23,
+    "lon": 6.13269,
+    "lat": 50.97452
+  },
+  {
+    "ags": "05370016",
+    "name": "Heinsberg",
+    "kreisId": "05370",
+    "population": 43163,
+    "areaKm2": 92.04,
+    "lon": 6.11197,
+    "lat": 51.05059
+  },
+  {
+    "ags": "05370020",
+    "name": "Hückelhoven",
+    "kreisId": "05370",
+    "population": 41192,
+    "areaKm2": 61.28,
+    "lon": 6.23083,
+    "lat": 51.04318
+  },
+  {
+    "ags": "05370024",
+    "name": "Selfkant",
+    "kreisId": "05370",
+    "population": 10786,
+    "areaKm2": 41.93,
+    "lon": 5.92153,
+    "lat": 51.02065
+  },
+  {
+    "ags": "05370028",
+    "name": "Übach-Palenberg",
+    "kreisId": "05370",
+    "population": 24277,
+    "areaKm2": 25.9,
+    "lon": 6.11338,
+    "lat": 50.92701
+  },
+  {
+    "ags": "05370032",
+    "name": "Waldfeucht",
+    "kreisId": "05370",
+    "population": 9242,
+    "areaKm2": 30.33,
+    "lon": 6.01811,
+    "lat": 51.06462
+  },
+  {
+    "ags": "05370036",
+    "name": "Wassenberg",
+    "kreisId": "05370",
+    "population": 19713,
+    "areaKm2": 42.38,
+    "lon": 6.14498,
+    "lat": 51.11329
+  },
+  {
+    "ags": "05370040",
+    "name": "Wegberg",
+    "kreisId": "05370",
+    "population": 28089,
+    "areaKm2": 84.03,
+    "lon": 6.24891,
+    "lat": 51.1438
+  },
+  {
+    "ags": "05374004",
+    "name": "Bergneustadt",
+    "kreisId": "05374",
+    "population": 18628,
+    "areaKm2": 37.46,
+    "lon": 7.6801,
+    "lat": 51.02876
+  },
+  {
+    "ags": "05374008",
+    "name": "Engelskirchen",
+    "kreisId": "05374",
+    "population": 19737,
+    "areaKm2": 63.16,
+    "lon": 7.42564,
+    "lat": 50.9831
+  },
+  {
+    "ags": "05374012",
+    "name": "Gummersbach",
+    "kreisId": "05374",
+    "population": 51290,
+    "areaKm2": 95.44,
+    "lon": 7.56269,
+    "lat": 51.0219
+  },
+  {
+    "ags": "05374016",
+    "name": "Hückeswagen",
+    "kreisId": "05374",
+    "population": 14480,
+    "areaKm2": 50.41,
+    "lon": 7.33311,
+    "lat": 51.15251
+  },
+  {
+    "ags": "05374020",
+    "name": "Lindlar",
+    "kreisId": "05374",
+    "population": 21615,
+    "areaKm2": 85.47,
+    "lon": 7.36321,
+    "lat": 51.02475
+  },
+  {
+    "ags": "05374024",
+    "name": "Marienheide",
+    "kreisId": "05374",
+    "population": 13356,
+    "areaKm2": 54.87,
+    "lon": 7.5369,
+    "lat": 51.07612
+  },
+  {
+    "ags": "05374028",
+    "name": "Morsbach",
+    "kreisId": "05374",
+    "population": 10555,
+    "areaKm2": 55.49,
+    "lon": 7.70611,
+    "lat": 50.86858
+  },
+  {
+    "ags": "05374032",
+    "name": "Nümbrecht",
+    "kreisId": "05374",
+    "population": 17580,
+    "areaKm2": 71.96,
+    "lon": 7.5354,
+    "lat": 50.9022
+  },
+  {
+    "ags": "05374036",
+    "name": "Radevormwald",
+    "kreisId": "05374",
+    "population": 21565,
+    "areaKm2": 53.95,
+    "lon": 7.35222,
+    "lat": 51.21651
+  },
+  {
+    "ags": "05374040",
+    "name": "Reichshof",
+    "kreisId": "05374",
+    "population": 18688,
+    "areaKm2": 114.77,
+    "lon": 7.68764,
+    "lat": 50.95718
+  },
+  {
+    "ags": "05374044",
+    "name": "Waldbröl",
+    "kreisId": "05374",
+    "population": 19795,
+    "areaKm2": 63.18,
+    "lon": 7.61441,
+    "lat": 50.86543
+  },
+  {
+    "ags": "05374048",
+    "name": "Wiehl",
+    "kreisId": "05374",
+    "population": 25164,
+    "areaKm2": 53.51,
+    "lon": 7.53076,
+    "lat": 50.95737
+  },
+  {
+    "ags": "05374052",
+    "name": "Wipperfürth",
+    "kreisId": "05374",
+    "population": 21604,
+    "areaKm2": 118.06,
+    "lon": 7.41667,
+    "lat": 51.11149
+  },
+  {
+    "ags": "05378004",
+    "name": "Bergisch Gladbach",
+    "kreisId": "05378",
+    "population": 111361,
+    "areaKm2": 83.18,
+    "lon": 7.15446,
+    "lat": 50.9791
+  },
+  {
+    "ags": "05378008",
+    "name": "Burscheid",
+    "kreisId": "05378",
+    "population": 19272,
+    "areaKm2": 27.36,
+    "lon": 7.116,
+    "lat": 51.08685
+  },
+  {
+    "ags": "05378012",
+    "name": "Kürten",
+    "kreisId": "05378",
+    "population": 20033,
+    "areaKm2": 68.11,
+    "lon": 7.25111,
+    "lat": 51.04259
+  },
+  {
+    "ags": "05378016",
+    "name": "Leichlingen (Rhld.)",
+    "kreisId": "05378",
+    "population": 28078,
+    "areaKm2": 36.97,
+    "lon": 7.04117,
+    "lat": 51.11252
+  },
+  {
+    "ags": "05378020",
+    "name": "Odenthal",
+    "kreisId": "05378",
+    "population": 15782,
+    "areaKm2": 39.32,
+    "lon": 7.14915,
+    "lat": 51.04015
+  },
+  {
+    "ags": "05378024",
+    "name": "Overath",
+    "kreisId": "05378",
+    "population": 26663,
+    "areaKm2": 68.85,
+    "lon": 7.29502,
+    "lat": 50.94494
+  },
+  {
+    "ags": "05378028",
+    "name": "Rösrath",
+    "kreisId": "05378",
+    "population": 28709,
+    "areaKm2": 39.03,
+    "lon": 7.18289,
+    "lat": 50.90691
+  },
+  {
+    "ags": "05378032",
+    "name": "Wermelskirchen",
+    "kreisId": "05378",
+    "population": 34375,
+    "areaKm2": 75.09,
+    "lon": 7.21764,
+    "lat": 51.11191
+  },
+  {
+    "ags": "05382004",
+    "name": "Alfter",
+    "kreisId": "05382",
+    "population": 23719,
+    "areaKm2": 34.62,
+    "lon": 6.99878,
+    "lat": 50.71193
+  },
+  {
+    "ags": "05382008",
+    "name": "Bad Honnef",
+    "kreisId": "05382",
+    "population": 25061,
+    "areaKm2": 47.99,
+    "lon": 7.27821,
+    "lat": 50.65342
+  },
+  {
+    "ags": "05382012",
+    "name": "Bornheim",
+    "kreisId": "05382",
+    "population": 48203,
+    "areaKm2": 82.21,
+    "lon": 6.95512,
+    "lat": 50.76815
+  },
+  {
+    "ags": "05382016",
+    "name": "Eitorf",
+    "kreisId": "05382",
+    "population": 19172,
+    "areaKm2": 69.95,
+    "lon": 7.45318,
+    "lat": 50.76455
+  },
+  {
+    "ags": "05382020",
+    "name": "Hennef (Sieg)",
+    "kreisId": "05382",
+    "population": 48188,
+    "areaKm2": 105.7,
+    "lon": 7.32946,
+    "lat": 50.75588
+  },
+  {
+    "ags": "05382024",
+    "name": "Königswinter",
+    "kreisId": "05382",
+    "population": 40574,
+    "areaKm2": 75.83,
+    "lon": 7.25746,
+    "lat": 50.70415
+  },
+  {
+    "ags": "05382028",
+    "name": "Lohmar",
+    "kreisId": "05382",
+    "population": 30992,
+    "areaKm2": 65.72,
+    "lon": 7.24084,
+    "lat": 50.86953
+  },
+  {
+    "ags": "05382032",
+    "name": "Meckenheim",
+    "kreisId": "05382",
+    "population": 24925,
+    "areaKm2": 34.96,
+    "lon": 7.02266,
+    "lat": 50.62293
+  },
+  {
+    "ags": "05382036",
+    "name": "Much",
+    "kreisId": "05382",
+    "population": 14561,
+    "areaKm2": 77.83,
+    "lon": 7.4073,
+    "lat": 50.90042
+  },
+  {
+    "ags": "05382040",
+    "name": "Neunkirchen-Seelscheid",
+    "kreisId": "05382",
+    "population": 20283,
+    "areaKm2": 50.8,
+    "lon": 7.33352,
+    "lat": 50.85436
+  },
+  {
+    "ags": "05382044",
+    "name": "Niederkassel",
+    "kreisId": "05382",
+    "population": 38485,
+    "areaKm2": 35.54,
+    "lon": 7.05506,
+    "lat": 50.81363
+  },
+  {
+    "ags": "05382048",
+    "name": "Rheinbach",
+    "kreisId": "05382",
+    "population": 26918,
+    "areaKm2": 69.73,
+    "lon": 6.95004,
+    "lat": 50.61545
+  },
+  {
+    "ags": "05382052",
+    "name": "Ruppichteroth",
+    "kreisId": "05382",
+    "population": 10887,
+    "areaKm2": 61.48,
+    "lon": 7.46379,
+    "lat": 50.83808
+  },
+  {
+    "ags": "05382056",
+    "name": "Sankt Augustin",
+    "kreisId": "05382",
+    "population": 56521,
+    "areaKm2": 34.13,
+    "lon": 7.18994,
+    "lat": 50.77125
+  },
+  {
+    "ags": "05382060",
+    "name": "Siegburg",
+    "kreisId": "05382",
+    "population": 42445,
+    "areaKm2": 23.97,
+    "lon": 7.21876,
+    "lat": 50.8011
+  },
+  {
+    "ags": "05382064",
+    "name": "Swisttal",
+    "kreisId": "05382",
+    "population": 18580,
+    "areaKm2": 62.43,
+    "lon": 6.92139,
+    "lat": 50.68767
+  },
+  {
+    "ags": "05382068",
+    "name": "Troisdorf",
+    "kreisId": "05382",
+    "population": 75901,
+    "areaKm2": 61.66,
+    "lon": 7.14163,
+    "lat": 50.82159
+  },
+  {
+    "ags": "05382072",
+    "name": "Wachtberg",
+    "kreisId": "05382",
+    "population": 20471,
+    "areaKm2": 49.66,
+    "lon": 7.11582,
+    "lat": 50.63049
+  },
+  {
+    "ags": "05382076",
+    "name": "Windeck",
+    "kreisId": "05382",
+    "population": 19555,
+    "areaKm2": 107.7,
+    "lon": 7.57077,
+    "lat": 50.79528
+  },
+  {
+    "ags": "05512000",
+    "name": "Bottrop",
+    "kreisId": "05512",
+    "population": 118535,
+    "areaKm2": 100.22,
+    "lon": 6.9037,
+    "lat": 51.60272
+  },
+  {
+    "ags": "05513000",
+    "name": "Gelsenkirchen",
+    "kreisId": "05513",
+    "population": 267930,
+    "areaKm2": 105.31,
+    "lon": 7.07416,
+    "lat": 51.55417
+  },
+  {
+    "ags": "05515000",
+    "name": "Münster",
+    "kreisId": "05515",
+    "population": 308258,
+    "areaKm2": 303.36,
+    "lon": 7.62363,
+    "lat": 51.95428
+  },
+  {
+    "ags": "05554004",
+    "name": "Ahaus",
+    "kreisId": "05554",
+    "population": 40176,
+    "areaKm2": 151.21,
+    "lon": 6.95673,
+    "lat": 52.09676
+  },
+  {
+    "ags": "05554008",
+    "name": "Bocholt",
+    "kreisId": "05554",
+    "population": 73257,
+    "areaKm2": 119.45,
+    "lon": 6.60071,
+    "lat": 51.8535
+  },
+  {
+    "ags": "05554012",
+    "name": "Borken",
+    "kreisId": "05554",
+    "population": 43035,
+    "areaKm2": 152.96,
+    "lon": 6.83151,
+    "lat": 51.85225
+  },
+  {
+    "ags": "05554016",
+    "name": "Gescher",
+    "kreisId": "05554",
+    "population": 17433,
+    "areaKm2": 80.9,
+    "lon": 7.03193,
+    "lat": 51.95385
+  },
+  {
+    "ags": "05554020",
+    "name": "Gronau (Westf.)",
+    "kreisId": "05554",
+    "population": 50547,
+    "areaKm2": 78.98,
+    "lon": 7.03429,
+    "lat": 52.19002
+  },
+  {
+    "ags": "05554024",
+    "name": "Heek",
+    "kreisId": "05554",
+    "population": 8773,
+    "areaKm2": 69.37,
+    "lon": 7.09699,
+    "lat": 52.1283
+  },
+  {
+    "ags": "05554028",
+    "name": "Heiden",
+    "kreisId": "05554",
+    "population": 8704,
+    "areaKm2": 53.88,
+    "lon": 6.9552,
+    "lat": 51.82561
+  },
+  {
+    "ags": "05554032",
+    "name": "Isselburg",
+    "kreisId": "05554",
+    "population": 11251,
+    "areaKm2": 42.57,
+    "lon": 6.45505,
+    "lat": 51.83423
+  },
+  {
+    "ags": "05554036",
+    "name": "Legden",
+    "kreisId": "05554",
+    "population": 7511,
+    "areaKm2": 56.42,
+    "lon": 7.10041,
+    "lat": 52.04584
+  },
+  {
+    "ags": "05554040",
+    "name": "Raesfeld",
+    "kreisId": "05554",
+    "population": 11709,
+    "areaKm2": 57.96,
+    "lon": 6.82848,
+    "lat": 51.76773
+  },
+  {
+    "ags": "05554044",
+    "name": "Reken",
+    "kreisId": "05554",
+    "population": 15109,
+    "areaKm2": 77.91,
+    "lon": 7.06546,
+    "lat": 51.82304
+  },
+  {
+    "ags": "05554048",
+    "name": "Rhede",
+    "kreisId": "05554",
+    "population": 19674,
+    "areaKm2": 78.99,
+    "lon": 6.69661,
+    "lat": 51.81714
+  },
+  {
+    "ags": "05554052",
+    "name": "Schöppingen",
+    "kreisId": "05554",
+    "population": 7033,
+    "areaKm2": 68.95,
+    "lon": 7.19923,
+    "lat": 52.0852
+  },
+  {
+    "ags": "05554056",
+    "name": "Stadtlohn",
+    "kreisId": "05554",
+    "population": 20946,
+    "areaKm2": 79.06,
+    "lon": 6.92717,
+    "lat": 52.00181
+  },
+  {
+    "ags": "05554060",
+    "name": "Südlohn",
+    "kreisId": "05554",
+    "population": 9861,
+    "areaKm2": 45.43,
+    "lon": 6.84604,
+    "lat": 51.94895
+  },
+  {
+    "ags": "05554064",
+    "name": "Velen",
+    "kreisId": "05554",
+    "population": 12678,
+    "areaKm2": 71.22,
+    "lon": 6.95346,
+    "lat": 51.89712
+  },
+  {
+    "ags": "05554068",
+    "name": "Vreden",
+    "kreisId": "05554",
+    "population": 23099,
+    "areaKm2": 135.7,
+    "lon": 6.81073,
+    "lat": 52.06225
+  },
+  {
+    "ags": "05558004",
+    "name": "Ascheberg",
+    "kreisId": "05558",
+    "population": 15831,
+    "areaKm2": 106.62,
+    "lon": 7.63556,
+    "lat": 51.77369
+  },
+  {
+    "ags": "05558008",
+    "name": "Billerbeck",
+    "kreisId": "05558",
+    "population": 11945,
+    "areaKm2": 91.2,
+    "lon": 7.28622,
+    "lat": 51.9756
+  },
+  {
+    "ags": "05558012",
+    "name": "Coesfeld",
+    "kreisId": "05558",
+    "population": 38237,
+    "areaKm2": 141.45,
+    "lon": 7.15284,
+    "lat": 51.91735
+  },
+  {
+    "ags": "05558016",
+    "name": "Dülmen",
+    "kreisId": "05558",
+    "population": 47989,
+    "areaKm2": 184.81,
+    "lon": 7.28924,
+    "lat": 51.84695
+  },
+  {
+    "ags": "05558020",
+    "name": "Havixbeck",
+    "kreisId": "05558",
+    "population": 12357,
+    "areaKm2": 53.42,
+    "lon": 7.44313,
+    "lat": 51.97442
+  },
+  {
+    "ags": "05558024",
+    "name": "Lüdinghausen",
+    "kreisId": "05558",
+    "population": 25265,
+    "areaKm2": 140.52,
+    "lon": 7.4189,
+    "lat": 51.77364
+  },
+  {
+    "ags": "05558028",
+    "name": "Nordkirchen",
+    "kreisId": "05558",
+    "population": 10762,
+    "areaKm2": 52.44,
+    "lon": 7.55612,
+    "lat": 51.73062
+  },
+  {
+    "ags": "05558032",
+    "name": "Nottuln",
+    "kreisId": "05558",
+    "population": 20205,
+    "areaKm2": 85.33,
+    "lon": 7.36806,
+    "lat": 51.92657
+  },
+  {
+    "ags": "05558036",
+    "name": "Olfen",
+    "kreisId": "05558",
+    "population": 13175,
+    "areaKm2": 52.44,
+    "lon": 7.37986,
+    "lat": 51.70534
+  },
+  {
+    "ags": "05558040",
+    "name": "Rosendahl",
+    "kreisId": "05558",
+    "population": 11249,
+    "areaKm2": 94.17,
+    "lon": 7.19018,
+    "lat": 52.01509
+  },
+  {
+    "ags": "05558044",
+    "name": "Senden",
+    "kreisId": "05558",
+    "population": 20844,
+    "areaKm2": 109.38,
+    "lon": 7.4972,
+    "lat": 51.86068
+  },
+  {
+    "ags": "05562004",
+    "name": "Castrop-Rauxel",
+    "kreisId": "05562",
+    "population": 73282,
+    "areaKm2": 51.81,
+    "lon": 7.31072,
+    "lat": 51.56935
+  },
+  {
+    "ags": "05562008",
+    "name": "Datteln",
+    "kreisId": "05562",
+    "population": 35473,
+    "areaKm2": 65.8,
+    "lon": 7.32206,
+    "lat": 51.66646
+  },
+  {
+    "ags": "05562012",
+    "name": "Dorsten",
+    "kreisId": "05562",
+    "population": 75277,
+    "areaKm2": 171.4,
+    "lon": 7.0021,
+    "lat": 51.72849
+  },
+  {
+    "ags": "05562014",
+    "name": "Gladbeck",
+    "kreisId": "05562",
+    "population": 75499,
+    "areaKm2": 36.11,
+    "lon": 6.97726,
+    "lat": 51.57234
+  },
+  {
+    "ags": "05562016",
+    "name": "Haltern am See",
+    "kreisId": "05562",
+    "population": 38142,
+    "areaKm2": 158.89,
+    "lon": 7.18901,
+    "lat": 51.75608
+  },
+  {
+    "ags": "05562020",
+    "name": "Herten",
+    "kreisId": "05562",
+    "population": 60941,
+    "areaKm2": 37.14,
+    "lon": 7.13303,
+    "lat": 51.60194
+  },
+  {
+    "ags": "05562024",
+    "name": "Marl",
+    "kreisId": "05562",
+    "population": 86766,
+    "areaKm2": 87.71,
+    "lon": 7.11048,
+    "lat": 51.66731
+  },
+  {
+    "ags": "05562028",
+    "name": "Oer-Erkenschwick",
+    "kreisId": "05562",
+    "population": 31404,
+    "areaKm2": 38.72,
+    "lon": 7.23859,
+    "lat": 51.66065
+  },
+  {
+    "ags": "05562032",
+    "name": "Recklinghausen",
+    "kreisId": "05562",
+    "population": 115344,
+    "areaKm2": 66.53,
+    "lon": 7.2127,
+    "lat": 51.60317
+  },
+  {
+    "ags": "05562036",
+    "name": "Waltrop",
+    "kreisId": "05562",
+    "population": 29177,
+    "areaKm2": 46.96,
+    "lon": 7.39928,
+    "lat": 51.6232
+  },
+  {
+    "ags": "05566004",
+    "name": "Altenberge",
+    "kreisId": "05566",
+    "population": 10278,
+    "areaKm2": 62.69,
+    "lon": 7.47821,
+    "lat": 52.03735
+  },
+  {
+    "ags": "05566008",
+    "name": "Emsdetten",
+    "kreisId": "05566",
+    "population": 36159,
+    "areaKm2": 71.9,
+    "lon": 7.51221,
+    "lat": 52.1722
+  },
+  {
+    "ags": "05566012",
+    "name": "Greven",
+    "kreisId": "05566",
+    "population": 38212,
+    "areaKm2": 140.12,
+    "lon": 7.63367,
+    "lat": 52.09516
+  },
+  {
+    "ags": "05566016",
+    "name": "Hörstel",
+    "kreisId": "05566",
+    "population": 20166,
+    "areaKm2": 107.43,
+    "lon": 7.60385,
+    "lat": 52.27617
+  },
+  {
+    "ags": "05566020",
+    "name": "Hopsten",
+    "kreisId": "05566",
+    "population": 7717,
+    "areaKm2": 99.89,
+    "lon": 7.64862,
+    "lat": 52.41989
+  },
+  {
+    "ags": "05566024",
+    "name": "Horstmar",
+    "kreisId": "05566",
+    "population": 7528,
+    "areaKm2": 44.89,
+    "lon": 7.30403,
+    "lat": 52.09968
+  },
+  {
+    "ags": "05566028",
+    "name": "Ibbenbüren",
+    "kreisId": "05566",
+    "population": 51803,
+    "areaKm2": 108.41,
+    "lon": 7.70772,
+    "lat": 52.27805
+  },
+  {
+    "ags": "05566032",
+    "name": "Ladbergen",
+    "kreisId": "05566",
+    "population": 6906,
+    "areaKm2": 52.35,
+    "lon": 7.75354,
+    "lat": 52.12665
+  },
+  {
+    "ags": "05566036",
+    "name": "Laer",
+    "kreisId": "05566",
+    "population": 6993,
+    "areaKm2": 35.34,
+    "lon": 7.36502,
+    "lat": 52.05865
+  },
+  {
+    "ags": "05566040",
+    "name": "Lengerich",
+    "kreisId": "05566",
+    "population": 22557,
+    "areaKm2": 90.54,
+    "lon": 7.83088,
+    "lat": 52.17206
+  },
+  {
+    "ags": "05566044",
+    "name": "Lienen",
+    "kreisId": "05566",
+    "population": 8512,
+    "areaKm2": 73.25,
+    "lon": 7.93293,
+    "lat": 52.13223
+  },
+  {
+    "ags": "05566048",
+    "name": "Lotte",
+    "kreisId": "05566",
+    "population": 13770,
+    "areaKm2": 37.27,
+    "lon": 7.93415,
+    "lat": 52.31707
+  },
+  {
+    "ags": "05566052",
+    "name": "Metelen",
+    "kreisId": "05566",
+    "population": 6539,
+    "areaKm2": 40.29,
+    "lon": 7.20861,
+    "lat": 52.14688
+  },
+  {
+    "ags": "05566056",
+    "name": "Mettingen",
+    "kreisId": "05566",
+    "population": 11654,
+    "areaKm2": 40.47,
+    "lon": 7.77972,
+    "lat": 52.32528
+  },
+  {
+    "ags": "05566060",
+    "name": "Neuenkirchen",
+    "kreisId": "05566",
+    "population": 13915,
+    "areaKm2": 48.72,
+    "lon": 7.37548,
+    "lat": 52.23583
+  },
+  {
+    "ags": "05566064",
+    "name": "Nordwalde",
+    "kreisId": "05566",
+    "population": 10024,
+    "areaKm2": 51.7,
+    "lon": 7.48547,
+    "lat": 52.10027
+  },
+  {
+    "ags": "05566068",
+    "name": "Ochtrup",
+    "kreisId": "05566",
+    "population": 20394,
+    "areaKm2": 105.6,
+    "lon": 7.17678,
+    "lat": 52.21498
+  },
+  {
+    "ags": "05566072",
+    "name": "Recke",
+    "kreisId": "05566",
+    "population": 11341,
+    "areaKm2": 53.54,
+    "lon": 7.70917,
+    "lat": 52.36238
+  },
+  {
+    "ags": "05566076",
+    "name": "Rheine",
+    "kreisId": "05566",
+    "population": 77209,
+    "areaKm2": 144.97,
+    "lon": 7.47535,
+    "lat": 52.26377
+  },
+  {
+    "ags": "05566080",
+    "name": "Saerbeck",
+    "kreisId": "05566",
+    "population": 6906,
+    "areaKm2": 59.19,
+    "lon": 7.64536,
+    "lat": 52.18127
+  },
+  {
+    "ags": "05566084",
+    "name": "Steinfurt",
+    "kreisId": "05566",
+    "population": 34860,
+    "areaKm2": 111.33,
+    "lon": 7.37268,
+    "lat": 52.1472
+  },
+  {
+    "ags": "05566088",
+    "name": "Tecklenburg",
+    "kreisId": "05566",
+    "population": 9098,
+    "areaKm2": 71.02,
+    "lon": 7.82455,
+    "lat": 52.23664
+  },
+  {
+    "ags": "05566092",
+    "name": "Westerkappeln",
+    "kreisId": "05566",
+    "population": 10876,
+    "areaKm2": 86.07,
+    "lon": 7.86215,
+    "lat": 52.31945
+  },
+  {
+    "ags": "05566096",
+    "name": "Wettringen",
+    "kreisId": "05566",
+    "population": 8295,
+    "areaKm2": 57.41,
+    "lon": 7.28735,
+    "lat": 52.23522
+  },
+  {
+    "ags": "05570004",
+    "name": "Ahlen",
+    "kreisId": "05570",
+    "population": 52666,
+    "areaKm2": 123.04,
+    "lon": 7.89805,
+    "lat": 51.76813
+  },
+  {
+    "ags": "05570008",
+    "name": "Beckum",
+    "kreisId": "05570",
+    "population": 37133,
+    "areaKm2": 111.37,
+    "lon": 8.04666,
+    "lat": 51.76055
+  },
+  {
+    "ags": "05570012",
+    "name": "Beelen",
+    "kreisId": "05570",
+    "population": 6002,
+    "areaKm2": 31.38,
+    "lon": 8.12169,
+    "lat": 51.92578
+  },
+  {
+    "ags": "05570016",
+    "name": "Drensteinfurt",
+    "kreisId": "05570",
+    "population": 16282,
+    "areaKm2": 105.6,
+    "lon": 7.73283,
+    "lat": 51.80113
+  },
+  {
+    "ags": "05570020",
+    "name": "Ennigerloh",
+    "kreisId": "05570",
+    "population": 19841,
+    "areaKm2": 125.82,
+    "lon": 8.02567,
+    "lat": 51.85885
+  },
+  {
+    "ags": "05570024",
+    "name": "Everswinkel",
+    "kreisId": "05570",
+    "population": 9772,
+    "areaKm2": 69.25,
+    "lon": 7.84141,
+    "lat": 51.91664
+  },
+  {
+    "ags": "05570028",
+    "name": "Oelde",
+    "kreisId": "05570",
+    "population": 30129,
+    "areaKm2": 102.37,
+    "lon": 8.15085,
+    "lat": 51.82011
+  },
+  {
+    "ags": "05570032",
+    "name": "Ostbevern",
+    "kreisId": "05570",
+    "population": 11469,
+    "areaKm2": 89.36,
+    "lon": 7.84826,
+    "lat": 52.0575
+  },
+  {
+    "ags": "05570036",
+    "name": "Sassenberg",
+    "kreisId": "05570",
+    "population": 14558,
+    "areaKm2": 78.18,
+    "lon": 8.03817,
+    "lat": 52.00071
+  },
+  {
+    "ags": "05570040",
+    "name": "Sendenhorst",
+    "kreisId": "05570",
+    "population": 14167,
+    "areaKm2": 96.82,
+    "lon": 7.76739,
+    "lat": 51.86279
+  },
+  {
+    "ags": "05570044",
+    "name": "Telgte",
+    "kreisId": "05570",
+    "population": 20069,
+    "areaKm2": 90.61,
+    "lon": 7.78295,
+    "lat": 51.98256
+  },
+  {
+    "ags": "05570048",
+    "name": "Wadersloh",
+    "kreisId": "05570",
+    "population": 12848,
+    "areaKm2": 116.98,
+    "lon": 8.23026,
+    "lat": 51.73017
+  },
+  {
+    "ags": "05570052",
+    "name": "Warendorf",
+    "kreisId": "05570",
+    "population": 37703,
+    "areaKm2": 176.9,
+    "lon": 7.96218,
+    "lat": 51.94881
+  },
+  {
+    "ags": "05711000",
+    "name": "Bielefeld",
+    "kreisId": "05711",
+    "population": 331605,
+    "areaKm2": 259.01,
+    "lon": 8.54802,
+    "lat": 52.01097
+  },
+  {
+    "ags": "05754004",
+    "name": "Borgholzhausen",
+    "kreisId": "05754",
+    "population": 8847,
+    "areaKm2": 56.33,
+    "lon": 8.28375,
+    "lat": 52.0959
+  },
+  {
+    "ags": "05754008",
+    "name": "Gütersloh",
+    "kreisId": "05754",
+    "population": 100479,
+    "areaKm2": 111.89,
+    "lon": 8.39305,
+    "lat": 51.91658
+  },
+  {
+    "ags": "05754012",
+    "name": "Halle (Westf.)",
+    "kreisId": "05754",
+    "population": 21393,
+    "areaKm2": 69.73,
+    "lon": 8.34144,
+    "lat": 52.04593
+  },
+  {
+    "ags": "05754016",
+    "name": "Harsewinkel",
+    "kreisId": "05754",
+    "population": 25523,
+    "areaKm2": 100.36,
+    "lon": 8.21646,
+    "lat": 51.97755
+  },
+  {
+    "ags": "05754020",
+    "name": "Herzebrock-Clarholz",
+    "kreisId": "05754",
+    "population": 16419,
+    "areaKm2": 79.04,
+    "lon": 8.2319,
+    "lat": 51.90021
+  },
+  {
+    "ags": "05754024",
+    "name": "Langenberg",
+    "kreisId": "05754",
+    "population": 8311,
+    "areaKm2": 38.18,
+    "lon": 8.31898,
+    "lat": 51.76787
+  },
+  {
+    "ags": "05754028",
+    "name": "Rheda-Wiedenbrück",
+    "kreisId": "05754",
+    "population": 48030,
+    "areaKm2": 86.83,
+    "lon": 8.30572,
+    "lat": 51.83893
+  },
+  {
+    "ags": "05754032",
+    "name": "Rietberg",
+    "kreisId": "05754",
+    "population": 30055,
+    "areaKm2": 110.29,
+    "lon": 8.42387,
+    "lat": 51.80565
+  },
+  {
+    "ags": "05754036",
+    "name": "Schloß Holte-Stukenbrock",
+    "kreisId": "05754",
+    "population": 26297,
+    "areaKm2": 67.68,
+    "lon": 8.65333,
+    "lat": 51.89645
+  },
+  {
+    "ags": "05754040",
+    "name": "Steinhagen",
+    "kreisId": "05754",
+    "population": 20302,
+    "areaKm2": 56.3,
+    "lon": 8.39094,
+    "lat": 51.99686
+  },
+  {
+    "ags": "05754044",
+    "name": "Verl",
+    "kreisId": "05754",
+    "population": 25762,
+    "areaKm2": 71.15,
+    "lon": 8.5241,
+    "lat": 51.87694
+  },
+  {
+    "ags": "05754048",
+    "name": "Versmold",
+    "kreisId": "05754",
+    "population": 21513,
+    "areaKm2": 85.73,
+    "lon": 8.1727,
+    "lat": 52.04099
+  },
+  {
+    "ags": "05754052",
+    "name": "Werther (Westf.)",
+    "kreisId": "05754",
+    "population": 11051,
+    "areaKm2": 35.37,
+    "lon": 8.41739,
+    "lat": 52.08378
+  },
+  {
+    "ags": "05758004",
+    "name": "Bünde",
+    "kreisId": "05758",
+    "population": 46365,
+    "areaKm2": 59.8,
+    "lon": 8.56441,
+    "lat": 52.2068
+  },
+  {
+    "ags": "05758008",
+    "name": "Enger",
+    "kreisId": "05758",
+    "population": 20688,
+    "areaKm2": 41.08,
+    "lon": 8.55364,
+    "lat": 52.13874
+  },
+  {
+    "ags": "05758012",
+    "name": "Herford",
+    "kreisId": "05758",
+    "population": 67503,
+    "areaKm2": 79.06,
+    "lon": 8.66354,
+    "lat": 52.11108
+  },
+  {
+    "ags": "05758016",
+    "name": "Hiddenhausen",
+    "kreisId": "05758",
+    "population": 19669,
+    "areaKm2": 24.13,
+    "lon": 8.63589,
+    "lat": 52.15599
+  },
+  {
+    "ags": "05758020",
+    "name": "Kirchlengern",
+    "kreisId": "05758",
+    "population": 16334,
+    "areaKm2": 33.7,
+    "lon": 8.65098,
+    "lat": 52.22974
+  },
+  {
+    "ags": "05758024",
+    "name": "Löhne",
+    "kreisId": "05758",
+    "population": 40826,
+    "areaKm2": 59.56,
+    "lon": 8.72264,
+    "lat": 52.19915
+  },
+  {
+    "ags": "05758028",
+    "name": "Rödinghausen",
+    "kreisId": "05758",
+    "population": 10064,
+    "areaKm2": 36.09,
+    "lon": 8.49697,
+    "lat": 52.23631
+  },
+  {
+    "ags": "05758032",
+    "name": "Spenge",
+    "kreisId": "05758",
+    "population": 14620,
+    "areaKm2": 40.17,
+    "lon": 8.47025,
+    "lat": 52.13444
+  },
+  {
+    "ags": "05758036",
+    "name": "Vlotho",
+    "kreisId": "05758",
+    "population": 18335,
+    "areaKm2": 76.76,
+    "lon": 8.83872,
+    "lat": 52.14617
+  },
+  {
+    "ags": "05762004",
+    "name": "Bad Driburg",
+    "kreisId": "05762",
+    "population": 19080,
+    "areaKm2": 115.53,
+    "lon": 9.03933,
+    "lat": 51.72218
+  },
+  {
+    "ags": "05762008",
+    "name": "Beverungen",
+    "kreisId": "05762",
+    "population": 12669,
+    "areaKm2": 98.05,
+    "lon": 9.33022,
+    "lat": 51.66813
+  },
+  {
+    "ags": "05762012",
+    "name": "Borgentreich",
+    "kreisId": "05762",
+    "population": 8632,
+    "areaKm2": 138.84,
+    "lon": 9.26153,
+    "lat": 51.577
+  },
+  {
+    "ags": "05762016",
+    "name": "Brakel",
+    "kreisId": "05762",
+    "population": 16193,
+    "areaKm2": 173.73,
+    "lon": 9.17997,
+    "lat": 51.70965
+  },
+  {
+    "ags": "05762020",
+    "name": "Höxter",
+    "kreisId": "05762",
+    "population": 28166,
+    "areaKm2": 157.52,
+    "lon": 9.34291,
+    "lat": 51.78733
+  },
+  {
+    "ags": "05762024",
+    "name": "Marienmünster",
+    "kreisId": "05762",
+    "population": 4791,
+    "areaKm2": 64.23,
+    "lon": 9.23238,
+    "lat": 51.82359
+  },
+  {
+    "ags": "05762028",
+    "name": "Nieheim",
+    "kreisId": "05762",
+    "population": 6081,
+    "areaKm2": 79.63,
+    "lon": 9.10888,
+    "lat": 51.81028
+  },
+  {
+    "ags": "05762032",
+    "name": "Steinheim",
+    "kreisId": "05762",
+    "population": 12107,
+    "areaKm2": 75.76,
+    "lon": 9.05466,
+    "lat": 51.849
+  },
+  {
+    "ags": "05762036",
+    "name": "Warburg",
+    "kreisId": "05762",
+    "population": 23252,
+    "areaKm2": 168.41,
+    "lon": 9.14382,
+    "lat": 51.50631
+  },
+  {
+    "ags": "05762040",
+    "name": "Willebadessen",
+    "kreisId": "05762",
+    "population": 8281,
+    "areaKm2": 128.06,
+    "lon": 9.10451,
+    "lat": 51.6042
+  },
+  {
+    "ags": "05766004",
+    "name": "Augustdorf",
+    "kreisId": "05766",
+    "population": 9774,
+    "areaKm2": 42.17,
+    "lon": 8.75535,
+    "lat": 51.90013
+  },
+  {
+    "ags": "05766008",
+    "name": "Bad Salzuflen",
+    "kreisId": "05766",
+    "population": 53958,
+    "areaKm2": 100.06,
+    "lon": 8.76159,
+    "lat": 52.0716
+  },
+  {
+    "ags": "05766012",
+    "name": "Barntrup",
+    "kreisId": "05766",
+    "population": 8297,
+    "areaKm2": 59.69,
+    "lon": 9.13356,
+    "lat": 52.00337
+  },
+  {
+    "ags": "05766016",
+    "name": "Blomberg",
+    "kreisId": "05766",
+    "population": 15485,
+    "areaKm2": 99.03,
+    "lon": 9.05494,
+    "lat": 51.94355
+  },
+  {
+    "ags": "05766020",
+    "name": "Detmold",
+    "kreisId": "05766",
+    "population": 74278,
+    "areaKm2": 129.1,
+    "lon": 8.8819,
+    "lat": 51.93271
+  },
+  {
+    "ags": "05766024",
+    "name": "Dörentrup",
+    "kreisId": "05766",
+    "population": 7528,
+    "areaKm2": 49.51,
+    "lon": 9.02976,
+    "lat": 52.03046
+  },
+  {
+    "ags": "05766028",
+    "name": "Extertal",
+    "kreisId": "05766",
+    "population": 11248,
+    "areaKm2": 92.42,
+    "lon": 9.08798,
+    "lat": 52.08964
+  },
+  {
+    "ags": "05766032",
+    "name": "Horn-Bad Meinberg",
+    "kreisId": "05766",
+    "population": 17320,
+    "areaKm2": 90.08,
+    "lon": 8.9683,
+    "lat": 51.87038
+  },
+  {
+    "ags": "05766036",
+    "name": "Kalletal",
+    "kreisId": "05766",
+    "population": 13256,
+    "areaKm2": 112.11,
+    "lon": 8.9582,
+    "lat": 52.12072
+  },
+  {
+    "ags": "05766040",
+    "name": "Lage",
+    "kreisId": "05766",
+    "population": 35054,
+    "areaKm2": 75.96,
+    "lon": 8.77402,
+    "lat": 51.98673
+  },
+  {
+    "ags": "05766044",
+    "name": "Lemgo",
+    "kreisId": "05766",
+    "population": 39905,
+    "areaKm2": 100.77,
+    "lon": 8.90191,
+    "lat": 52.03368
+  },
+  {
+    "ags": "05766048",
+    "name": "Leopoldshöhe",
+    "kreisId": "05766",
+    "population": 17226,
+    "areaKm2": 36.95,
+    "lon": 8.69005,
+    "lat": 52.00819
+  },
+  {
+    "ags": "05766052",
+    "name": "Lügde",
+    "kreisId": "05766",
+    "population": 9232,
+    "areaKm2": 88.41,
+    "lon": 9.28099,
+    "lat": 51.89457
+  },
+  {
+    "ags": "05766056",
+    "name": "Oerlinghausen",
+    "kreisId": "05766",
+    "population": 17233,
+    "areaKm2": 32.77,
+    "lon": 8.67567,
+    "lat": 51.94797
+  },
+  {
+    "ags": "05766060",
+    "name": "Schieder-Schwalenberg",
+    "kreisId": "05766",
+    "population": 8098,
+    "areaKm2": 59.87,
+    "lon": 9.16852,
+    "lat": 51.90196
+  },
+  {
+    "ags": "05766064",
+    "name": "Schlangen",
+    "kreisId": "05766",
+    "population": 9257,
+    "areaKm2": 75.96,
+    "lon": 8.82931,
+    "lat": 51.83513
+  },
+  {
+    "ags": "05770004",
+    "name": "Bad Oeynhausen",
+    "kreisId": "05770",
+    "population": 50620,
+    "areaKm2": 64.77,
+    "lon": 8.79324,
+    "lat": 52.22916
+  },
+  {
+    "ags": "05770008",
+    "name": "Espelkamp",
+    "kreisId": "05770",
+    "population": 25576,
+    "areaKm2": 84.79,
+    "lon": 8.62442,
+    "lat": 52.37153
+  },
+  {
+    "ags": "05770012",
+    "name": "Hille",
+    "kreisId": "05770",
+    "population": 16274,
+    "areaKm2": 103.11,
+    "lon": 8.7714,
+    "lat": 52.33237
+  },
+  {
+    "ags": "05770016",
+    "name": "Hüllhorst",
+    "kreisId": "05770",
+    "population": 13304,
+    "areaKm2": 44.71,
+    "lon": 8.66951,
+    "lat": 52.27044
+  },
+  {
+    "ags": "05770020",
+    "name": "Lübbecke",
+    "kreisId": "05770",
+    "population": 26815,
+    "areaKm2": 65.02,
+    "lon": 8.60824,
+    "lat": 52.30992
+  },
+  {
+    "ags": "05770024",
+    "name": "Minden",
+    "kreisId": "05770",
+    "population": 84013,
+    "areaKm2": 101.1,
+    "lon": 8.89835,
+    "lat": 52.30069
+  },
+  {
+    "ags": "05770028",
+    "name": "Petershagen",
+    "kreisId": "05770",
+    "population": 25340,
+    "areaKm2": 211.36,
+    "lon": 9.01067,
+    "lat": 52.39152
+  },
+  {
+    "ags": "05770032",
+    "name": "Porta Westfalica",
+    "kreisId": "05770",
+    "population": 36521,
+    "areaKm2": 104.83,
+    "lon": 8.95153,
+    "lat": 52.22376
+  },
+  {
+    "ags": "05770036",
+    "name": "Preußisch Oldendorf",
+    "kreisId": "05770",
+    "population": 12439,
+    "areaKm2": 68.47,
+    "lon": 8.50472,
+    "lat": 52.29897
+  },
+  {
+    "ags": "05770040",
+    "name": "Rahden",
+    "kreisId": "05770",
+    "population": 16195,
+    "areaKm2": 137.01,
+    "lon": 8.62655,
+    "lat": 52.45694
+  },
+  {
+    "ags": "05770044",
+    "name": "Stemwede",
+    "kreisId": "05770",
+    "population": 13460,
+    "areaKm2": 165.94,
+    "lon": 8.46185,
+    "lat": 52.41456
+  },
+  {
+    "ags": "05774004",
+    "name": "Altenbeken",
+    "kreisId": "05774",
+    "population": 9161,
+    "areaKm2": 75.98,
+    "lon": 8.9397,
+    "lat": 51.74015
+  },
+  {
+    "ags": "05774008",
+    "name": "Bad Lippspringe",
+    "kreisId": "05774",
+    "population": 17252,
+    "areaKm2": 51.11,
+    "lon": 8.82816,
+    "lat": 51.77875
+  },
+  {
+    "ags": "05774012",
+    "name": "Borchen",
+    "kreisId": "05774",
+    "population": 13721,
+    "areaKm2": 77.24,
+    "lon": 8.76997,
+    "lat": 51.6495
+  },
+  {
+    "ags": "05774016",
+    "name": "Büren",
+    "kreisId": "05774",
+    "population": 21593,
+    "areaKm2": 170.82,
+    "lon": 8.57699,
+    "lat": 51.55513
+  },
+  {
+    "ags": "05774020",
+    "name": "Delbrück",
+    "kreisId": "05774",
+    "population": 32166,
+    "areaKm2": 157.15,
+    "lon": 8.54078,
+    "lat": 51.76541
+  },
+  {
+    "ags": "05774024",
+    "name": "Hövelhof",
+    "kreisId": "05774",
+    "population": 16809,
+    "areaKm2": 70.36,
+    "lon": 8.6726,
+    "lat": 51.8281
+  },
+  {
+    "ags": "05774028",
+    "name": "Lichtenau",
+    "kreisId": "05774",
+    "population": 10985,
+    "areaKm2": 192.49,
+    "lon": 8.90354,
+    "lat": 51.6055
+  },
+  {
+    "ags": "05774032",
+    "name": "Paderborn",
+    "kreisId": "05774",
+    "population": 156378,
+    "areaKm2": 179.58,
+    "lon": 8.75363,
+    "lat": 51.72827
+  },
+  {
+    "ags": "05774036",
+    "name": "Salzkotten",
+    "kreisId": "05774",
+    "population": 25429,
+    "areaKm2": 109.55,
+    "lon": 8.60927,
+    "lat": 51.67909
+  },
+  {
+    "ags": "05774040",
+    "name": "Bad Wünnenberg",
+    "kreisId": "05774",
+    "population": 12418,
+    "areaKm2": 161.51,
+    "lon": 8.73287,
+    "lat": 51.52378
+  },
+  {
+    "ags": "05911000",
+    "name": "Bochum",
+    "kreisId": "05911",
+    "population": 358676,
+    "areaKm2": 144.74,
+    "lon": 7.22494,
+    "lat": 51.4699
+  },
+  {
+    "ags": "05913000",
+    "name": "Dortmund",
+    "kreisId": "05913",
+    "population": 603462,
+    "areaKm2": 279.52,
+    "lon": 7.47488,
+    "lat": 51.51607
+  },
+  {
+    "ags": "05914000",
+    "name": "Hagen",
+    "kreisId": "05914",
+    "population": 190384,
+    "areaKm2": 160.23,
+    "lon": 7.49716,
+    "lat": 51.35698
+  },
+  {
+    "ags": "05915000",
+    "name": "Hamm",
+    "kreisId": "05915",
+    "population": 179968,
+    "areaKm2": 227.58,
+    "lon": 7.8245,
+    "lat": 51.66884
+  },
+  {
+    "ags": "05916000",
+    "name": "Herne",
+    "kreisId": "05916",
+    "population": 155851,
+    "areaKm2": 51.49,
+    "lon": 7.2166,
+    "lat": 51.54078
+  },
+  {
+    "ags": "05954004",
+    "name": "Breckerfeld",
+    "kreisId": "05954",
+    "population": 8816,
+    "areaKm2": 58.69,
+    "lon": 7.45539,
+    "lat": 51.26749
+  },
+  {
+    "ags": "05954008",
+    "name": "Ennepetal",
+    "kreisId": "05954",
+    "population": 29446,
+    "areaKm2": 57.84,
+    "lon": 7.36503,
+    "lat": 51.28274
+  },
+  {
+    "ags": "05954012",
+    "name": "Gevelsberg",
+    "kreisId": "05954",
+    "population": 30006,
+    "areaKm2": 26.59,
+    "lon": 7.34035,
+    "lat": 51.33346
+  },
+  {
+    "ags": "05954016",
+    "name": "Hattingen",
+    "kreisId": "05954",
+    "population": 53044,
+    "areaKm2": 71.64,
+    "lon": 7.18812,
+    "lat": 51.38498
+  },
+  {
+    "ags": "05954020",
+    "name": "Herdecke",
+    "kreisId": "05954",
+    "population": 22772,
+    "areaKm2": 22.99,
+    "lon": 7.42466,
+    "lat": 51.41461
+  },
+  {
+    "ags": "05954024",
+    "name": "Schwelm",
+    "kreisId": "05954",
+    "population": 27953,
+    "areaKm2": 20.59,
+    "lon": 7.29271,
+    "lat": 51.28546
+  },
+  {
+    "ags": "05954028",
+    "name": "Sprockhövel",
+    "kreisId": "05954",
+    "population": 24232,
+    "areaKm2": 47.86,
+    "lon": 7.26154,
+    "lat": 51.33842
+  },
+  {
+    "ags": "05954032",
+    "name": "Wetter (Ruhr)",
+    "kreisId": "05954",
+    "population": 26090,
+    "areaKm2": 31.8,
+    "lon": 7.35384,
+    "lat": 51.37771
+  },
+  {
+    "ags": "05954036",
+    "name": "Witten",
+    "kreisId": "05954",
+    "population": 91808,
+    "areaKm2": 72.73,
+    "lon": 7.32944,
+    "lat": 51.43057
+  },
+  {
+    "ags": "05958004",
+    "name": "Arnsberg",
+    "kreisId": "05958",
+    "population": 74879,
+    "areaKm2": 192.95,
+    "lon": 8.06607,
+    "lat": 51.40832
+  },
+  {
+    "ags": "05958008",
+    "name": "Bestwig",
+    "kreisId": "05958",
+    "population": 10147,
+    "areaKm2": 69.41,
+    "lon": 8.38557,
+    "lat": 51.34393
+  },
+  {
+    "ags": "05958012",
+    "name": "Brilon",
+    "kreisId": "05958",
+    "population": 25424,
+    "areaKm2": 228.71,
+    "lon": 8.60415,
+    "lat": 51.40809
+  },
+  {
+    "ags": "05958016",
+    "name": "Eslohe (Sauerland)",
+    "kreisId": "05958",
+    "population": 8717,
+    "areaKm2": 113.52,
+    "lon": 8.17207,
+    "lat": 51.25012
+  },
+  {
+    "ags": "05958020",
+    "name": "Hallenberg",
+    "kreisId": "05958",
+    "population": 4367,
+    "areaKm2": 65.58,
+    "lon": 8.61871,
+    "lat": 51.12848
+  },
+  {
+    "ags": "05958024",
+    "name": "Marsberg",
+    "kreisId": "05958",
+    "population": 19555,
+    "areaKm2": 182.16,
+    "lon": 8.84889,
+    "lat": 51.44236
+  },
+  {
+    "ags": "05958028",
+    "name": "Medebach",
+    "kreisId": "05958",
+    "population": 7906,
+    "areaKm2": 125.81,
+    "lon": 8.67536,
+    "lat": 51.20797
+  },
+  {
+    "ags": "05958032",
+    "name": "Meschede",
+    "kreisId": "05958",
+    "population": 29615,
+    "areaKm2": 218.07,
+    "lon": 8.25298,
+    "lat": 51.34365
+  },
+  {
+    "ags": "05958036",
+    "name": "Olsberg",
+    "kreisId": "05958",
+    "population": 14700,
+    "areaKm2": 118.06,
+    "lon": 8.49806,
+    "lat": 51.3227
+  },
+  {
+    "ags": "05958040",
+    "name": "Schmallenberg",
+    "kreisId": "05958",
+    "population": 24711,
+    "areaKm2": 303,
+    "lon": 8.31574,
+    "lat": 51.1831
+  },
+  {
+    "ags": "05958044",
+    "name": "Sundern (Sauerland)",
+    "kreisId": "05958",
+    "population": 27654,
+    "areaKm2": 193.19,
+    "lon": 8.00803,
+    "lat": 51.30983
+  },
+  {
+    "ags": "05958048",
+    "name": "Winterberg",
+    "kreisId": "05958",
+    "population": 13168,
+    "areaKm2": 148.16,
+    "lon": 8.52382,
+    "lat": 51.21315
+  },
+  {
+    "ags": "05962004",
+    "name": "Altena",
+    "kreisId": "05962",
+    "population": 16621,
+    "areaKm2": 44.23,
+    "lon": 7.67581,
+    "lat": 51.28602
+  },
+  {
+    "ags": "05962008",
+    "name": "Balve",
+    "kreisId": "05962",
+    "population": 11240,
+    "areaKm2": 75,
+    "lon": 7.86099,
+    "lat": 51.33548
+  },
+  {
+    "ags": "05962012",
+    "name": "Halver",
+    "kreisId": "05962",
+    "population": 16322,
+    "areaKm2": 77.26,
+    "lon": 7.49577,
+    "lat": 51.18893
+  },
+  {
+    "ags": "05962016",
+    "name": "Hemer",
+    "kreisId": "05962",
+    "population": 35005,
+    "areaKm2": 67.36,
+    "lon": 7.78435,
+    "lat": 51.36963
+  },
+  {
+    "ags": "05962020",
+    "name": "Herscheid",
+    "kreisId": "05962",
+    "population": 6821,
+    "areaKm2": 59.12,
+    "lon": 7.75165,
+    "lat": 51.18197
+  },
+  {
+    "ags": "05962024",
+    "name": "Iserlohn",
+    "kreisId": "05962",
+    "population": 91811,
+    "areaKm2": 125.29,
+    "lon": 7.67105,
+    "lat": 51.38636
+  },
+  {
+    "ags": "05962028",
+    "name": "Kierspe",
+    "kreisId": "05962",
+    "population": 16450,
+    "areaKm2": 71.54,
+    "lon": 7.57944,
+    "lat": 51.14168
+  },
+  {
+    "ags": "05962032",
+    "name": "Lüdenscheid",
+    "kreisId": "05962",
+    "population": 71212,
+    "areaKm2": 87.52,
+    "lon": 7.63912,
+    "lat": 51.21276
+  },
+  {
+    "ags": "05962036",
+    "name": "Meinerzhagen",
+    "kreisId": "05962",
+    "population": 20019,
+    "areaKm2": 115.25,
+    "lon": 7.72719,
+    "lat": 51.10891
+  },
+  {
+    "ags": "05962040",
+    "name": "Menden (Sauerland)",
+    "kreisId": "05962",
+    "population": 52255,
+    "areaKm2": 86.01,
+    "lon": 7.80828,
+    "lat": 51.44111
+  },
+  {
+    "ags": "05962044",
+    "name": "Nachrodt-Wiblingwerde",
+    "kreisId": "05962",
+    "population": 6159,
+    "areaKm2": 28.91,
+    "lon": 7.61648,
+    "lat": 51.31278
+  },
+  {
+    "ags": "05962048",
+    "name": "Neuenrade",
+    "kreisId": "05962",
+    "population": 11621,
+    "areaKm2": 54.17,
+    "lon": 7.83373,
+    "lat": 51.27809
+  },
+  {
+    "ags": "05962052",
+    "name": "Plettenberg",
+    "kreisId": "05962",
+    "population": 24429,
+    "areaKm2": 96.95,
+    "lon": 7.86076,
+    "lat": 51.21019
+  },
+  {
+    "ags": "05962056",
+    "name": "Schalksmühle",
+    "kreisId": "05962",
+    "population": 10463,
+    "areaKm2": 38.08,
+    "lon": 7.56016,
+    "lat": 51.2558
+  },
+  {
+    "ags": "05962060",
+    "name": "Werdohl",
+    "kreisId": "05962",
+    "population": 17618,
+    "areaKm2": 33.35,
+    "lon": 7.74275,
+    "lat": 51.24869
+  },
+  {
+    "ags": "05966004",
+    "name": "Attendorn",
+    "kreisId": "05966",
+    "population": 23554,
+    "areaKm2": 98.2,
+    "lon": 7.89611,
+    "lat": 51.12009
+  },
+  {
+    "ags": "05966008",
+    "name": "Drolshagen",
+    "kreisId": "05966",
+    "population": 11913,
+    "areaKm2": 67.14,
+    "lon": 7.77233,
+    "lat": 51.03192
+  },
+  {
+    "ags": "05966012",
+    "name": "Finnentrop",
+    "kreisId": "05966",
+    "population": 17022,
+    "areaKm2": 104.18,
+    "lon": 8.00934,
+    "lat": 51.20063
+  },
+  {
+    "ags": "05966016",
+    "name": "Kirchhundem",
+    "kreisId": "05966",
+    "population": 11509,
+    "areaKm2": 148.54,
+    "lon": 8.12221,
+    "lat": 51.06356
+  },
+  {
+    "ags": "05966020",
+    "name": "Lennestadt",
+    "kreisId": "05966",
+    "population": 24238,
+    "areaKm2": 135.25,
+    "lon": 8.07401,
+    "lat": 51.13499
+  },
+  {
+    "ags": "05966024",
+    "name": "Olpe",
+    "kreisId": "05966",
+    "population": 24695,
+    "areaKm2": 85.47,
+    "lon": 7.88524,
+    "lat": 51.03951
+  },
+  {
+    "ags": "05966028",
+    "name": "Wenden",
+    "kreisId": "05966",
+    "population": 19415,
+    "areaKm2": 72.69,
+    "lon": 7.8635,
+    "lat": 50.9632
+  },
+  {
+    "ags": "05970004",
+    "name": "Bad Berleburg",
+    "kreisId": "05970",
+    "population": 18400,
+    "areaKm2": 275.57,
+    "lon": 8.40703,
+    "lat": 51.05238
+  },
+  {
+    "ags": "05970008",
+    "name": "Burbach",
+    "kreisId": "05970",
+    "population": 14553,
+    "areaKm2": 79.94,
+    "lon": 8.09434,
+    "lat": 50.74062
+  },
+  {
+    "ags": "05970012",
+    "name": "Erndtebrück",
+    "kreisId": "05970",
+    "population": 6792,
+    "areaKm2": 71.46,
+    "lon": 8.25767,
+    "lat": 50.99992
+  },
+  {
+    "ags": "05970016",
+    "name": "Freudenberg",
+    "kreisId": "05970",
+    "population": 17355,
+    "areaKm2": 54.66,
+    "lon": 7.89874,
+    "lat": 50.89653
+  },
+  {
+    "ags": "05970020",
+    "name": "Hilchenbach",
+    "kreisId": "05970",
+    "population": 14412,
+    "areaKm2": 80.85,
+    "lon": 8.12659,
+    "lat": 50.9883
+  },
+  {
+    "ags": "05970024",
+    "name": "Kreuztal",
+    "kreisId": "05970",
+    "population": 30905,
+    "areaKm2": 70.88,
+    "lon": 7.98054,
+    "lat": 50.97859
+  },
+  {
+    "ags": "05970028",
+    "name": "Bad Laasphe",
+    "kreisId": "05970",
+    "population": 13148,
+    "areaKm2": 135.83,
+    "lon": 8.3475,
+    "lat": 50.92585
+  },
+  {
+    "ags": "05970032",
+    "name": "Netphen",
+    "kreisId": "05970",
+    "population": 23080,
+    "areaKm2": 137.6,
+    "lon": 8.16261,
+    "lat": 50.90916
+  },
+  {
+    "ags": "05970036",
+    "name": "Neunkirchen",
+    "kreisId": "05970",
+    "population": 12705,
+    "areaKm2": 39.66,
+    "lon": 8.01478,
+    "lat": 50.78636
+  },
+  {
+    "ags": "05970040",
+    "name": "Siegen",
+    "kreisId": "05970",
+    "population": 102685,
+    "areaKm2": 114.77,
+    "lon": 8.01175,
+    "lat": 50.88101
+  },
+  {
+    "ags": "05970044",
+    "name": "Wilnsdorf",
+    "kreisId": "05970",
+    "population": 20039,
+    "areaKm2": 71.99,
+    "lon": 8.1142,
+    "lat": 50.82981
+  },
+  {
+    "ags": "05974004",
+    "name": "Anröchte",
+    "kreisId": "05974",
+    "population": 10304,
+    "areaKm2": 73.78,
+    "lon": 8.30914,
+    "lat": 51.54909
+  },
+  {
+    "ags": "05974008",
+    "name": "Bad Sassendorf",
+    "kreisId": "05974",
+    "population": 12194,
+    "areaKm2": 63,
+    "lon": 8.18401,
+    "lat": 51.57773
+  },
+  {
+    "ags": "05974012",
+    "name": "Ense",
+    "kreisId": "05974",
+    "population": 12383,
+    "areaKm2": 51.15,
+    "lon": 7.97013,
+    "lat": 51.50177
+  },
+  {
+    "ags": "05974016",
+    "name": "Erwitte",
+    "kreisId": "05974",
+    "population": 16300,
+    "areaKm2": 89.33,
+    "lon": 8.31105,
+    "lat": 51.61124
+  },
+  {
+    "ags": "05974020",
+    "name": "Geseke",
+    "kreisId": "05974",
+    "population": 20930,
+    "areaKm2": 97.87,
+    "lon": 8.49207,
+    "lat": 51.63484
+  },
+  {
+    "ags": "05974024",
+    "name": "Lippetal",
+    "kreisId": "05974",
+    "population": 11883,
+    "areaKm2": 126.31,
+    "lon": 8.08628,
+    "lat": 51.66932
+  },
+  {
+    "ags": "05974028",
+    "name": "Lippstadt",
+    "kreisId": "05974",
+    "population": 68739,
+    "areaKm2": 113.29,
+    "lon": 8.35196,
+    "lat": 51.67817
+  },
+  {
+    "ags": "05974032",
+    "name": "Möhnesee",
+    "kreisId": "05974",
+    "population": 11274,
+    "areaKm2": 124.22,
+    "lon": 8.12333,
+    "lat": 51.48489
+  },
+  {
+    "ags": "05974036",
+    "name": "Rüthen",
+    "kreisId": "05974",
+    "population": 10290,
+    "areaKm2": 158.22,
+    "lon": 8.44234,
+    "lat": 51.504
+  },
+  {
+    "ags": "05974040",
+    "name": "Soest",
+    "kreisId": "05974",
+    "population": 47776,
+    "areaKm2": 86,
+    "lon": 8.09108,
+    "lat": 51.56391
+  },
+  {
+    "ags": "05974044",
+    "name": "Warstein",
+    "kreisId": "05974",
+    "population": 24988,
+    "areaKm2": 158.21,
+    "lon": 8.29884,
+    "lat": 51.45351
+  },
+  {
+    "ags": "05974048",
+    "name": "Welver",
+    "kreisId": "05974",
+    "population": 11999,
+    "areaKm2": 85.64,
+    "lon": 7.99355,
+    "lat": 51.61641
+  },
+  {
+    "ags": "05974052",
+    "name": "Werl",
+    "kreisId": "05974",
+    "population": 29600,
+    "areaKm2": 76.15,
+    "lon": 7.90802,
+    "lat": 51.55441
+  },
+  {
+    "ags": "05974056",
+    "name": "Wickede (Ruhr)",
+    "kreisId": "05974",
+    "population": 11637,
+    "areaKm2": 25.25,
+    "lon": 7.86682,
+    "lat": 51.49511
+  },
+  {
+    "ags": "05978004",
+    "name": "Bergkamen",
+    "kreisId": "05978",
+    "population": 49143,
+    "areaKm2": 43.94,
+    "lon": 7.62963,
+    "lat": 51.62294
+  },
+  {
+    "ags": "05978008",
+    "name": "Bönen",
+    "kreisId": "05978",
+    "population": 17734,
+    "areaKm2": 37.79,
+    "lon": 7.77429,
+    "lat": 51.59766
+  },
+  {
+    "ags": "05978012",
+    "name": "Fröndenberg/Ruhr",
+    "kreisId": "05978",
+    "population": 20504,
+    "areaKm2": 55.69,
+    "lon": 7.76046,
+    "lat": 51.49356
+  },
+  {
+    "ags": "05978016",
+    "name": "Holzwickede",
+    "kreisId": "05978",
+    "population": 17596,
+    "areaKm2": 22.89,
+    "lon": 7.63118,
+    "lat": 51.48926
+  },
+  {
+    "ags": "05978020",
+    "name": "Kamen",
+    "kreisId": "05978",
+    "population": 42319,
+    "areaKm2": 41.03,
+    "lon": 7.67169,
+    "lat": 51.587
+  },
+  {
+    "ags": "05978024",
+    "name": "Lünen",
+    "kreisId": "05978",
+    "population": 86163,
+    "areaKm2": 59.4,
+    "lon": 7.51194,
+    "lat": 51.61525
+  },
+  {
+    "ags": "05978028",
+    "name": "Schwerte",
+    "kreisId": "05978",
+    "population": 45821,
+    "areaKm2": 56.56,
+    "lon": 7.57663,
+    "lat": 51.43054
+  },
+  {
+    "ags": "05978032",
+    "name": "Selm",
+    "kreisId": "05978",
+    "population": 25969,
+    "areaKm2": 60.41,
+    "lon": 7.49124,
+    "lat": 51.68365
+  },
+  {
+    "ags": "05978036",
+    "name": "Unna",
+    "kreisId": "05978",
+    "population": 58333,
+    "areaKm2": 88.59,
+    "lon": 7.71906,
+    "lat": 51.53954
+  },
+  {
+    "ags": "05978040",
+    "name": "Werne",
+    "kreisId": "05978",
+    "population": 30202,
+    "areaKm2": 76.22,
+    "lon": 7.6254,
+    "lat": 51.67906
+  }
+]

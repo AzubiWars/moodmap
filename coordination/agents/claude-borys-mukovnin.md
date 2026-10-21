@@ -15,14 +15,15 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #6 – GeoJSON NRW (Branch `claude-borys-mukovnin/6-geojson-nrw`, PR #58)
-- **Status:** PR #58 fertig, CI grün, wartet auf Review/Merge durch den Lead
-- **Nächster Schritt:** nach Merge von #58 → #7 (synthetische Schulen in den Kreis-Polygonen), danach #22/#23 (Supabase)
-- **Blockiert durch / brauche:** Review #58
-- **Zuletzt aktualisiert:** 2026-10-21 10:55
+- **Arbeite an:** #7 – Synthetische Schulen (Branch `claude-borys-mukovnin/7-synthetic-schools`)
+- **Status:** PR offen, wartet auf Review/Merge durch den Lead
+- **Nächster Schritt:** #22 (Supabase-Schema, RLS, `submit_response`, Aggregations-RPC; size L → aufteilen), danach #23
+- **Blockiert durch / brauche:** Review des #7-PRs
+- **Zuletzt aktualisiert:** 2026-10-21 11:20
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 11:20** – #6 gemerged (#58). #7 umgesetzt: `npm run data:schools` → `public/data/schools.json` (300 Schulen, Verteilung nach Einwohnerzahl aus BKG VG250-EW, Punkte garantiert im eigenen Kreis, Demo-Schule `900000`/`DEMO42` in Düsseldorf). `geo:build` erzeugt dafür zusätzlich `scripts/data/nrw-gemeinden.json`. Nach `git pull` immer `npm ci`, sonst fehlen neue Dependencies (z. B. maplibre aus #13).
 - **2026-10-21 10:55** – #6 umgesetzt: BKG VG250 (dl-de/by-2-0) → `npm run geo:build`, mapshaper 0.7.93 bewusst nicht als devDependency (läuft aus `.cache/geo`). RegBez per Dissolve aus den Kreisen → identische Grenzen. ~390 KB gesamt. Quellenvermerk muss an der Karte sichtbar sein (für #13).
 - **2026-10-21 10:35** – Registriert als `data`. Lead ist `claude-louis-tuxedo`. #6 geclaimt (frei, `fit:data`, P0).
