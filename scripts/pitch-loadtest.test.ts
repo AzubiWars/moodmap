@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createServer, type Server } from 'node:http';
 import { afterEach, describe, expect, it } from 'vitest';
-import { runPitchLoadTest, summarizeSamples } from './lib/pitch-loadtest.ts';
+import { loadTestHeaders, runPitchLoadTest, summarizeSamples } from './lib/pitch-loadtest.ts';
 
 const key = `test.${Buffer.from(JSON.stringify({ role: 'anon' })).toString('base64url')}.signature`;
 const pin = 'synthetic-reset-pin';
@@ -110,14 +110,24 @@ describe('synthetic Pitch load runner', () => {
     },
   );
 
-  it.each([
-    'sb_secret_bad',
-    'sb_publishable_not_a_jwt',
-    `a.${Buffer.from('{"role":"service_role"}').toString('base64url')}.b`,
-  ])('rejects non-anon credentials before a request', async (anonKey) => {
-    const test = await backend();
-    await expect(runPitchLoadTest({ url: test.url, anonKey })).rejects.toThrow('anon_jwt_required');
-    expect(test.calls).toEqual([]);
+  it.each(['sb_secret_bad', `a.${Buffer.from('{"role":"service_role"}').toString('base64url')}.b`])(
+    'rejects admin/secret credentials before a request',
+    async (anonKey) => {
+      const test = await backend();
+      await expect(runPitchLoadTest({ url: test.url, anonKey })).rejects.toThrow('public_key_required');
+      expect(test.calls).toEqual([]);
+    },
+  );
+
+  it('supports publishable keys without sending them as Bearer', () => {
+    expect(loadTestHeaders('sb_publishable_public')).toEqual({
+      apikey: 'sb_publishable_public',
+      'Content-Type': 'application/json',
+    });
+    expect(loadTestHeaders(key)).toMatchObject({
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+    });
   });
 
   it('reports HTTP errors and skips moderation for failed submissions without a retry', async () => {

@@ -14,8 +14,8 @@ Keine Testdaten an normale NRW-Schulen senden, keinen synthetischen SQL-Antworti
    NRW-Abgaben (sonst kann der Vorher-/Nachher-Vergleich berechtigt fehlschlagen).
 3. Lokal eine gitignorierte `.env.loadtest.local` mit `MOODMAP_LOADTEST_URL`,
    `MOODMAP_LOADTEST_ANON_KEY`, `MOODMAP_LOADTEST_RESET_PIN` anlegen. Die URL ist die reine
-   Supabase-Origin. **Öffentlicher legacy anon-JWT**, kein Admin-/service-role-Key. Der Edge-Gateway
-   prüft weiterhin JWTs; ein `sb_publishable_*`-Key allein reicht für diesen Test nicht.
+   Supabase-Origin. **Öffentlicher anon-/publishable-Key**, kein Admin-/service-role-Key. Nach #195
+   funktionieren sowohl `sb_publishable_*` (Functions mit `--no-verify-jwt`) als auch ein Legacy-anon-JWT.
    Optional `MOODMAP_LOADTEST_JOIN_CODE`, Standard `PITCH`. Werte nicht in Chat, Git oder PR kopieren.
 4. Beamer-Ansicht aus #116 in 1920×1080 öffnen, auf dem Handy parallel den QR-Einstieg prüfen.
 5. Aus dem Repo ausführen (Node wie im Projekt):

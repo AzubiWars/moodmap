@@ -405,7 +405,7 @@ Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR
 supabase secrets set OPENROUTER_API_KEY=<key>
 # optional:
 supabase secrets set OPENROUTER_MODEL=openai/gpt-4o-mini
-supabase functions deploy submit-freetext
+supabase functions deploy submit-freetext --no-verify-jwt
 ```
 
 Lokal: `supabase functions serve submit-freetext --env-file .env.local` (Key in `.env.local`, ist gitignored).

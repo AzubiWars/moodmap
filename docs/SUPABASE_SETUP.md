@@ -16,6 +16,8 @@ Bei fehlender Konfiguration bleibt der vereinbarte Mock-Fallback. Mit vollständ
 
 Die Live-Karte pollt Aggregate bei eingeschaltetem Live-Modus alle 2,5 s. Lokale Abgaben und andere Tabs lösen zusätzlich eine Aktualisierung aus. Ein Realtime-Abonnement auf `responses` wird wegen der gesperrten Rohdaten nicht eingerichtet. Politik-Antworten können nur mit einem echten Auth-JWT und serverseitig erlaubter Rolle veröffentlicht werden; der Demo-Rollenwechsel authentifiziert niemanden.
 
+Für die Edge Functions `submit-freetext` und `pitch-reset` gilt: Mit einem öffentlichen `sb_publishable_*`-Key müssen sie mit `--no-verify-jwt` deployed werden, weil dieser Key kein JWT ist (#195). Der Schutz bleibt serverseitig: Teilnahme + atomarer Moderations-Claim bzw. Reset-PIN. Ein Legacy-anon-JWT funktioniert weiterhin als Bearer.
+
 ## Synthetische Antworten importieren
 
 **Nur für eine getrennte synthetische Demo-Datenbank.** In die Live-Pitch-Datenbank keine generierten NRW-Antworten importieren: Das würde synthetische und echte Teilnahmen vermischen. Der normale `supabase/seed.sql` enthält ausschließlich Stammdaten und Umfrage-Konfiguration.
