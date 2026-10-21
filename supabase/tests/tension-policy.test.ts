@@ -10,7 +10,13 @@ import { createMockSource } from '../../src/data/mockSource.ts';
 import { MOCK_STORAGE_PREFIX } from '../../src/data/mockStorage.ts';
 import { QUESTIONS } from '../../src/data/topics.ts';
 import { tensionIndex } from '../../src/lib/score.ts';
-import type { AggregateQuery, PolicyAnswer, PolicyAnswerFilter, TensionRow } from '../../src/types/index.ts';
+import type {
+  AggregateQuery,
+  PolicyAnswer,
+  PolicyAnswerFilter,
+  TensionRow,
+  TrendQuery,
+} from '../../src/types/index.ts';
 import { loadSeedSources, sqlLiteral } from '../../scripts/lib/supabase-seed.ts';
 import {
   buildAggregateFixture,
@@ -216,7 +222,12 @@ describe('get_tension_index', () => {
   });
 
   it('accepts level nrw on all public entry points like the mock (#147, #158)', async () => {
-    const query = { level: 'nrw', topic: 'all', parentId: '053', waveIds: ['2026-W42', '2026-W43'] } as const;
+    const query: TrendQuery = {
+      level: 'nrw',
+      topic: 'all',
+      parentId: '053',
+      waveIds: ['2026-W42', '2026-W43'],
+    };
     const [tension, aggregates, trend] = await Promise.all([
       call<TensionRow[]>('public.get_tension_index($1::jsonb)', [JSON.stringify(query)]),
       call('public.get_aggregates($1::jsonb)', [JSON.stringify(query)]),
