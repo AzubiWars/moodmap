@@ -18,6 +18,7 @@ export function schoolInScope(school: School, scope: Scope): boolean {
 }
 
 export function schoolGroupId(school: School, level: AggregateQuery['level']): string {
+  if (level === 'nrw') return 'nrw';
   return level === 'school' ? school.id : level === 'kreis' ? school.kreisId : school.kreisId.slice(0, 3);
 }
 
@@ -26,6 +27,7 @@ export function selectSchools(schools: School[], query: AggregateQuery): School[
     (school) =>
       (!query.schoolForm?.length || query.schoolForm.includes(school.schoolForm)) &&
       (!query.parentId ||
+        query.level === 'nrw' ||
         (query.level === 'school'
           ? school.kreisId === query.parentId
           : school.kreisId.slice(0, 3) === query.parentId)),

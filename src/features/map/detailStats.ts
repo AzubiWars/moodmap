@@ -6,38 +6,15 @@ const WEAK_SCORE = 40;
 /** Die direkte Frage „Schule insgesamt“ ist kein Handlungsfeld – nur in der Themenliste, nicht in den Top 3. */
 const NOT_ACTIONABLE = new Set<string>(['overall']);
 
+/** NRW-Vergleichswert: die eine Zeile von `getAggregates({ level: 'nrw' })` (#140), direkt über alle Antworten. */
 export interface NrwReference {
   score: number | null;
-  n: number;
   topicScores: Partial<Record<TopicSlug, number | null>>;
 }
 
-/**
- * NRW-Vergleichswert aus den fünf Regierungsbezirks-Zeilen, gewichtet nach n.
- * NÄHERUNG: Die API kennt noch kein `level: 'nrw'` (Frage an den Lead in #19). Sobald es das gibt,
- * nur diese Funktion durch die direkte NRW-Zeile ersetzen.
- */
-export function nrwReference(regbezRows: readonly AggregateRow[] | undefined): NrwReference {
-  const rows = regbezRows ?? [];
-  const weighted = (pick: (row: AggregateRow) => number | null | undefined) => {
-    let sum = 0;
-    let weight = 0;
-    for (const row of rows) {
-      const value = pick(row);
-      if (value == null) continue;
-      sum += value * row.n;
-      weight += row.n;
-    }
-    return weight > 0 ? sum / weight : null;
-  };
-  const slugs = new Set(rows.flatMap((row) => Object.keys(row.topicScores ?? {}))) as Set<TopicSlug>;
-  return {
-    score: weighted((row) => row.score),
-    n: rows.reduce((acc, row) => acc + row.n, 0),
-    topicScores: Object.fromEntries(
-      [...slugs].map((slug) => [slug, weighted((row) => row.topicScores?.[slug])]),
-    ),
-  };
+export function nrwReference(nrwRows: readonly AggregateRow[] | undefined): NrwReference {
+  const row = nrwRows?.find((r) => r.id === 'nrw');
+  return { score: row?.score ?? null, topicScores: row?.topicScores ?? {} };
 }
 
 export interface TopicGap {

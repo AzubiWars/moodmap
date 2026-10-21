@@ -3,7 +3,7 @@
  * Generates realistic student responses across 10 waves adhering to
  * docs/ARCHITECTURE.md §7 and docs/SCIENTIFIC_FOUNDATION.md.
  */
-import { P0_TOPIC_SLUGS } from '../topics.ts';
+import { P0_TOPIC_SLUGS, QUESTIONS, QUESTIONS_BY_ID } from '../topics.ts';
 import type { PolicyAnswer } from '../../types/dialog.ts';
 import type { GradeBand, Role, School, SchoolForm, Wave } from '../../types/domain.ts';
 import type { SeedData, SeedResponse } from '../../types/seed.ts';
@@ -19,6 +19,15 @@ export const HOTSPOT_TENSION_KREIS = '05562'; // Kreis Recklinghausen: Spannungs
 export const HOTSPOT_CANCELLATION_KREIS = '05112'; // Duisburg: starker Unterrichtsausfall
 export const RURAL_KREISE = new Set(['05762', '05366', '05966']); // Höxter, Euskirchen, Olpe: digital schwächer
 export const METROPOL_KREISE = new Set(['05111', '05315']); // Düsseldorf, Köln: digital stärker
+
+const SWIPES_BY_TOPIC = new Map(
+  P0_TOPIC_SLUGS.map((slug) => [
+    slug,
+    QUESTIONS.filter(
+      (q) => q.topicSlug === slug && q.type === 'swipe' && (!q.audience || q.audience === 'student'),
+    ),
+  ]),
+);
 
 /** Montag (UTC) der ISO-Woche `week` im Jahr `year`. */
 export function isoWeekMonday(year: number, week: number): Date {
@@ -175,7 +184,7 @@ function sampleMoodScore(
 
   // 3. Stress: higher in Gymnasien, Oberstufe, and peaks in recent weeks (W41-W43)
   if (topicSlug === 'stress') {
-    // Note: stress is inverted in score.ts, so lower value in input means MORE stress
+    // Positively phrased core question: lower coping value means more stress (no inversion).
     targetMean = 3.2;
     if (school.schoolForm === 'gymnasium' || gradeBand === 'oberstufe') {
       targetMean -= 0.6; // high stress
@@ -209,7 +218,7 @@ function sampleMoodScore(
     if (waveIndex < 6) {
       targetMean = 3.4;
     } else {
-      targetMean = 3.4 - (waveIndex - 5) * 0.45; // drops down to ~1.6
+      targetMean = 3.4 - (waveIndex - 5) * 0.5; // drops down to ~1.4
     }
   }
 
@@ -223,7 +232,7 @@ function sampleMoodScore(
         targetMean = 3.1 - (waveIndex - 4) * 0.35;
       } else {
         // Wave 9 (W43): slight recovery due to policy answer pol-01
-        targetMean = 2.2;
+        targetMean = 2.0;
       }
     }
   }
@@ -270,49 +279,35 @@ function generateAnswersForResponse(
       value: val,
     });
 
-    // Occasional swipe questions (50% probability)
-    if (random() < 0.5) {
+    // Only existing student swipe questions; values are 0/1, scoring converts them to points.
+    const swipes = SWIPES_BY_TOPIC.get(slug)!;
+    if (random() < 0.5 && swipes.length > 0) {
       // Swipe positive if mood >= 3
-      const isPositive = val >= 3 ? (random() < 0.75 ? 100 : 0) : random() < 0.25 ? 100 : 0;
-      let swipeId = `${slug}.swipe.recommend`;
-      if (slug === 'learning') swipeId = 'learning.swipe.useful';
-      else if (slug === 'stress') swipeId = 'stress.swipe.free_time';
-      else if (slug === 'ai') swipeId = 'ai.swipe.rules';
-      else if (slug === 'wellbeing') swipeId = 'wellbeing.swipe.talk';
-      else if (slug === 'community') swipeId = 'community.swipe.belong';
-      else if (slug === 'digital') swipeId = 'digital.swipe.wifi';
-      else if (slug === 'voice') swipeId = random() < 0.5 ? 'voice.swipe.change' : 'voice.swipe.talk';
+      const isPositive = random() < (val >= 3 ? 0.75 : 0.25) ? 1 : 0;
+      const swipe = swipes[Math.floor(random() * swipes.length)]!;
 
       answers.push({
-        questionId: swipeId,
+        questionId: swipe.id,
         value: isPositive,
       });
     }
 
-    // AI deep question if ai is touched
-    if (slug === 'ai' && random() < 0.4) {
-      const options = ['homework', 'explain', 'ideas', 'not_allowed'];
-      const chosen = options[Math.floor(random() * options.length)]!;
-      answers.push({
-        questionId: 'ai.deep',
-        choice: [chosen],
-      });
-    }
-
-    // Voice deep question if voice is touched
-    if (slug === 'voice' && random() < 0.4) {
-      const options = ['dialog', 'survey_results', 'visit'];
-      const chosen = options[Math.floor(random() * options.length)]!;
-      answers.push({
-        questionId: 'voice.deep',
-        choice: [chosen],
-      });
+    if ((slug === 'ai' || slug === 'voice') && random() < 0.4) {
+      const question = QUESTIONS_BY_ID[`${slug}.deep`];
+      const options = question?.options;
+      if (question?.type === 'choice' && options?.length) {
+        answers.push({
+          questionId: question.id,
+          choice: [options[Math.floor(random() * options.length)]!.value],
+        });
+      }
     }
   }
 
   // Add 1-2 P1 topics occasionally
   const p1Slugs = ['cancellation', 'building', 'safety', 'participation'];
   for (const p1 of p1Slugs) {
+    if (P0_TOPIC_SLUGS.includes(p1)) continue; // building is already a core question above.
     if (random() < 0.35) {
       const val = sampleMoodScore(p1, school, waveIndex, gradeBand, random);
       answers.push({

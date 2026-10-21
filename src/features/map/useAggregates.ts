@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { getDataSource } from '@/data';
-import type { AggregateRow, ScopeLevel, TopicSlug } from '@/types';
+import type { AggregateRow, DataLevel, TopicSlug } from '@/types';
 
 export type MapTopic = TopicSlug | 'all';
 
@@ -9,7 +9,7 @@ export type ScoreMap = ReadonlyMap<string, { score: number | null; n: number }>;
 
 const EMPTY: ScoreMap = new Map();
 
-export const aggregatesKey = (level: ScopeLevel, topic: MapTopic, parentId?: string) =>
+export const aggregatesKey = (level: DataLevel, topic: MapTopic, parentId?: string) =>
   ['aggregates', level, topic, parentId ?? null] as const;
 
 /**
@@ -17,7 +17,7 @@ export const aggregatesKey = (level: ScopeLevel, topic: MapTopic, parentId?: str
  * Beim Themenwechsel bleiben die alten Werte stehen, bis die neuen da sind – kein Grau-Flackern.
  */
 export function useAggregates(
-  level: ScopeLevel,
+  level: DataLevel,
   topic: MapTopic,
   options: { parentId?: string; enabled?: boolean; refetchInterval?: number | false } = {},
 ) {

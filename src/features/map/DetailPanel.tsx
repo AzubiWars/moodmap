@@ -24,7 +24,7 @@ export function DetailPanel({ drill }: DetailPanelProps) {
     parentId: level === 'school' ? drill.kreis?.properties.id : undefined,
     enabled: drill.level !== 'nrw',
   });
-  const nrwQuery = useAggregates('regbez', 'all', { enabled: drill.level !== 'nrw' });
+  const nrwQuery = useAggregates('nrw', 'all', { enabled: drill.level !== 'nrw' });
 
   if (drill.level === 'nrw' || !unitId) return null;
 
@@ -54,17 +54,17 @@ export function DetailPanel({ drill }: DetailPanelProps) {
     <aside
       aria-label={`Details: ${title}`}
       className={cn(
-        'pointer-events-auto absolute inset-x-0 bottom-0 z-10 flex flex-col rounded-t-2xl bg-white shadow-[0_-4px_16px_rgba(15,23,42,0.12)] ring-1 ring-slate-200',
+        'pointer-events-auto absolute inset-x-0 bottom-0 z-10 flex flex-col rounded-t-2xl bg-card shadow-[0_-4px_16px_rgba(15,23,42,0.12)] ring-1 ring-border',
         'md:inset-x-auto md:top-[4.5rem] md:right-3 md:bottom-3 md:w-[380px] md:rounded-2xl md:shadow-md',
       )}
     >
       <header className="flex items-start gap-3 px-4 pt-3 pb-2">
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-base font-bold">{title}</h2>
-          <p className="truncate text-xs text-slate-500">{subtitle}</p>
+          <p className="truncate text-xs text-muted">{subtitle}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <MoodBadge score={row?.score ?? null} size="sm" />
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-muted">
               {loading ? 'lädt …' : `${row?.n ?? 0} Stimmen`}
               {participation != null && ` · ${participation} % Beteiligung`}
             </span>
@@ -72,7 +72,7 @@ export function DetailPanel({ drill }: DetailPanelProps) {
         </div>
         <button
           type="button"
-          className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:outline-none md:hidden"
+          className="rounded-full p-1.5 text-muted hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:hidden"
           aria-expanded={expanded}
           aria-controls={detailsId}
           onClick={() => setExpanded((e) => !e)}
@@ -88,7 +88,7 @@ export function DetailPanel({ drill }: DetailPanelProps) {
 
       {/* Mobile: Peek zeigt die wichtigste Baustelle, aufgeklappt alles. Desktop: immer alles. */}
       {!expanded && gaps.weaknesses[0] && (
-        <p className="px-4 pb-3 text-xs text-slate-700 md:hidden">
+        <p className="px-4 pb-3 text-xs text-fg md:hidden">
           Größte Baustelle: {gaps.weaknesses[0].icon} {gaps.weaknesses[0].title} (
           {formatDelta(gaps.weaknesses[0].delta)} vs. NRW)
         </p>
@@ -110,7 +110,7 @@ export function DetailPanel({ drill }: DetailPanelProps) {
 function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) {
   if (!hasData) {
     return (
-      <p className="rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
+      <p className="rounded-xl bg-subtle p-3 text-sm text-muted">
         Noch zu wenige Stimmen für eine Auswertung (mindestens 10). So bleibt niemand erkennbar.
       </p>
     );
@@ -119,13 +119,13 @@ function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) 
     <div className="space-y-4">
       <GapList
         title="Top 3 Baustellen"
-        icon={<TrendingDown aria-hidden className="size-4 text-orange-600" />}
+        icon={<TrendingDown aria-hidden className="size-4 text-mood-2" />}
         items={gaps.weaknesses}
         empty="Keine Baustellen – alle Themen liegen auf oder über NRW-Niveau."
       />
       <GapList
         title="Top 3 Stärken"
-        icon={<TrendingUp aria-hidden className="size-4 text-sky-700" />}
+        icon={<TrendingUp aria-hidden className="size-4 text-accent" />}
         items={gaps.strengths}
         empty="Kein Thema liegt deutlich über dem NRW-Schnitt."
       />
@@ -138,7 +138,7 @@ function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) 
                 <span className="truncate">
                   <span aria-hidden>{topic.icon}</span> {topic.title}
                 </span>
-                <span className="shrink-0 tabular-nums text-slate-600">
+                <span className="shrink-0 tabular-nums text-muted">
                   {topic.score == null
                     ? 'zu wenige Daten'
                     : `${Math.round(topic.score)} · ${formatDelta(topic.delta)}`}
@@ -148,7 +148,7 @@ function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) 
             </li>
           ))}
         </ul>
-        <p className="mt-2 text-[11px] text-slate-500">
+        <p className="mt-2 text-[11px] text-muted">
           Strich = NRW-Durchschnitt. Themen mit weniger als 10 Stimmen werden nicht ausgewertet.
         </p>
       </section>
@@ -174,20 +174,20 @@ function GapList({
         {title}
       </h3>
       {items.length === 0 ? (
-        <p className="text-xs text-slate-500">{empty}</p>
+        <p className="text-xs text-muted">{empty}</p>
       ) : (
         <ol className="space-y-1">
           {items.map((item) => (
             <li
               key={item.slug}
-              className="flex items-center justify-between gap-2 rounded-lg bg-slate-50 px-2.5 py-1.5 text-sm"
+              className="flex items-center justify-between gap-2 rounded-lg bg-subtle px-2.5 py-1.5 text-sm"
             >
               <span className="truncate">
                 <span aria-hidden>{item.icon}</span> {item.title}
               </span>
               <span className="flex shrink-0 items-center gap-2">
                 <MoodBadge score={item.score} size="sm" showLabel={false} />
-                <span className="w-16 text-right text-xs tabular-nums text-slate-600">
+                <span className="w-16 text-right text-xs tabular-nums text-muted">
                   {formatDelta(item.delta)}
                 </span>
               </span>

@@ -13,13 +13,14 @@
 - **Bevorzugte Labels:** `fit:data`, `fit:reasoning`, `fit:fast`, `fit:ui`
 
 ## Aktueller Stand
-- **Arbeite an:** #120 – sichtbare regionale Unterschiede im synthetischen Seed.
-- **Status:** Kreis-/Schulklima-Effekte implementiert. 234 Tests, Format/Lint/Typecheck/Build grün. Kreiswerte 28,2–78,6 (3 Stufen), Schulwerte 21,2–86,6 (4 Stufen), 41 Schulen unter K_MIN grau. Story-Hotspots bleiben geprüft.
-- **Nächster Schritt:** PR/Lead-Review inkl. NRW-/RegBez-Screenshot; danach Seed-Vertragsfehler #128 beheben.
-- **Blockiert durch / brauche:** Visuelle Prüfung durch Lead, Browserzugriff hier abgelehnt. #35/PR #123 inzwischen mit Lead-LGTM und Sichtprüfung gemerged; fehlenden Mobile-Header-Fix angesprochen (PR #129).
-- **Zuletzt aktualisiert:** 2026-10-21 12:10
+- **Arbeite an:** #128 – gültige Seed-Antworten für Mock und SQL.
+- **Status:** IDs/Choice-Optionen aus dem Katalog, Swipewerte 0/1, keine doppelten Kernfragen. Zwei neue Regressionen zuerst rot, jetzt grün; gesamter Check mit 278 Tests + Build erfolgreich.
+- **Nächster Schritt:** PR/Lead-Review, anschließend weiterer kritischer Backend-Schritt zum Pitch-Live-Test.
+- **Blockiert durch / brauche:** Vercel-Tageslimit #139 verhindert derzeit Previews/ggf. neue Production-Deploys. Backend-Arbeit und CI bleiben möglich. Nutzerfeedback zu leeren Karten/Stadtnamen als #141 erfasst; Darkmode #123 und regionale Kontraste #131 gemerged.
+- **Zuletzt aktualisiert:** 2026-10-21 12:26
 
 ## Journal
+- **2026-10-21 12:26** – #128 gegen Katalog und echtes anon-submit_response in PGlite behoben: unbekannte IDs, Swipe=100, ungültige Choice-Optionen und doppelte building.core beseitigt. Story-Kurven bei gültigen Swipe-Scores nachjustiert, unveränderte Hotspot-/K_MIN-Tests grün. 278 Tests, Format/Lint/Typecheck/Build grün. #141 auf Nutzerauftrag als Feedback für Stadt-/Ortsnamen angelegt. #123/#131/#130 mittlerweile gemerged; erster Prototyp laut Lead testbar, Live-Pitch und weitere Module bleiben offen.
 - **2026-10-21 12:10** – #120: deterministische Kreis-/Schulklima-Effekte ohne zusätzliche Zufallsziehungen; gezielte Story-Kreise und DEMO42 ausgenommen. Regressionen prüfen echte DataSource-Aggregate, drei/vier Farbstufen, K_MIN und Hotspot-Verlauf/Radar. Alle 234 Tests + Build grün. Daneben ungültige Frage-IDs/Swipewerte/Choice-Optionen im bisherigen Seed gefunden, #128 angelegt und #23 informiert. Darkmode #123 gemerged, Lead-Mobile-Fix in #129.
 - **2026-10-21 12:05** – #35 als PR #123 gepusht. Vollständige lokale Checks grün (197 Tests), Vercel-Preview erfolgreich. Lead um Konfliktlösung/Integration mit #18 und #30 sowie visuelles Review gebeten; noch kein LGTM oder Merge. Neue dunkle Textpaare rechnerisch mit Kontrast 7,1–13,4:1 geprüft.
 - **2026-10-21 11:59** – #9/PR #95 ist gemerged. #19 wegen neuer Lead-Zuteilung an Henrik ohne Code zurückgegeben; NRW-Aggregationslücke im Issue dokumentiert. #68 zunächst geclaimt, auf Yanics Wunsch zugunsten #35 ohne Code wieder freigegeben (Henrik übernimmt nun #68). #106 auf Reset-Präfixfehler hingewiesen. #35 implementiert, erste 10 relevante Tests grün, vollständige Checks vor PR. Darkmode-Sichtprüfung beim Lead angefragt.
