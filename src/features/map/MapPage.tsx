@@ -241,6 +241,7 @@ export function MapPage() {
   const requestedWave = searchParams.get('wave');
   const selectedWave = schoolYearWaves.find((w) => w === requestedWave);
   const [playing, setPlaying] = useState(false);
+  const [is3d, setIs3d] = useState(false);
   const [directoryFocus, setDirectoryFocus] = useState<School | null>(null);
   const aggFilters: AggregateFilters = {
     schoolForm: filters.schoolForm,
@@ -429,6 +430,16 @@ export function MapPage() {
           pulses={pulses}
           mode={mode}
         />
+
+        <button
+          type="button"
+          onClick={() => setIs3d((value) => !value)}
+          aria-pressed={is3d}
+          aria-label="3D-Ansicht umschalten"
+          className="absolute top-24 right-3 z-10 inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl bg-card/95 px-2.5 text-sm font-semibold shadow-md ring-1 ring-border backdrop-blur hover:bg-subtle"
+        >
+          {is3d ? '2D' : '3D'}
+        </button>
 
         <div className="pointer-events-none absolute top-0 right-12 left-0 p-3">
           <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl bg-card/95 px-4 py-2 shadow-md ring-1 ring-border">
