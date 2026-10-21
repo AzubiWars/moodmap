@@ -1,5 +1,6 @@
 import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { AppLogo } from '@/components/brand/AppLogo';
 import { DemoBanner } from '@/components/DemoBanner';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -19,7 +20,7 @@ export function Layout() {
       <header className="sticky top-0 z-20 border-b border-border bg-card/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <NavLink to="/" className="flex items-center gap-2 text-lg font-bold">
-            <img src="/favicon.svg" alt="" className="size-7" />
+            <AppLogo variant="handshake" className="size-7" />
             Moodmap <span className="hidden text-mood-5 sm:inline">NRW</span>
           </NavLink>
           <nav className="hidden gap-1 md:flex" aria-label="Hauptnavigation">

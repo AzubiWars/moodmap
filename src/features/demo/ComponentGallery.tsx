@@ -83,7 +83,7 @@ export function ComponentGallery() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="font-semibold">App-Icon (#91) – bitte wählen</h2>
+        <h2 className="font-semibold">App-Icon (#91) – gewählt: Variante B</h2>
         <p className="text-sm text-muted">
           NRW-Umriss aus den Regierungsbezirken (BKG, dl-de/by-2-0), je mit Smiley oder Handschlag.
         </p>
