@@ -67,6 +67,12 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
     if (bounds) mapRef.current?.fitBounds(bounds, { padding: 48, duration: 800 });
   }
 
+  /** Auf schmalen Screens startet MapLibre die Attribution aufgeklappt – mit BKG-Text verdeckt sie die Legende. */
+  function collapseAttribution() {
+    const attrib = mapRef.current?.getContainer().querySelector('.maplibregl-ctrl-attrib.maplibregl-compact');
+    attrib?.classList.remove('maplibregl-compact-show');
+  }
+
   const hoverLevel = hover ? scoreToLevel(hover.props.score < 0 ? null : hover.props.score) : null;
 
   return (
@@ -75,6 +81,7 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
       mapLib={maplibre}
       initialViewState={{ bounds: NRW_BOUNDS, fitBoundsOptions: { padding: 24 } }}
       mapStyle={mapStyle}
+      onLoad={collapseAttribution}
       onError={() => setMapStyle((s) => (s === BASEMAP_URL ? BLANK_STYLE : s))}
       interactiveLayerIds={[FILL_LAYER_ID]}
       onMouseMove={handleMove}
