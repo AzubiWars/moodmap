@@ -1,6 +1,6 @@
 import type { School } from '@/types';
 import type { RegionCollection } from './geo';
-import { normalizeSearch, searchMap } from './mapSearch';
+import { normalizeSearch, searchMap } from './searchCatalog';
 
 function school(id: string, name: string, city: string, kreisId = '05315'): School {
   return {

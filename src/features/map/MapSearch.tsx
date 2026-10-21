@@ -2,7 +2,7 @@ import { MapPin, Search, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { School } from '@/types';
 import type { RegionCollection, RegionFeature } from './geo';
-import { MIN_SEARCH_LENGTH, type MapSearchResult, searchMap } from './mapSearch';
+import { MIN_SEARCH_LENGTH, type MapSearchResult, searchMap } from './searchCatalog';
 
 interface MapSearchProps {
   schools?: readonly School[];
