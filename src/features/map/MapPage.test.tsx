@@ -77,6 +77,8 @@ vi.mock('./MoodMap', () => ({
     selectedSchoolId,
     onSelectSchool,
     pulses,
+    is3d,
+    onPitchChange,
   }: {
     regions: RegionCollection | null;
     selectedId: string | null;
@@ -86,6 +88,8 @@ vi.mock('./MoodMap', () => ({
     selectedSchoolId: string | null;
     onSelectSchool: (id: string) => void;
     pulses?: { id: string }[];
+    is3d?: boolean;
+    onPitchChange?: (value: boolean) => void;
   }) => (
     <div>
       <output data-testid="map-data">{JSON.stringify(regions)}</output>
@@ -98,6 +102,10 @@ vi.mock('./MoodMap', () => ({
       ))}
       <output data-testid="map-selected-school">{selectedSchoolId ?? ''}</output>
       <output data-testid="map-pulses">{(pulses ?? []).map((p) => p.id).join(',')}</output>
+      <output data-testid="map-3d">{String(is3d ?? false)}</output>
+      <button type="button" onClick={() => onPitchChange?.(true)}>
+        Mock 3D
+      </button>
       {schools?.features.map((f) => (
         <button key={f.properties.id} type="button" onClick={() => onSelectSchool(f.properties.id)}>
           Schule {f.properties.id}
@@ -410,9 +418,11 @@ describe('3D toggle (#153)', () => {
     const button = screen.getByRole('button', { name: '3D-Ansicht umschalten' });
     expect(button).toHaveTextContent('3D');
     expect(button).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByTestId('map-3d')).toHaveTextContent('false');
     fireEvent.click(button);
     expect(button).toHaveTextContent('2D');
     expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByTestId('map-3d')).toHaveTextContent('true');
   });
 });
 
