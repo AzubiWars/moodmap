@@ -212,3 +212,18 @@ export function generateSchools(gemeinden: Gemeinde[], kreise: KreisCollection, 
 export function serializeSchools(schools: School[]): string {
   return `[\n${schools.map((s) => `  ${JSON.stringify(s)}`).join(',\n')}\n]\n`;
 }
+
+/** Kompakte Spaltenform für die Karte; ohne Join-Codes/echte Rohdaten. */
+export function serializeMinifiedSchools(schools: School[]): string {
+  const min = {
+    ids: schools.map((s) => s.id),
+    names: schools.map((s) => s.name),
+    forms: schools.map((s) => s.schoolForm),
+    kreisIds: schools.map((s) => s.kreisId),
+    cities: schools.map((s) => s.city),
+    lats: schools.map((s) => Number(s.lat.toFixed(5))),
+    lons: schools.map((s) => Number(s.lon.toFixed(5))),
+    studentCounts: schools.map((s) => s.studentCount),
+  };
+  return `${JSON.stringify(min)}\n`;
+}

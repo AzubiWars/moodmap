@@ -13,12 +13,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import type { School, SchoolForm } from '../src/types/domain.ts';
 import { featureContains, type KreisCollection } from './lib/geo.ts';
-import { createRandom, serializeSchools } from './lib/schools.ts';
+import { createRandom, serializeMinifiedSchools, serializeSchools } from './lib/schools.ts';
 
 const API_URL =
   'https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice/items?f=json&limit=10000';
 const KREISE_PATH = new URL('../public/geo/nrw-kreise.geojson', import.meta.url);
 const OUT_PATH = new URL('../public/data/schools.real.json', import.meta.url);
+const MIN_PATH = new URL('../public/data/schools.min.json', import.meta.url);
 const META_PATH = new URL('../public/data/schools.real.meta.json', import.meta.url);
 
 // DEMO42 gehört der synthetischen Demo-Schule (schools.json) und wird hier nie vergeben (ADR-012).
@@ -141,6 +142,7 @@ async function main(): Promise<void> {
 
   schools.sort((a, b) => a.id.localeCompare(b.id));
   writeFileSync(OUT_PATH, serializeSchools(schools));
+  writeFileSync(MIN_PATH, serializeMinifiedSchools(schools));
   writeFileSync(
     META_PATH,
     `${JSON.stringify(
@@ -159,7 +161,7 @@ async function main(): Promise<void> {
   );
 
   console.log(`OGC API: ${collection.numberReturned ?? collection.features.length} Features`);
-  console.log(`geschrieben: ${schools.length} Schulen → public/data/schools.real.json`);
+  console.log(`geschrieben: ${schools.length} Schulen → public/data/schools.real.json + schools.min.json`);
   console.log(
     `übersprungen: ${skippedWithoutId} ohne ID, ${skippedWithoutGeometry} ohne Geometrie, ${skippedWithoutKreis} ohne Kreis`,
   );
