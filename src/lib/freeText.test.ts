@@ -64,6 +64,44 @@ describe('moderateLocally', () => {
   });
 });
 
+describe('submitFreeText', () => {
+  const input = { schoolId: '900000', waveId: '2026-W43', deviceToken: 'a'.repeat(20), text: 'Mensa' };
+
+  function stubBackend(mode: string, body: unknown) {
+    vi.stubEnv('VITE_DATA_MODE', mode);
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(body), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it('stays local in mock mode even with Supabase env (no DB response to attach to)', async () => {
+    const fetchMock = stubBackend('mock', {});
+    const result = await submitFreeText(input);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.allowed).toBe(true);
+  });
+
+  it('never shows internal server codes', async () => {
+    stubBackend('supabase', { ok: true, stored: false, reason: 'storage_failed' });
+    const result = await submitFreeText(input);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('Dein Hinweis konnte nicht übernommen werden.');
+  });
+
+  it('passes moderation reasons and crisis concern through', async () => {
+    stubBackend('supabase', { ok: true, stored: false, reason: 'Enthält eine Drohung.', concern: true });
+    const result = await submitFreeText(input);
+    expect(result).toMatchObject({ allowed: false, reason: 'Enthält eine Drohung.', concern: true });
+  });
+});
+
 describe('free text storage', () => {
   beforeEach(() => localStorage.clear());
 

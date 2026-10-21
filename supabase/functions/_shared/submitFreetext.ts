@@ -183,7 +183,7 @@ export async function submitFreetext(
     // Fail-open for the survey, fail-closed for the free text.
     return {
       status: 200,
-      body: { ok: true, stored: false, reason: moderation.reason || 'rejected', concern: false },
+      body: { ok: true, stored: false, reason: moderation.reason || 'rejected', concern: moderation.concern },
     };
   }
 

@@ -98,7 +98,8 @@ export function parseModeration(content: string): ModerationResult {
           : allowed
             ? 'Sonstiges'
             : '',
-      concern: allowed && parsed.concern === true,
+      // Crisis help must also show for rejected texts (PRODUCT_SPEC §3.13, PRIVACY §5).
+      concern: parsed.concern === true,
     };
   } catch {
     return DISCARDED;

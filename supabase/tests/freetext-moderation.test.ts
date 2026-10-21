@@ -79,6 +79,11 @@ describe('parseModeration', () => {
       },
       { allowed: true, concern: true, cluster: 'Belastung' },
     ],
+    [
+      'rejected crisis signal → still concern',
+      { allowed: false, reason: 'Gewalt', cleaned: '', topics: [], cluster: '', concern: true },
+      { allowed: false, cleaned: '', concern: true },
+    ],
   ])('%s', (_, payload, expected) => {
     expect(parseModeration(JSON.stringify(payload))).toMatchObject(expected);
   });

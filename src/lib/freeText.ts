@@ -126,14 +126,22 @@ interface SubmitFreeTextResponse {
   topics?: unknown;
 }
 
+const NOT_STORED = 'Dein Hinweis konnte nicht übernommen werden.';
+
+/** Server-Codes wie `storage_failed` nie anzeigen – nur echte Moderationsgründe. */
+function readableReason(reason: unknown, fallback: string): string {
+  return typeof reason === 'string' && reason.trim() && !/^[a-z_]+$/.test(reason) ? reason : fallback;
+}
+
 /**
  * Nach der Umfrage-Abgabe: serverseitige Moderation + Speicherung über `submit-freetext`.
- * Ohne Supabase-Env (reiner Dev/Mock) greift der lokale Demo-Fallback.
+ * Nur im Supabase-Modus – im Mock-Modus liegt die Abgabe nicht in der DB (`no_response`),
+ * dann greift wie ohne Supabase-Env der lokale Demo-Fallback.
  */
 export async function submitFreeText(input: SubmitFreeTextInput): Promise<FreeTextModeration> {
   const url = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return moderateLocally(input.text);
+  if (import.meta.env.VITE_DATA_MODE !== 'supabase' || !url || !anonKey) return moderateLocally(input.text);
 
   try {
     const response = await fetch(`${url}/functions/v1/submit-freetext`, {
@@ -153,7 +161,7 @@ export async function submitFreeText(input: SubmitFreeTextInput): Promise<FreeTe
     if (data.ok !== true) {
       return {
         ...DISCARDED,
-        reason: typeof data.reason === 'string' ? data.reason : DISCARDED.reason,
+        reason: readableReason(data.reason, DISCARDED.reason),
         concern,
       };
     }
@@ -162,8 +170,7 @@ export async function submitFreeText(input: SubmitFreeTextInput): Promise<FreeTe
     if (data.stored !== true && !already) {
       return {
         allowed: false,
-        reason:
-          typeof data.reason === 'string' ? data.reason : 'Dein Hinweis konnte nicht übernommen werden.',
+        reason: readableReason(data.reason, NOT_STORED),
         cleaned: '',
         topics: [],
         cluster: '',
