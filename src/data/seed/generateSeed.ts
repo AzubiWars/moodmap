@@ -3,20 +3,12 @@
  * Generates realistic student responses across 10 waves adhering to
  * docs/ARCHITECTURE.md §7 and docs/SCIENTIFIC_FOUNDATION.md.
  */
-import {
-  P0_TOPIC_SLUGS,
-} from '../../src/data/topics.ts';
-import type { PolicyAnswer } from '../../src/types/dialog.ts';
-import type {
-  GradeBand,
-  Role,
-  School,
-  SchoolForm,
-  Wave,
-} from '../../src/types/domain.ts';
-import type { SeedData, SeedResponse } from '../../src/types/seed.ts';
-import type { AnswerInput } from '../../src/types/survey.ts';
-import { createRandom } from './schools.ts';
+import { P0_TOPIC_SLUGS } from '../topics.ts';
+import type { PolicyAnswer } from '../../types/dialog.ts';
+import type { GradeBand, Role, School, SchoolForm, Wave } from '../../types/domain.ts';
+import type { SeedData, SeedResponse } from '../../types/seed.ts';
+import type { AnswerInput } from '../../types/survey.ts';
+import { createRandom } from '../../lib/random.ts';
 
 export const DEFAULT_SEED = 424242;
 export const DEFAULT_WAVE_COUNT = 10;
@@ -28,20 +20,28 @@ export const HOTSPOT_CANCELLATION_KREIS = '05112'; // Duisburg: starker Unterric
 export const RURAL_KREISE = new Set(['05762', '05366', '05966']); // Höxter, Euskirchen, Olpe: digital schwächer
 export const METROPOL_KREISE = new Set(['05111', '05315']); // Düsseldorf, Köln: digital stärker
 
-/** Generates ISO waves ending at LAST_WAVE_ID */
+/** Montag (UTC) der ISO-Woche `week` im Jahr `year`. */
+export function isoWeekMonday(year: number, week: number): Date {
+  const jan4 = new Date(Date.UTC(year, 0, 4));
+  const jan4Weekday = (jan4.getUTCDay() + 6) % 7; // Mo = 0
+  const monday = new Date(jan4);
+  monday.setUTCDate(jan4.getUTCDate() - jan4Weekday + (week - 1) * 7);
+  return monday;
+}
+
+/** Generates ISO waves (Mo 00:00 – So 23:59:59 UTC) ending at LAST_WAVE_ID */
 export function generateWaves(count = DEFAULT_WAVE_COUNT): Wave[] {
   const waves: Wave[] = [];
-  const startWeek = 44 - count; // e.g. 34 for 10 waves
-  for (let w = startWeek; w <= 43; w++) {
-    const id = `2026-W${w.toString().padStart(2, '0')}`;
-    // Approximate Mondays and Sundays
-    const month = w < 36 ? '08' : w < 40 ? '09' : '10';
-    const dayStart = ((w - 30) * 2 + 1).toString().padStart(2, '0');
-    const dayEnd = ((w - 30) * 2 + 7).toString().padStart(2, '0');
+  const lastWeek = 43;
+  for (let w = lastWeek - count + 1; w <= lastWeek; w++) {
+    const start = isoWeekMonday(2026, w);
+    const end = new Date(start);
+    end.setUTCDate(start.getUTCDate() + 6);
+    end.setUTCHours(23, 59, 59, 0);
     waves.push({
-      id,
-      startsAt: `2026-${month}-${dayStart}T00:00:00.000Z`,
-      endsAt: `2026-${month}-${dayEnd}T23:59:59.000Z`,
+      id: `2026-W${w.toString().padStart(2, '0')}`,
+      startsAt: start.toISOString(),
+      endsAt: end.toISOString(),
     });
   }
   return waves;
@@ -256,7 +256,7 @@ function generateAnswersForResponse(
     // Occasional swipe questions (50% probability)
     if (random() < 0.5) {
       // Swipe positive if mood >= 3
-      const isPositive = val >= 3 ? (random() < 0.75 ? 100 : 0) : (random() < 0.25 ? 100 : 0);
+      const isPositive = val >= 3 ? (random() < 0.75 ? 100 : 0) : random() < 0.25 ? 100 : 0;
       let swipeId = `${slug}.swipe.recommend`;
       if (slug === 'learning') swipeId = 'learning.swipe.useful';
       else if (slug === 'stress') swipeId = 'stress.swipe.free_time';
@@ -317,10 +317,7 @@ export interface GenerateSeedOptions {
  * Main generator function.
  * Produces deterministic SeedData for schools and waves.
  */
-export function generateSeedData(
-  schools: School[],
-  options: GenerateSeedOptions = {},
-): SeedData {
+export function generateSeedData(schools: School[], options: GenerateSeedOptions = {}): SeedData {
   const seed = options.seed ?? DEFAULT_SEED;
   const waveCount = options.waveCount ?? DEFAULT_WAVE_COUNT;
   const random = createRandom(seed);
@@ -339,7 +336,8 @@ export function generateSeedData(
     for (let sIdx = 0; sIdx < schools.length; sIdx++) {
       const school = schools[sIdx]!;
       const isDemoSchool = school.id === '900000';
-      const isHotspotKreis = school.kreisId === HOTSPOT_TENSION_KREIS || school.kreisId === HOTSPOT_CANCELLATION_KREIS;
+      const isHotspotKreis =
+        school.kreisId === HOTSPOT_TENSION_KREIS || school.kreisId === HOTSPOT_CANCELLATION_KREIS;
 
       // In earlier waves, keep historical time-series for core schools + hotspots
       const isCoreSchool = sIdx % 2 === 0 || isDemoSchool || isHotspotKreis;
@@ -367,9 +365,10 @@ export function generateSeedData(
 
       for (let r = 0; r < respondentCount; r++) {
         const gradeBand = determineGradeBand(school.schoolForm, random);
-        const dayOffset = Math.floor(random() * 7);
-        const dayNumber = Math.min(28, 10 + dayOffset);
-        const submittedAt = `2026-10-${dayNumber.toString().padStart(2, '0')}`;
+        // Tag innerhalb der Welle, auf Tag gerundet (docs/PRIVACY.md §1)
+        const day = new Date(wave.startsAt);
+        day.setUTCDate(day.getUTCDate() + Math.floor(random() * 7));
+        const submittedAt = day.toISOString().slice(0, 10);
 
         const answers = generateAnswersForResponse(school, wIdx, gradeBand, random);
         const id = `resp_${wave.id}_${school.id}_${responseCounter.toString().padStart(5, '0')}`;

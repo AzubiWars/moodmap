@@ -10,7 +10,7 @@ import {
   HOTSPOT_TENSION_KREIS,
   generateSeedData,
   generateWaves,
-} from './lib/seed.ts';
+} from '../src/data/seed/generateSeed.ts';
 
 const path = (relative: string) => fileURLToPath(new URL(`../${relative}`, import.meta.url));
 const schools = JSON.parse(readFileSync(path('public/data/schools.json'), 'utf8')) as School[];
@@ -21,7 +21,20 @@ describe('seed generator (#8)', () => {
     expect(waves).toHaveLength(10);
     expect(waves[0]!.id).toBe('2026-W34');
     expect(waves[9]!.id).toBe('2026-W43');
-    expect(waves[9]!.startsAt).toContain('2026-10-');
+    expect(waves[9]!.startsAt).toBe('2026-10-19T00:00:00.000Z'); // ISO-Woche 43: Mo 19.10.
+    expect(waves[9]!.endsAt).toBe('2026-10-25T23:59:59.000Z');
+    expect(waves[0]!.startsAt).toBe('2026-08-17T00:00:00.000Z'); // ISO-Woche 34: Mo 17.08.
+  });
+
+  it('dates every response inside its own wave (day precision)', () => {
+    const data = generateSeedData(schools.slice(0, 20), { seed: 7, waveCount: 3 });
+    const byId = new Map(data.waves.map((w) => [w.id, w]));
+    for (const r of data.responses) {
+      const wave = byId.get(r.waveId)!;
+      expect(r.submittedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+      expect(r.submittedAt >= wave.startsAt.slice(0, 10)).toBe(true);
+      expect(r.submittedAt <= wave.endsAt.slice(0, 10)).toBe(true);
+    }
   });
 
   it('is byte-identical when called with the same seed', () => {
