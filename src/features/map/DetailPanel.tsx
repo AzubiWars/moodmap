@@ -75,7 +75,10 @@ export function DetailPanel({ drill, mode = 'mood' }: DetailPanelProps) {
     >
       <header className="flex items-start gap-3 px-4 pt-3 pb-2">
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-base font-bold">{title}</h2>
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="truncate text-base font-bold">{title}</h2>
+            <DataBadge live={row?.liveN != null} />
+          </div>
           <p className="truncate text-xs text-muted">{subtitle}</p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             <MoodBadge score={row?.score ?? null} size="sm" />
@@ -133,6 +136,28 @@ export function DetailPanel({ drill, mode = 'mood' }: DetailPanelProps) {
         <GapDetails gaps={gaps} hasData={row?.score != null} />
       </div>
     </aside>
+  );
+}
+
+/**
+ * Kennzeichnung der Datenbasis (#160, ADR-012/013): „Live-Stimmen“, sobald mindestens K_MIN echte Abgaben
+ * aus dem Mood-Check in der Einheit stecken (`liveN`), sonst „Demo-Daten“ (kalibriert, synthetisch).
+ */
+function DataBadge({ live }: { live: boolean }) {
+  return live ? (
+    <span
+      className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent"
+      title="Enthält mindestens 10 echte Stimmen aus dem Mood-Check"
+    >
+      Live-Stimmen
+    </span>
+  ) : (
+    <span
+      className="shrink-0 rounded-full bg-subtle px-2 py-0.5 text-[10px] text-muted"
+      title="Kalibrierte Demo-Daten (synthetisch, auf Basis veröffentlichter Studien)"
+    >
+      Demo-Daten
+    </span>
   );
 }
 

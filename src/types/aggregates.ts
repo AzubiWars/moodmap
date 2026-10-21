@@ -29,6 +29,11 @@ export interface AggregateRow {
    * `null`, wenn `n < K_MIN`; nicht gesetzt bei `topic: 'all'`.
    */
   distribution?: MoodDistribution | null;
+  /**
+   * Davon echte Abgaben (nicht Demo-Seed) für die Kennzeichnung „Live-Stimmen“ (#160).
+   * Fehlt unter K_MIN – sonst verriete eine kleine Zahl, dass gerade jemand abgestimmt hat.
+   */
+  liveN?: number | null;
 }
 
 /** Zählwerte je Stimmungsstufe 1–5. */

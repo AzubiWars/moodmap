@@ -37,6 +37,8 @@ vi.mock('@/data', () => ({
         score: fakeScore(id, query.topic),
         // Trend (#21): 053 verschlechtert sich, 051 ohne Vorwoche
         delta: id === '053' ? -6 : null,
+        // #160: Köln hat echte Stimmen (≥ K_MIN), alles andere ist Demo
+        ...(id === '05315' ? { liveN: 12 } : {}),
       }));
     },
     getTensionIndex: async (query: AggregateQuery) => {
@@ -499,5 +501,20 @@ describe('trend and participation modes (#21)', () => {
     // Kreis 05315: 50 Stimmen bei einer Schule mit 500 Schüler:innen → 10 %
     await waitFor(() => expect(props('05315').rate).toBe(10));
     expect(screen.getByRole('group', { name: 'Legende Beteiligung diese Woche' })).toBeInTheDocument();
+  });
+});
+
+describe('demo vs. live labelling (#160)', () => {
+  it('marks units with real votes as live and everything else as demo data', async () => {
+    openMap('/map?regbez=053&kreis=05315');
+    const live = await screen.findByRole('complementary', { name: 'Details: Stadt Köln' });
+    expect(await within(live).findByText('Live-Stimmen')).toBeInTheDocument();
+  });
+
+  it('shows the demo badge and the source note without real votes', async () => {
+    openMap('/map?regbez=053');
+    const panel = await screen.findByRole('complementary', { name: 'Details: Reg.-Bez. Köln' });
+    expect(await within(panel).findByText('Demo-Daten')).toBeInTheDocument();
+    expect(screen.getByText(/kalibrierte Demo-Daten/)).toBeInTheDocument();
   });
 });

@@ -397,6 +397,11 @@ export function MapPage() {
           }
         >
           <MapLegend mode={mode} />
+          {/* Quellenhinweis Demo vs. Live (#160) */}
+          <p className="mt-1 max-w-[16rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
+            Werte: kalibrierte Demo-Daten, echte Mood-Check-Stimmen als „Live“ markiert · Schulen:
+            Demo-Standorte
+          </p>
         </div>
 
         <DetailPanel

@@ -145,6 +145,13 @@ export function aggregateRows(
   };
   const current = grouped(waveIds);
   const previous = grouped(previousWaveIds);
+  const liveIds = new Set(
+    dataset.responses.filter((response) => response.live).map((response) => response.id),
+  );
+  const liveCount = (answers: readonly MockAnswer[]) => {
+    const count = new Set(answers.filter((a) => liveIds.has(a.responseId)).map((a) => a.responseId)).size;
+    return count < kMin ? null : count;
+  };
   return [...new Set(schools.map((school) => schoolGroupId(school, query.level)))].sort().map((id) => {
     const answers = current.get(id) ?? [];
     const result = summarize(answers, query.topic, kMin);
@@ -153,6 +160,8 @@ export function aggregateRows(
       id,
       ...result.total,
       delta: delta(result.total, before.total, kMin),
+      // Nur gesetzt, wenn es echte Stimmen ≥ K_MIN gibt – reine Seed-Zeilen bleiben identisch zur SQL-RPC (Paritätstest)
+      ...(liveCount(answers) != null ? { liveN: liveCount(answers) } : {}),
       topicScores: Object.fromEntries(
         Object.entries(result.topics).map(([slug, entry]) => [slug, entry.score]),
       ),

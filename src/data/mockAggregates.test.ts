@@ -44,6 +44,30 @@ function dataset(...parts: Pick<MockDataset, 'responses' | 'answers'>[]): MockDa
 }
 
 describe('mock aggregates', () => {
+  it('counts real (non-seed) submissions as liveN and suppresses them under K_MIN (#160)', () => {
+    const seed = cohort(20, 'a', 3);
+    const live = cohort(12, 'b', 4);
+    const fewLive = cohort(3, 'a', 4, 'current');
+    const data: MockDataset = {
+      schools: [school('a'), school('b')],
+      waves: [],
+      responses: [
+        ...seed.responses,
+        ...live.responses.map((r) => ({ ...r, live: true })),
+        ...fewLive.responses.map((r) => ({ ...r, id: `${r.id}-few`, live: true })),
+      ],
+      answers: [
+        ...seed.answers,
+        ...live.answers,
+        ...fewLive.answers.map((a) => ({ ...a, responseId: `${a.responseId}-few` })),
+      ],
+    };
+    const rows = aggregateRows(data, { level: 'school', topic: 'ai' }, ['current'], [], 10);
+    expect(rows.find((r) => r.id === 'b')?.liveN).toBe(12);
+    // Schule a: 20 Seed + 3 echte → 3 < K_MIN → unterdrückt
+    expect(rows.find((r) => r.id === 'a')?.liveN).toBeUndefined();
+  });
+
   it('aggregates NRW directly over all answers, not as a mean of the regbez rows (#140)', () => {
     // RegBez 051: 30 × KI sehr schlecht · RegBez 053: 10 × KI und Digital sehr gut
     const a = cohort(30, 'a', 1);
