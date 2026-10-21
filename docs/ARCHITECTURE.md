@@ -152,6 +152,12 @@ Auswahl per Env: `VITE_DATA_MODE=mock | supabase` (Default: `mock`).
 
 Die aktive Implementierung wird über `getDataSource()` in `src/data/index.ts` gewählt. Implementierungen registrieren sich per `registerDataSource('mock' | 'supabase', source)`; ist der gewünschte Modus nicht registriert, fällt die Factory auf `mock` zurück (ADR-003).
 
+Der Mock ist standardmäßig registriert (#9). Beim ersten Datenzugriff lädt `mockBootstrap.ts` nur `/data/schools.json` und erzeugt den Seed aus #8 im Browser; `createMockSource()` memoisiert ihn pro Instanz. Rohantworten bleiben innerhalb des Datenlayers. Neue Teilnahmen werden separat unter `moodmap:mock:v1:response:<SHA-256(token, wave)>` gespeichert, ohne Roh-Token und mit auf den Tag gerundetem Datum. Einzelne Storage-Keys verhindern, dass Abgaben anderer Geräte beim Speichern überschrieben werden. Web Locks serialisieren konkurrierende Abgaben desselben Geräts/Welle, sofern unterstützt; ohne Web Locks garantiert der identische Storage-Key einen gespeicherten Datensatz, aber nicht atomar unterschiedliche Rückmeldungen bei zeitgleichen Tabs. Wenn Storage gesperrt/voll ist, arbeitet dieselbe Instanz im Speicher weiter; nach Reload ist dieser Fallback nicht persistent.
+
+Aggregate werden direkt aus Antworten berechnet, nach sämtlichen Filtern und mit unterschiedlichen `responseId` für K_MIN (nie unter 10). Ohne `waveIds` gilt die zeitlich aktive Welle; für mehrere gewählte Wellen vergleicht Delta mit gleich vielen Wellen unmittelbar vor der frühesten Auswahl. Leere Schulform-/Stufenlisten bedeuten keinen entsprechenden Filter; eine explizit leere Wellenliste liefert keine Antworten. `DistributionOption.count` ist `number | null`: `null` wird als „< 3“ dargestellt, genaue kleine Häufigkeiten verlassen den Mock nicht. Themen- und Resonanzwerte bleiben unter K_MIN `null`.
+
+`subscribeToNewResponses()` meldet lokal und über BroadcastChannel ausschließlich `{ schoolId }`, keine Antworten oder Gerätekennungen. Andere Tabs lesen anschließend denselben lokalen Speicher neu. Das funktioniert innerhalb desselben Browserprofils und derselben Origin; für verschiedene Handys bleibt Supabase erforderlich. Der Browser-Mock enthält synthetische Daten und stellt keine echte Authentifizierungsgrenze dar.
+
 ## 4. Datenmodell (Supabase / Postgres)
 
 ```sql

@@ -2,6 +2,7 @@
 export const MOCK_STORAGE_PREFIX = 'moodmap:mock:v1:';
 
 export function browserStorage(): Storage | null {
+  if (typeof window === 'undefined') return null;
   try {
     return typeof localStorage === 'undefined' ? null : localStorage;
   } catch {
