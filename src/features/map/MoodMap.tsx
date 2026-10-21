@@ -7,6 +7,7 @@ import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from '@/lib/colors';
 import { useTheme } from '@/lib/theme';
 import { type Bounds, GERMANY_MAX_BOUNDS, NRW_BOUNDS, type RegionProperties } from './geo';
+import { keepAttributionCollapsed } from './attribution';
 import { maplibre } from './maplibreSetup';
 import {
   formatRate,
@@ -304,11 +305,14 @@ export function MoodMap({
     map.easeTo({ center: [center.lng, center.lat], zoom, duration: 600 });
   }
 
-  /** Auf schmalen Screens startet MapLibre die Attribution aufgeklappt – mit BKG-Text verdeckt sie die Legende. */
-  function collapseAttribution() {
-    const attrib = mapRef.current?.getContainer().querySelector('.maplibregl-ctrl-attrib.maplibregl-compact');
-    attrib?.classList.remove('maplibregl-compact-show');
-  }
+  // Auf schmalen Screens verdeckt die aufgeklappte Attribution die Legende – dauerhaft eingeklappt halten (#175).
+  // Ab dem ersten `styledata`, nicht erst ab `load`: auf langsamem Netz dauert `load` Sekunden.
+  const [mapReady, setMapReady] = useState(false);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!mapReady || !map) return;
+    return keepAttributionCollapsed(map.getContainer());
+  }, [mapReady]);
 
   const hoverScore =
     hover?.kind === 'cluster'
@@ -338,10 +342,8 @@ export function MoodMap({
       mapLib={maplibre}
       initialViewState={{ bounds: NRW_BOUNDS, fitBoundsOptions: { padding: 24 } }}
       mapStyle={mapStyle}
-      onLoad={() => {
-        collapseAttribution();
-        setLoaded(true);
-      }}
+      onLoad={() => setLoaded(true)}
+      onStyleData={() => setMapReady(true)}
       onError={(e) => {
         // Nur wenn der Basemap-Stil gar nicht lädt. Einzelne Kachel-Fehler (tragen eine sourceId) dürfen die
         // Karte nicht mitten in der Demo auf den leeren Fallback umschalten und die Kamerafahrt abbrechen.
