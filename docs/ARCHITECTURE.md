@@ -337,7 +337,7 @@ Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN
 
 ## 12. Freitext-Moderation (nur Live-Test)
 
-Im Prototyp gibt es **keine Freitexte** (`PRIVACY.md` §1.3). Für den Live-Test kann optional ein freies Feedbackfeld aktiviert werden. Dieses wird **vor dem Speichern serverseitig** moderiert:
+Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR-016, `PRODUCT_SPEC.md` §3.13, `PRIVACY.md` §1.3/§6a). Ausbaustufe in #114: bereinigter Text, Themen-Cluster, `concern`, Timeout 5 s, Speicherung ohne Rohtext.
 
 1. Client sendet `{ text }` an die Supabase Edge Function `moderate-text`.
 2. Die Function ruft OpenRouter (`https://openrouter.ai/api/v1/chat/completions`) mit einem Moderations-Prompt auf.

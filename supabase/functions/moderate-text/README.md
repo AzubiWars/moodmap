@@ -1,7 +1,7 @@
 # `moderate-text` – Freitext-Moderation (Live-Test)
 
 Supabase Edge Function, die anonyme Freitexte **vor dem Speichern** prüft.
-Der Prototyp hat keine Freitexte; diese Function ist für den Live-Test gedacht.
+Moderation optionaler Freitexte (ADR-016). Aktuell: `{ allowed, reason }`. Ausbau zu Bereinigung, Clustern und `concern` folgt in #114.
 
 ## Secret setzen
 

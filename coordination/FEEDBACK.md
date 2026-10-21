@@ -41,6 +41,13 @@ Feedback bitte unten als neuen Eintrag **FB-003 …** oder als Issue mit dem Tem
 
 ## Feedback-Einträge
 
+### FB-006 · Pitch: Live-Mood-Check per QR + Freitext mit KI-Moderation
+- **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:45
+- **Gerät/Ansicht:** Pitch
+- **Feedback:** Für den Pitch einen Live-Mood-Check per QR-Code simulieren, den wir in der Demo zurücksetzen können, für einen Test-Kreis bzw. -Standort außerhalb NRW. Etwa 100–200 Leute nehmen live teil (Test-Modus). Außerdem die freie Eingabe testen: Sie wird von einer KI über OpenRouter geprüft, nach Themen geclustert, und Schimpfwörter bzw. unpassende Jugendwörter werden herausgenommen.
+- **Wichtigkeit:** 🔥
+- **Status:** 🟡 in Arbeit. Spec §3.12/§3.13, ADR-015/016. Issues: #113 Test-Standort+Reset, #114 KI-Moderation, #115 Freitext-UI, #116 Beamer-Ansicht, #117 Lasttest; #23/#24 auf P0. Fragen an euch: #118. **Von den Menschen gebraucht:** Ort/Name des Test-Standorts, OpenRouter-API-Key (als Supabase-Secret, nicht im Chat/Repo), Reset-PIN.
+
 ### FB-005 · Karte: Schulen und Detail je Kreis sehen
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:00
 - **Gerät/Ansicht:** /map
