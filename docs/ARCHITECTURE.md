@@ -58,6 +58,7 @@ moodmap/
     ├── data/
     │   ├── topics.ts        # Themen & Fragen (siehe docs/SURVEY_TOPICS.md)
     │   ├── api.ts           # DataSource-Interface
+    │   ├── index.ts         # Factory getDataSource() / registerDataSource()
     │   ├── supabaseSource.ts
     │   └── mockSource.ts
     ├── lib/
@@ -144,6 +145,8 @@ export interface AggregateRow {
 ```
 
 Auswahl per Env: `VITE_DATA_MODE=mock | supabase` (Default: `mock`).
+
+Die aktive Implementierung wird über `getDataSource()` in `src/data/index.ts` gewählt. Implementierungen registrieren sich per `registerDataSource('mock' | 'supabase', source)`; ist der gewünschte Modus nicht registriert, fällt die Factory auf `mock` zurück (ADR-003).
 
 ## 4. Datenmodell (Supabase / Postgres)
 
