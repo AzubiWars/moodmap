@@ -170,8 +170,11 @@ const GERMANY_MASK_URL = '/geo/non-germany-mask.geojson';
 const GERMANY_OUTLINE_URL = '/geo/germany.geojson';
 /** Fast blickdicht: Die Basiskarte ist selbst hell bzw. dunkel, 62 % ließen Nachbarländer samt Ortsnamen durchscheinen. */
 const MASK_FILL_OPACITY = 0.92;
-/** Weicher Übergang an der Grenze statt harter Kante (FB-007) */
-const MASK_EDGE_PAINT = { 'line-width': 28, 'line-blur': 24, 'line-opacity': 0.85 } as const;
+/**
+ * Weicher Übergang an der Grenze statt harter Kante (FB-007). Die Ringe in germany.geojson laufen im Uhrzeigersinn
+ * (Inneres rechts) – negativer Offset legt den Verlauf ganz nach außen, NRW-Flächen am Rand bleiben unberührt.
+ */
+const MASK_EDGE_PAINT = { 'line-width': 28, 'line-blur': 24, 'line-opacity': 0.85, 'line-offset': -14 } as const;
 
 /** Pflicht-Quellenvermerk für die Grenzen (docs/ARCHITECTURE.md §6) */
 const BOUNDARY_ATTRIBUTION =
