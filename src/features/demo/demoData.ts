@@ -10,7 +10,7 @@ export function resetDemoData(storage: Storage = localStorage) {
   const keys: string[] = [];
   for (let i = 0; i < storage.length; i++) {
     const k = storage.key(i);
-    if (k?.startsWith('moodmap.') && !KEEP_KEYS.includes(k)) keys.push(k);
+    if ((k?.startsWith('moodmap.') || k?.startsWith('moodmap:')) && !KEEP_KEYS.includes(k)) keys.push(k);
   }
   keys.forEach((k) => storage.removeItem(k));
 }
