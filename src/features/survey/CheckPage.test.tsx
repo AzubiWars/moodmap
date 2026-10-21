@@ -159,7 +159,7 @@ describe('CheckPage', () => {
     expect(stored.cleaned).not.toContain('Müller');
   });
 
-  it('rejects a threatening free text without submitting it', async () => {
+  it('rejects a threatening free text but still submits the survey', async () => {
     const submit = setup();
     for (const q of questions()) await answerScale(q.text, 'eher gut');
 
@@ -168,11 +168,11 @@ describe('CheckPage', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Drohung|Gewalt/);
-    expect(submit).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Überspringen' }));
     await screen.findByText('FERTIG');
     expect(submit).toHaveBeenCalledTimes(1);
+    const stored = JSON.parse(localStorage.getItem('moodmap.freetext.v1') ?? '{}') as {
+      allowed?: boolean;
+    };
+    expect(stored.allowed).toBe(false);
   });
 });

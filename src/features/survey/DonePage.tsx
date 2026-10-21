@@ -21,17 +21,28 @@ export function DonePage() {
         </Link>
       </div>
 
-      {freeText?.cleaned && (
-        <div className="card space-y-2 p-5">
-          <h2 className="font-semibold">
-            {freeText.cluster
-              ? `Danke, dein Hinweis wurde dem Thema „${freeText.cluster}“ zugeordnet.`
-              : 'Danke, dein Hinweis wurde anonym gespeichert.'}
-          </h2>
-          <p className="text-sm text-muted">{freeText.cleaned}</p>
-          <p className="text-xs text-muted">Geprüft und bereinigt – ohne Namen und Beleidigungen.</p>
-        </div>
-      )}
+      {freeText &&
+        (freeText.allowed ? (
+          <div className="card space-y-2 p-5">
+            <h2 className="font-semibold">
+              {freeText.cluster
+                ? `Danke, dein Hinweis wurde dem Thema „${freeText.cluster}“ zugeordnet.`
+                : 'Danke, dein Hinweis wurde anonym gespeichert.'}
+            </h2>
+            {freeText.cleaned ? (
+              <p className="text-sm text-muted">{freeText.cleaned}</p>
+            ) : (
+              <p className="text-sm text-muted">Der Text wurde geprüft und anonym gespeichert.</p>
+            )}
+            <p className="text-xs text-muted">Geprüft und bereinigt – ohne Namen und Beleidigungen.</p>
+          </div>
+        ) : (
+          <div className="card space-y-2 p-5">
+            <h2 className="font-semibold">Dein Freitext konnte nicht übernommen werden.</h2>
+            <p className="text-sm text-muted">{freeText.reason || 'Bitte formuliere den Text sachlich.'}</p>
+            <p className="text-xs text-muted">Deine Umfrage-Antworten sind trotzdem anonym gespeichert.</p>
+          </div>
+        ))}
 
       {freeText?.concern && (
         <div className="card space-y-2 p-5" role="note">
