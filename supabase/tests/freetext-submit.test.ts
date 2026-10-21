@@ -161,6 +161,16 @@ describe('submitFreetext', () => {
     expect(calls.some((call) => call.url.includes('/rpc/record_freetext'))).toBe(false);
   });
 
+  it('keeps concern for a rejected text so the client shows crisis help', async () => {
+    const { fetchImpl, calls } = backend({
+      moderation: { allowed: false, reason: 'Gewalt', cleaned: '', topics: [], cluster: '', concern: true },
+    });
+    const result = await submitFreetext(input, deps(fetchImpl));
+
+    expect(result.body).toEqual({ ok: true, stored: false, reason: 'Gewalt', concern: true });
+    expect(calls.some((call) => call.url.includes('/rpc/record_freetext'))).toBe(false);
+  });
+
   it('stores nothing when the moderation is unavailable (timeout)', async () => {
     const fetchImpl = vi.fn<typeof fetch>(async (url, init) => {
       const target = String(url);
