@@ -29,13 +29,17 @@ const object = (value: unknown): Body =>
 /** Only fixed codes leave the runner. Never include responses, tokens, PINs or network error text. */
 export class LoadTestError extends Error {}
 
-function publicHeaders(key: string): Record<string, string> {
+/** Public REST/Edge headers for both supported key types (#195). */
+export function loadTestHeaders(key: string): Record<string, string> {
+  if (key.startsWith('sb_publishable_')) {
+    // Deployed with --no-verify-jwt; the server still checks participation, claim and PIN.
+    return { apikey: key, 'Content-Type': 'application/json' };
+  }
   try {
     const payload = JSON.parse(Buffer.from(key.split('.')[1] ?? '', 'base64url').toString()) as Body;
     if (key.split('.').length !== 3 || payload.role !== 'anon') throw new Error();
   } catch {
-    // The Edge gateway still verifies JWTs; sb_publishable_* is not a JWT.
-    throw new LoadTestError('anon_jwt_required');
+    throw new LoadTestError('public_key_required');
   }
   return { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' };
 }
@@ -108,7 +112,7 @@ export async function runPitchLoadTest(options: Options) {
   ) {
     throw new LoadTestError('invalid_url');
   }
-  const headers = publicHeaders(options.anonKey);
+  const headers = loadTestHeaders(options.anonKey);
   if (
     options.resetAfter &&
     (!options.resetPin || options.resetPin.length < 8 || options.resetPin.length > 200)

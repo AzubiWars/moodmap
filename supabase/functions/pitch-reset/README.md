@@ -39,7 +39,18 @@ Ohne Stimmen: `n: 0`, `scoredN: 0`, `score: null`. Der Teilnahmenzähler ist kei
 - `APP_URL`: erlaubte Browser-Origin (lokal z. B. `http://localhost:5173`), Default Production-Origin.
 - `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY`: von der Edge-Runtime bereitgestellt, nie an den Client geben.
 
-Mit dem normalen Supabase-Client/anon-Key `pitch-reset` aufrufen, Body `{ pin: "…" }`. Der Edge-Gateway-JWT-Check bleibt aktiv; zusätzlich prüft der Handler die PIN. Die Function ruft ausschließlich `reset_pitch_test()` auf, ohne clientseitige Ziel-ID. Fehlende/zu kurze Konfiguration → 503, falsche PIN → 401, Datenbankfehler → 502 mit generischer Meldung. PIN/Requests/Fehler werden nicht geloggt, Antworten nicht gecacht.
+Deployen mit deaktiviertem Gateway-JWT-Check, weil die App auch einen öffentlichen
+`sb_publishable_*`-Key unterstützt (#195):
+
+```bash
+supabase functions deploy pitch-reset --no-verify-jwt
+```
+
+Mit dem normalen Supabase-Client/anon-Key `pitch-reset` aufrufen, Body `{ pin: "…" }`. Der
+Handler prüft die PIN serverseitig; ohne gültige PIN gibt es keinen Reset. Die Function ruft
+ausschließlich `reset_pitch_test()` auf, ohne clientseitige Ziel-ID. Fehlende/zu kurze
+Konfiguration → 503, falsche PIN → 401, Datenbankfehler → 502 mit generischer Meldung.
+PIN/Requests/Fehler werden nicht geloggt, Antworten nicht gecacht.
 
 Der RPC ist nur für `service_role` freigegeben. Er löscht nur Antworten der markierten Schule `pitch-test`, einschließlich Antworten und Hashes. Antwortgebundene Freitexte werden per `response_id ... ON DELETE CASCADE` mitgelöscht. Danach kann dasselbe Gerät erneut im Pitch abstimmen; NRW-Abgaben und deren Sperren bleiben erhalten. Der Client setzt und prüft für Testschulen keine lokale Wochensperre, da nur die Datenbank den Reset kennt. Gleichzeitige neue Abgaben nach der Reset-Transaktion zählen zur neuen Runde.
 

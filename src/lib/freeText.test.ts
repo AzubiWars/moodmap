@@ -67,11 +67,11 @@ describe('moderateLocally', () => {
 describe('submitFreeText', () => {
   const input = { schoolId: '900000', waveId: '2026-W43', deviceToken: 'a'.repeat(20), text: 'Mensa' };
 
-  function stubBackend(mode: string, body: unknown) {
+  function stubBackend(mode: string, body: unknown, anonKey = 'anon') {
     vi.stubEnv('VITE_DATA_MODE', mode);
     vi.stubEnv('VITE_SUPABASE_URL', 'https://example.supabase.co');
-    vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'anon');
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify(body), { status: 200 }));
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', anonKey);
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify(body), { status: 200 }));
     vi.stubGlobal('fetch', fetchMock);
     return fetchMock;
   }
@@ -86,6 +86,25 @@ describe('submitFreeText', () => {
     const result = await submitFreeText(input);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result.allowed).toBe(true);
+  });
+
+  it('does not send a publishable key as Bearer', async () => {
+    const fetchMock = stubBackend(
+      'supabase',
+      { ok: true, stored: true, cluster: 'Unterricht', topics: ['learning'] },
+      'sb_publishable_public',
+    );
+    await submitFreeText(input);
+    const headers = new Headers(fetchMock.mock.calls[0]![1]!.headers);
+    expect(headers.get('apikey')).toBe('sb_publishable_public');
+    expect(headers.get('Authorization')).toBeNull();
+  });
+
+  it('keeps a legacy anon JWT as Bearer', async () => {
+    const key = 'header.payload.signature';
+    const fetchMock = stubBackend('supabase', { ok: true, stored: true }, key);
+    await submitFreeText(input);
+    expect(new Headers(fetchMock.mock.calls[0]![1]!.headers).get('Authorization')).toBe(`Bearer ${key}`);
   });
 
   it('never shows internal server codes', async () => {

@@ -22,8 +22,14 @@ Zuerst die Migration `20261021180000_freetext_moderation_claim.sql` aus dem geme
 `503 unavailable`, ohne OpenRouter aufzurufen.
 
 ```bash
-supabase functions deploy submit-freetext
+supabase functions deploy submit-freetext --no-verify-jwt
 ```
+
+`--no-verify-jwt` ist nötig, weil die App auch mit einem öffentlichen
+`sb_publishable_*`-Key läuft; dieser ist kein JWT und darf nicht als Bearer gesendet werden
+(#195). Der Endpunkt ist trotzdem geschützt: Die Function prüft die bestehende Teilnahme, der
+RPC reserviert atomar genau einen Moderationsversuch, und ohne diese Prüfung wird kein
+OpenRouter-Aufruf gemacht. Ein Legacy-anon-JWT funktioniert weiterhin als Bearer.
 
 Lokal:
 

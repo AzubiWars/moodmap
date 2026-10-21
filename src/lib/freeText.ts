@@ -1,5 +1,6 @@
 import { getTopic } from '@/data/topics';
 import type { TopicSlug } from '@/types';
+import { edgeFunctionHeaders } from './edgeFunctions';
 
 export const MAX_FREE_TEXT_LENGTH = 280;
 
@@ -146,11 +147,7 @@ export async function submitFreeText(input: SubmitFreeTextInput): Promise<FreeTe
   try {
     const response = await fetch(`${url}/functions/v1/submit-freetext`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${anonKey}`,
-        apikey: anonKey,
-      },
+      headers: edgeFunctionHeaders(anonKey),
       body: JSON.stringify({ ...input, text: input.text.slice(0, MAX_FREE_TEXT_LENGTH) }),
       signal: AbortSignal.timeout(8_000),
     });
