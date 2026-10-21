@@ -7,6 +7,7 @@ import { NotFoundPage } from '@/features/info/NotFoundPage';
 import { PrivacyPage } from '@/features/info/PrivacyPage';
 import { LazyMapPage } from '@/features/map/LazyMapPage';
 import { CheckPage } from '@/features/survey/CheckPage';
+import { DonePage } from '@/features/survey/DonePage';
 import { SchoolEntryPage } from '@/features/survey/SchoolEntryPage';
 import { Layout } from './Layout';
 
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <LandingPage /> },
       { path: '/s/:schoolCode', element: <SchoolEntryPage /> },
       { path: '/check', element: <CheckPage /> },
+      { path: '/check/done', element: <DonePage /> },
       { path: '/map', element: <LazyMapPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/privacy', element: <PrivacyPage /> },
