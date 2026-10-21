@@ -67,6 +67,8 @@ describe('parity with the MockDataSource', () => {
     { role: 'student', gradeBand: ['5-7'] },
   ];
   const SCOPES: Partial<AggregateQuery>[] = [
+    { level: 'nrw' },
+    { level: 'nrw', parentId: '053' }, // parentId is ignored for nrw (#147)
     { level: 'regbez' },
     { level: 'kreis' },
     { level: 'kreis', parentId: '053' },
@@ -189,7 +191,7 @@ describe('input validation and exposure', () => {
   it.each([
     ['not an object', '[]', /must be an object/],
     ['missing level', { topic: 'all' }, /level must be/],
-    ['invalid level', { level: 'nrw', topic: 'all' }, /level must be/],
+    ['invalid level', { level: 'planet', topic: 'all' }, /level must be/],
     ['missing topic', { level: 'kreis' }, /topic is required/],
     ['invalid role', { level: 'kreis', topic: 'all', role: 'admin' }, /invalid role/],
     [

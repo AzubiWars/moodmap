@@ -215,14 +215,18 @@ describe('get_tension_index', () => {
     });
   });
 
-  it('rejects the internal nrw level on all public entry points', async () => {
-    for (const fn of ['get_tension_index', 'get_aggregates', 'get_trend']) {
-      await expect(
-        call(`public.${fn}($1::jsonb)`, [
-          JSON.stringify({ level: 'nrw', topic: 'all', waveIds: ['2026-W43'] }),
-        ]),
-      ).rejects.toThrow(/level must be/);
-    }
+  it('accepts level nrw on all public entry points like the mock (#147, #158)', async () => {
+    const query = { level: 'nrw', topic: 'all', parentId: '053', waveIds: ['2026-W42', '2026-W43'] } as const;
+    const [tension, aggregates, trend] = await Promise.all([
+      call<TensionRow[]>('public.get_tension_index($1::jsonb)', [JSON.stringify(query)]),
+      call('public.get_aggregates($1::jsonb)', [JSON.stringify(query)]),
+      call('public.get_trend($1::jsonb)', [JSON.stringify(query)]),
+    ]);
+    expect(tension).toEqual(await mock.getTensionIndex(query));
+    expect(aggregates).toEqual(await mock.getAggregates(query));
+    expect(trend).toEqual(await mock.getTrend(query));
+    expect(tension.map((r) => r.id)).toEqual(['nrw']);
+    expect(tension[0]!.index).not.toBeNull();
   });
 });
 
