@@ -1,0 +1,62 @@
+import { MOOD_LEVELS, NO_DATA } from '@/lib/colors';
+
+const NO_DATA_PATTERN = {
+  backgroundColor: NO_DATA.color,
+  backgroundImage: 'repeating-linear-gradient(45deg, transparent 0 2px, rgba(255,255,255,.7) 2px 4px)',
+};
+
+function rangeLabel(min: number, level: number) {
+  return `${min}–${level === 5 ? 100 : min + 19}`;
+}
+
+export function MapLegend() {
+  const levels = [...MOOD_LEVELS].reverse();
+  return (
+    <div
+      className="rounded-2xl bg-white/95 p-2 text-xs shadow-md ring-1 ring-slate-200 backdrop-blur md:p-3"
+      role="group"
+      aria-label="Legende Stimmungswetter"
+    >
+      {/* Mobile: kompakte Zeile */}
+      <ul className="flex items-center gap-1 md:hidden">
+        {[...MOOD_LEVELS].map((l) => (
+          <li
+            key={l.level}
+            className="flex h-7 w-8 items-center justify-center rounded-md"
+            style={{ backgroundColor: l.color }}
+            title={`${l.label} (${rangeLabel(l.min, l.level)})`}
+          >
+            <span aria-hidden>{l.weather}</span>
+            <span className="sr-only">{l.label}</span>
+          </li>
+        ))}
+        <li className="h-7 w-8 rounded-md" style={NO_DATA_PATTERN} title={NO_DATA.label}>
+          <span className="sr-only">{NO_DATA.label}</span>
+        </li>
+      </ul>
+
+      {/* Desktop: Liste mit Bereichen */}
+      <div className="hidden md:block">
+        <div className="mb-2 font-semibold text-slate-700">Stimmungswetter</div>
+        <ul className="space-y-1">
+          {levels.map((l) => (
+            <li key={l.level} className="flex items-center gap-2">
+              <span className="size-3.5 rounded-sm" style={{ backgroundColor: l.color }} aria-hidden />
+              <span className="w-5 text-center" aria-hidden>
+                {l.weather}
+              </span>
+              <span>
+                {l.label} <span className="text-slate-400">({rangeLabel(l.min, l.level)})</span>
+              </span>
+            </li>
+          ))}
+          <li className="flex items-center gap-2">
+            <span className="size-3.5 rounded-sm" style={NO_DATA_PATTERN} aria-hidden />
+            <span className="w-5" aria-hidden />
+            <span>{NO_DATA.label}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
+}

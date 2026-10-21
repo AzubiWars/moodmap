@@ -4,7 +4,7 @@ import { DemoPage } from '@/features/demo/DemoPage';
 import { LandingPage } from '@/features/info/LandingPage';
 import { NotFoundPage } from '@/features/info/NotFoundPage';
 import { PrivacyPage } from '@/features/info/PrivacyPage';
-import { MapPage } from '@/features/map/MapPage';
+import { LazyMapPage } from '@/features/map/LazyMapPage';
 import { CheckPage } from '@/features/survey/CheckPage';
 import { SchoolEntryPage } from '@/features/survey/SchoolEntryPage';
 import { Layout } from './Layout';
@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <LandingPage /> },
       { path: '/s/:schoolCode', element: <SchoolEntryPage /> },
       { path: '/check', element: <CheckPage /> },
-      { path: '/map', element: <MapPage /> },
+      { path: '/map', element: <LazyMapPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/demo', element: <DemoPage /> },

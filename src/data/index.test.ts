@@ -1,10 +1,5 @@
 import type { DataSource } from './api';
-import {
-  clearDataSources,
-  getDataSource,
-  registerDataSource,
-  resolveDataSourceMode,
-} from './index';
+import { clearDataSources, getDataSource, registerDataSource, resolveDataSourceMode } from './index';
 
 const mockSource = { kind: 'mock' } as unknown as DataSource;
 const supabaseSource = { kind: 'supabase' } as unknown as DataSource;

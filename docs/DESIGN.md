@@ -21,7 +21,7 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 | 80–100 | sehr gut | ☀️ | `--mood-5` | `#2F7FC1` |
 | – | zu wenige Daten | ░ | `--mood-none` | `#B8BCC6` + Schraffur |
 
-- Auf der Karte: **kontinuierliche Interpolation** zwischen den Stufen (MapLibre `interpolate`-Expression), Legende zeigt die 5 Stufen.
+- Auf der Karte: **5 diskrete Stufen** (MapLibre `step`-Expression), exakt wie die Legende. Keine Interpolation: Gelb↔Blau gemischt ergibt Grüntöne, die nicht in der Legende stehen.
 - Für Trend-Modus eigene Skala: Verschlechterung (Orange/Rot) ↔ unverändert (Grau) ↔ Verbesserung (Blau), mit ▲▼-Pfeilen.
 - Die Farben sind ein Startpunkt – der `fe`/`map`-Agent prüft Kontrast (Text auf Farbe) und Lesbarkeit auf der Basiskarte und passt an (Änderung hier dokumentieren).
 
