@@ -23,12 +23,12 @@
 
 ## 2. Demo-Skript
 
-**Vorbereitung:** Beamer zeigt `/map` (Rolle Ministerium, Live-Modus an). Zweites Fenster: `/demo` mit großem QR-Code. Handy einer Person aus dem Team als Backup bereit.
+**Vorbereitung:** Beamer zeigt zunächst `/map` (Rolle Ministerium). Für den Live-Moment `/demo/live` bereithalten; der konfigurierte Pitch-QR steht dort und im Abschnitt „Pitch-Live-Test“ auf `/demo`. Der Pitch-Standort bleibt aus allen NRW-Werten ausgeschlossen. Verschiedene Handys brauchen Supabase und die vorbereiteten Edge Functions/Secrets (#118); der Mock teilt nur Tabs desselben Browsers. Bedienung: [PITCH_LIVE.md](PITCH_LIVE.md). Handy einer Person aus dem Team als Backup bereit.
 
 1. **Karte zeigen** (20 s): „Das ist NRW heute. Jede Fläche ein Kreis, die Farbe ist das Stimmungswetter." → Legende kurz erklären.
 2. **Aha 1 – Themenfilter** (30 s): Gesamt-Mood ist überwiegend „heiter". Klick auf Thema **🤖 KI im Schulalltag** → die Karte kippt ins Regnerische. „Fast überall fühlen sich Schüler beim Thema KI allein gelassen. Das ist ein landesweites Thema – kein lokales."
 3. **Aha 2 – Hotspot & Drill-down** (40 s): Thema **📉 Unterrichtsausfall**, Trend-Modus → ein Kreis leuchtet orange. Reinzoomen → Schulen werden sichtbar → eine Schule anklicken → Detail-Panel: Score, Themen vs. NRW, Trend fällt seit 4 Wochen.
-4. **Live-Moment** (45 s): „Jetzt Sie!" QR-Code zeigen → Jury macht den Mood-Check auf dem eigenen Handy → auf dem Beamer pulsiert die Demo-Schule, Zähler steigt. *(Fallback: Teammitglied am Handy.)*
+4. **Live-Moment** (45 s): „Jetzt Sie!" `/demo/live` zeigen → Jury scannt den Pitch-QR und macht den Mood-Check → Zähler steigt, ab zehn gewerteten Stimmen erscheint die Stimmung, moderierte Anliegen werden als Cluster sichtbar. Danach für das Frühwarn-Radar zurück zur NRW-Karte wechseln. *(Fallback: lokaler Pitch-Test in zwei Tabs desselben Browsers, ausdrücklich als lokale Demo.)*
 5. **Frühwarn-Radar** (30 s): Kartenmodus „Frühwarn-Radar" → ein Kreis steht auf „Gespräch suchen". Detail: „Gehört werden" und „Sicherheit" sinken seit 5 Wochen. „Hier passiert noch nichts Schlimmes – aber hier sollte die Politik jetzt das Gespräch suchen."
 6. **Politik antwortet** (40 s): Klick „Antwort veröffentlichen" → z. B. „Wir hören euch: Ab nächster Woche zusätzliche Schulsozialarbeit und eine Dialogrunde mit euren SVs." → Auf dem Handy der Jury erscheint auf dem Danke-Screen „📣 Die Politik antwortet dir". **Kreis geschlossen.**
 7. **Wirkung** (15 s): Beispiel-Antwort aus den Demo-Daten zeigen: „Seit dieser Antwort: Gehört-werden +9, Resonanz 🌤️".
