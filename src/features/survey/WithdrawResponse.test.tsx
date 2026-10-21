@@ -11,6 +11,7 @@ import { CheckPage } from './CheckPage';
 import { DonePage } from './DonePage';
 import { hasSubmitted } from './useCheckFlow';
 import { selectQuestions } from './selectQuestions';
+import { WithdrawResponse } from './WithdrawResponse';
 
 const WAVE = '2026-W43';
 
@@ -53,6 +54,7 @@ describe('WithdrawResponse (#161)', () => {
       schoolId: '900000',
       schoolCode: 'DEMO42',
       schoolName: 'Demo',
+      isTest: false,
       gradeBand: '8-10',
     });
   });
@@ -95,6 +97,25 @@ describe('WithdrawResponse (#161)', () => {
     expect(screen.getByText(/Sie zählen dann nicht mehr auf der Karte/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Abbrechen' }));
     expect(screen.getByRole('button', { name: 'Meine Antworten löschen' })).toBeInTheDocument();
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('is not offered for the pitch test location, which the PIN reset clears (#171, #178)', async () => {
+    useParticipantStore.setState({ schoolId: 'TEST-PITCH', schoolCode: 'PITCH', isTest: true });
+    // The component itself renders nothing (synchronous, so not a vacuous check) …
+    const { container } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter>
+          <WithdrawResponse waveId={WAVE} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+    expect(container).toBeEmptyDOMElement();
+    // … and the thank-you page leaves out its card once the wave has loaded.
+    const remove = setup({ ok: true }, '/check/done');
+    await screen.findByText('Danke! Deine Stimme zählt.');
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    expect(screen.queryByRole('button', { name: 'Meine Antworten löschen' })).toBeNull();
     expect(remove).not.toHaveBeenCalled();
   });
 

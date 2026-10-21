@@ -2,11 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { loadFreeText } from '@/lib/freeText';
+import { useParticipantStore } from '@/store/participant';
 import { WithdrawResponse } from './WithdrawResponse';
 
 /** Platzhalter bis #29 („Deine Schule vs. NRW" + Teilen). */
 export function DonePage() {
   const freeText = loadFreeText();
+  const isTest = useParticipantStore((s) => s.isTest);
   const wave = useQuery({ queryKey: ['wave', 'current'], queryFn: () => getDataSource().getCurrentWave() });
 
   return (
@@ -25,7 +27,8 @@ export function DonePage() {
         </Link>
       </div>
 
-      {wave.data && (
+      {/* Pitch-Teilnahmen setzt der PIN-Reset zurück, nicht der Einzelnutzer (#171, #178). */}
+      {wave.data && !isTest && (
         <div className="card p-5">
           <WithdrawResponse waveId={wave.data.id} />
         </div>

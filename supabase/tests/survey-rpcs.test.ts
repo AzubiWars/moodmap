@@ -187,6 +187,44 @@ describe('delete_own_response (#161)', () => {
     expect(await rowsFor(other.deviceToken)).toBe(3);
   });
 
+  it('also deletes the free text of that response (#155 cascade, #178)', async () => {
+    const input = validInput();
+    await submit(input);
+    const freetext = {
+      schoolId: input.schoolId,
+      waveId: CURRENT_WAVE,
+      deviceToken: input.deviceToken,
+      cleaned: 'Mehr Pausen zwischen den Klausuren',
+      cluster: 'Pausen',
+      topics: ['stress'],
+      concern: false,
+    };
+    // Stored by the moderation Edge Function with the service key (#155).
+    await rpc('public.record_freetext($1::jsonb)', [JSON.stringify(freetext)], 'service_role');
+    const freetextRows = async () =>
+      Number(
+        (
+          await db.query<{ n: number }>(
+            `select count(*)::int as n from public.freetext_entries e
+             join public.responses r on r.id = e.response_id where r.device_hash = $1`,
+            [hashOf(input.deviceToken)],
+          )
+        ).rows[0]!.n,
+      );
+    const totalBefore = Number(
+      (await db.query<{ n: number }>('select count(*)::int as n from public.freetext_entries')).rows[0]!.n,
+    );
+    expect(await freetextRows()).toBe(1);
+
+    await expect(withdraw({ waveId: CURRENT_WAVE, deviceToken: input.deviceToken })).resolves.toEqual({
+      ok: true,
+    });
+    const totalAfter = Number(
+      (await db.query<{ n: number }>('select count(*)::int as n from public.freetext_entries')).rows[0]!.n,
+    );
+    expect(totalAfter).toBe(totalBefore - 1);
+  });
+
   it.each([
     ['not an object', '"x"', /must be an object/],
     ['a past wave', { waveId: PREVIOUS_WAVE, deviceToken: 'device-token-00000001' }, /not the current wave/],

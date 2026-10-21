@@ -6,6 +6,11 @@ import { PGlite } from '@electric-sql/pglite';
 import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { vi } from 'vitest';
+
+// Creating a database (WASM boot + all migrations) takes 1–3 s and much longer under parallel load.
+// Vitest's defaults (5 s per test, 10 s per hook) made tests that create one flaky, e.g. in the full run.
+vi.setConfig({ testTimeout: 30_000, hookTimeout: 30_000 });
 
 export type DbRole = 'anon' | 'authenticated' | 'service_role';
 
