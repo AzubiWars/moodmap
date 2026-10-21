@@ -205,6 +205,13 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - `get_school_by_code(code text)` → `School | null`, Groß-/Kleinschreibung und Leerzeichen egal. Einziger Weg zum `joinCode`.
 - `get_current_wave()` → `Wave | null`: die Welle, die `now()` enthält. Bei Lücken im Wellenkalender die zuletzt begonnene, damit die Live-Demo nie an einer fehlenden Welle scheitert. `submit_response` nutzt dieselbe Definition.
 
+✅ Aggregation in `supabase/migrations/20261021120000_aggregates.sql` (#79):
+- `get_aggregates(query jsonb)` → `AggregateRow[]`, rechnet **exakt** wie `src/lib/score.ts` + `src/data/mockAggregates.ts`. Der Paritätstest `supabase/tests/aggregates.test.ts` lässt dieselben Fixtures (`supabase/tests/fixtures.ts`, inkl. n = 9/10 und reinen Choice-Antworten) durch die echte MockDataSource und durch SQL laufen und vergleicht 150 Abfragen Zeile für Zeile.
+- K_MIN = 10 serverseitig (`k_min()`); der Client kann nur strenger sein.
+- Gleitkomma wie in JavaScript: `double precision` in derselben Reihenfolge, `Math.round(x)` als `floor(x + 0.5)` (Postgres' `round()` rundet −1,5 zu −2 statt −1).
+- Interne Bausteine `aggregate_rows(query, waveIds, previousWaveIds)` und `previous_wave_ids(waveIds)` sind nicht öffentlich und werden für `get_trend` (#80) wiederverwendet.
+- Die Zeilen-Helfer (`answer_points`, `answer_weight`, `round1`) sind einzeilige SQL-Funktionen **ohne** `set search_path`, damit Postgres sie inline ausführt. Zusammen mit Joins statt korrelierter Subqueries wurde eine Abfrage in PGlite dadurch ~9× schneller (614 → 69 ms bei 15 000 Antworten; natives Postgres ist deutlich schneller).
+
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
 - `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`
@@ -216,10 +223,10 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
 1. **Antwort → Punkte:** `mood5`: `(value − 1) × 25` → 0/25/50/75/100. `swipe`: Zustimmung 100, Ablehnung 0. `invert: true` → `100 − punkte`. „Weiß nicht" = nicht gewertet.
 2. **Themen-Score einer Einheit** (Schule/Kreis/RegBez) für Thema *t*:
    gewichteter Mittelwert aller gewerteten Antworten zu *t* (Kernfrage Gewicht 1.0, Swipe 0.5).
-3. **Gesamt-Mood einer Einheit:** Mittelwert der Themen-Scores der Themen 1–n mit ausreichendem n (gleich gewichtet), **plus** die direkte Frage `overall` als eigenes Thema. → Ein schlecht abgedecktes Thema verzerrt nicht.
+3. **Gesamt-Mood einer Einheit:** Mittelwert der Themen-Scores der Themen 1–n mit ausreichendem n (gleich gewichtet), **plus** die direkte Frage `overall` als eigenes Thema. → Ein schlecht abgedecktes Thema verzerrt nicht. Der Mittelwert wird in ganzen Zehnteln summiert, also exakt und unabhängig von der Reihenfolge (TS und SQL identisch, #79).
 4. **Aggregation nach oben (Schule → Kreis → RegBez → NRW):** Berechnung direkt über alle Antworten der Ebene (nicht Mittelwert der Schul-Mittelwerte), damit große Schulen nicht untergewichtet werden. *(Optional P2: Gewichtung nach Schülerzahl, um Beteiligungsunterschiede auszugleichen.)*
 5. **Mindestanzahl:** `K_MIN = 10` unterschiedliche Teilnahmen pro angezeigter Zelle (Einheit × Thema × Filterkombination). `n` zählt nur Teilnahmen mit mindestens einer gültigen, gewerteten Antwort (Gewicht > 0) in dieser Zelle. Mehrere Kern-/Swipe-Fragen derselben Teilnahme erhöhen `n` nicht. TypeScript: `AnswerScoreInput.responseId`; SQL-Views/RPCs (#22): `COUNT(DISTINCT response_id)` nach derselben Filterung. Die Score-Berechnung bleibt der gewichtete Mittelwert aller gewerteten Antworten. Darunter: `score = null` → grau „zu wenige Daten". Siehe `docs/PRIVACY.md`.
-6. **Trend (Δ):** Score aktuelle Periode − Score Vorperiode (nur wenn beide ≥ `K_MIN`).
+6. **Trend (Δ):** Score aktuelle Periode − Score Vorperiode (nur wenn beide ≥ `K_MIN`). **Vorperiode** = gleich viele Wellen unmittelbar vor der ersten gewählten Welle. Ohne `waveIds`: aktuelle Welle vs. Vorwelle (Mock und SQL identisch).
 7. **Hotspot-Regel (Dashboard):** Einheit mit `score < 40` **oder** `delta ≤ −10` und `n ≥ 30`.
 8. **Spannungs-Index (Frühwarn-Radar)**, 0–100, hoch = mehr Spannung:
    `index = 100 − gewichteter Mittelwert der Themen-Scores` mit Gewichten

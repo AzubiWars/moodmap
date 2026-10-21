@@ -157,6 +157,9 @@ export function topicScores(
 /**
  * Gesamt-Mood: Mittelwert der Themen-Scores mit ausreichend n.
  * `overall` zählt dabei als eigenes Thema; Themen unter K_MIN verzerren nicht.
+ *
+ * Summiert in ganzen Zehnteln (Themen-Scores haben eine Nachkommastelle): exakt und unabhängig von der
+ * Reihenfolge der Themen, damit die SQL-Seite (#79) bitgenau dasselbe Ergebnis liefert.
  */
 export function overallScore(scores: Readonly<Record<TopicSlug, TopicScore>>): number | null {
   const values = Object.values(scores)
@@ -164,7 +167,8 @@ export function overallScore(scores: Readonly<Record<TopicSlug, TopicScore>>): n
     .filter((score): score is number => score !== null);
 
   if (values.length === 0) return null;
-  return round1(values.reduce((sum, score) => sum + score, 0) / values.length);
+  const tenths = values.reduce((sum, score) => sum + Math.round(score * 10), 0);
+  return Math.round(tenths / values.length) / 10;
 }
 
 /** Δ zur Vorperiode – nur wenn beide Perioden ≥ `kMin` und einen Score haben. */

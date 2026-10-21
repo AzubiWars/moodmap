@@ -13,5 +13,5 @@
     "skipLibCheck": true,
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["vite.config.ts", "scripts", "supabase/tests"]
+  "include": ["vite.config.ts", "scripts"]
 }
