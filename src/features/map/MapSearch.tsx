@@ -11,6 +11,8 @@ interface MapSearchProps {
   regbez?: RegionCollection;
   onSelectSchool: (school: School) => void;
   onSelectDirectorySchool?: (school: School) => void;
+  /** Lädt das große Schulverzeichnis erst beim ersten Suchen. */
+  onRequestDirectory?: () => void;
   onSelectCity: (city: string) => void;
   onSelectRegion: (region: RegionFeature) => void;
 }
@@ -32,6 +34,7 @@ export function MapSearch({
   regbez,
   onSelectSchool,
   onSelectDirectorySchool,
+  onRequestDirectory,
   onSelectCity,
   onSelectRegion,
 }: MapSearchProps) {
@@ -86,8 +89,12 @@ export function MapSearch({
           onChange={(event) => {
             setQuery(event.target.value);
             setOpen(true);
+            if (event.target.value.trim().length >= MIN_SEARCH_LENGTH) onRequestDirectory?.();
           }}
-          onFocus={() => query.trim() && setOpen(true)}
+          onFocus={() => {
+            if (query.trim()) setOpen(true);
+            onRequestDirectory?.();
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
               setOpen(false);
