@@ -1,4 +1,13 @@
-import type { AggregateRow, Distribution, PolicyAnswer, School, TrendPoint, Wave } from '@/types';
+import type {
+  AggregateRow,
+  Distribution,
+  FreetextCluster,
+  PitchAggregate,
+  PolicyAnswer,
+  School,
+  TrendPoint,
+  Wave,
+} from '@/types';
 import { getDeviceToken } from '@/lib/device';
 import { K_MIN } from '@/lib/env';
 import type { DataSource, NewResponseEvent } from './api';
@@ -190,6 +199,18 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
       };
     },
     getTensionIndex: (query) => rpc('get_tension_index', { query }),
+    async getPitchAggregate() {
+      const data = await rpc<PitchAggregate>('get_pitch_aggregate', {});
+      const masked = data.scoredN < minimum;
+      return {
+        ...data,
+        score: masked ? null : data.score,
+        topicScores: Object.fromEntries(
+          Object.entries(data.topicScores ?? {}).map(([slug, score]) => [slug, masked ? null : score]),
+        ),
+      };
+    },
+    getFreetextClusters: (scope) => rpc<FreetextCluster[]>('get_freetext_clusters', { scope }),
     async getPolicyAnswers(filter) {
       return (await rpc<PolicyAnswer[]>('get_policy_answers', { filter })).map((answer) => ({
         ...answer,

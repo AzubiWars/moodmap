@@ -28,12 +28,30 @@ export function adaptSeed(schools: School[], seed: SeedData): MockDataset {
   };
 }
 
+/** Synthetischer Pitch-Standort (#113/#116), im Mock nur für den Test-Code erreichbar. */
+const PITCH_SCHOOL: School = {
+  id: 'pitch-test',
+  name: 'Pitch-Test (Demo)',
+  schoolForm: 'gesamtschule',
+  kreisId: 'TEST-PITCH',
+  city: 'Teststandort',
+  lat: 52.52,
+  lon: 13.405,
+  studentCount: null,
+  joinCode: 'PITCH',
+  isTest: true,
+};
+
 async function loadData(): Promise<MockDataset> {
   const response = await fetch('/data/schools.json');
   if (!response.ok) throw new Error(`Demo-Schulen konnten nicht geladen werden (${response.status}).`);
   const schools = (await response.json()) as School[];
   const { generateSeedData } = await import('./seed/generateSeed');
-  return adaptSeed(schools, generateSeedData(schools));
+  // Der Pitch-Standort bekommt keine Seed-Antworten; er füllt sich nur durch echte Test-Abgaben.
+  const withPitch = schools.some((school) => school.id === PITCH_SCHOOL.id)
+    ? schools
+    : [...schools, PITCH_SCHOOL];
+  return adaptSeed(withPitch, generateSeedData(schools));
 }
 
 // createMockSource memoiziert erst beim ersten Datenzugriff. Keine Netzwerk-Anfrage beim Import.

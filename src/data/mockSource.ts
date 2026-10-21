@@ -3,7 +3,7 @@ import { isGradeBand, isRole } from '@/types';
 import { hashDeviceToken } from '@/lib/device';
 import { K_MIN } from '@/lib/env';
 import type { DataSource, NewResponseEvent } from './api';
-import { aggregateRows, schoolInScope } from './mockAggregates';
+import { aggregateRows, schoolInScope, summarize } from './mockAggregates';
 import { createMockPolicyApi } from './mockPolicy';
 import type { MockDataset, StoredSubmission } from './mockRecords';
 import { browserStorage, createMockStorage } from './mockStorage';
@@ -281,6 +281,39 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
           return { value: option.value, count: count < 3 ? null : count };
         }),
       };
+    },
+    async getPitchAggregate() {
+      const data = await snapshot();
+      const school = data.schools.find((entry) => entry.id === 'pitch-test' && entry.isTest);
+      if (!school) throw new Error('Kein Pitch-Teststandort im Demo-Seed.');
+      const waveId = currentWave(data).id;
+      const responses = data.responses.filter(
+        (response) => response.schoolId === school.id && response.waveId === waveId,
+      );
+      const ids = new Set(responses.map((response) => response.id));
+      const answers = data.answers.filter((answer) => ids.has(answer.responseId));
+      const result = summarize(answers, 'all', kMin);
+      return {
+        school: {
+          id: school.id,
+          name: school.name,
+          city: school.city,
+          lat: school.lat,
+          lon: school.lon,
+          isTest: true,
+        },
+        waveId,
+        n: responses.length,
+        scoredN: result.total.n,
+        score: result.total.score,
+        topicScores: Object.fromEntries(
+          Object.entries(result.topics).map(([slug, entry]) => [slug, entry.score]),
+        ),
+      };
+    },
+    // Der Mock speichert keine Freitext-Cluster; die Beamer-Ansicht zeigt dort den Leerzustand.
+    async getFreetextClusters() {
+      return [];
     },
     ...createMockPolicyApi({ snapshot, storage, now, kMin }),
     subscribeToNewResponses(callback) {

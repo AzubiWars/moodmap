@@ -95,6 +95,13 @@ describe('MockDataSource', () => {
     ]);
     expect(await mock.getAggregates(query)).toEqual([expect.objectContaining({ id: '900000', n: 11 })]);
     expect(await mock.getChoiceDistribution('ai.deep', { level: 'school', id: 'pitch-test' })).toBeNull();
+    expect(await mock.getPitchAggregate()).toMatchObject({
+      school: { id: 'pitch-test', isTest: true },
+      n: 1,
+      scoredN: 1,
+      score: null,
+    });
+    expect(await mock.getFreetextClusters({ level: 'school', id: 'pitch-test' })).toEqual([]);
   });
 
   it('restores submitted votes after reload without persisting the raw device token', async () => {

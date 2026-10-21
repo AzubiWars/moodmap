@@ -21,6 +21,8 @@ it('boots the real seed lazily and shares saved votes across all aggregate level
   try {
     expect(fetchSchools).not.toHaveBeenCalled();
     expect((await source.getSchoolByCode('DEMO42'))?.id).toBe('900000');
+    expect((await source.getSchoolByCode('PITCH'))?.isTest).toBe(true);
+    expect(await source.getPitchAggregate()).toMatchObject({ n: 0, scoredN: 0, score: null });
     expect((await source.getCurrentWave()).id).toBe('2026-W43');
     const before = (await source.getAggregates({ level: 'school', topic: 'ai', parentId: '05111' })).find(
       (row) => row.id === '900000',
