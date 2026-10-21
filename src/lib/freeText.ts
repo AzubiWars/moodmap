@@ -23,7 +23,8 @@ const DISCARDED: FreeTextModeration = {
 
 /**
  * Lokaler Demo-Fallback für den Mock-Modus (ADR-016).
- * Die echte Moderation läuft serverseitig über die Edge Function `moderate-text`.
+ * Die echte Moderation läuft serverseitig über die Edge Function `submit-freetext`
+ * (erst nach der Umfrage-Abgabe).
  */
 const SOFT_WORDS = /\b(idiot(?:en)?|depp(?:en)?|dummkopf|arschloch|wichser|hurensohn|spast(?:i)?)\b/gi;
 const HARD_BLOCK = /\b(umbringen|töten|abstechen|vergewaltigen|verpfeifen\s+wir|hass\s+auf)\b/i;
@@ -109,49 +110,77 @@ export function moderateLocally(input: string): FreeTextModeration {
   };
 }
 
-function normalize(value: unknown): FreeTextModeration {
-  if (!value || typeof value !== 'object') return DISCARDED;
-  const raw = value as Partial<FreeTextModeration>;
-  if (raw.allowed !== true) {
-    return {
-      ...DISCARDED,
-      reason: typeof raw.reason === 'string' ? raw.reason : DISCARDED.reason,
-      concern: raw.concern === true,
-    };
-  }
-  return {
-    allowed: true,
-    reason: '',
-    cleaned: typeof raw.cleaned === 'string' ? raw.cleaned.slice(0, MAX_FREE_TEXT_LENGTH) : '',
-    topics: Array.isArray(raw.topics) ? raw.topics.filter((t): t is string => typeof t === 'string') : [],
-    cluster: typeof raw.cluster === 'string' ? raw.cluster : '',
-    concern: raw.concern === true,
-  };
+export interface SubmitFreeTextInput {
+  schoolId: string;
+  waveId: string;
+  deviceToken: string;
+  text: string;
+}
+
+interface SubmitFreeTextResponse {
+  ok?: unknown;
+  stored?: unknown;
+  reason?: unknown;
+  concern?: unknown;
+  cluster?: unknown;
+  topics?: unknown;
 }
 
 /**
- * Wenn Supabase konfiguriert ist, läuft die Prüfung über die Edge Function
- * (`moderate-text` → OpenRouter), unabhängig vom Datenmodus. Ohne Supabase-Env
- * (z. B. reiner Mock/Dev) greift der lokale Demo-Fallback.
+ * Nach der Umfrage-Abgabe: serverseitige Moderation + Speicherung über `submit-freetext`.
+ * Ohne Supabase-Env (reiner Dev/Mock) greift der lokale Demo-Fallback.
  */
-export async function moderateFreeText(input: string): Promise<FreeTextModeration> {
+export async function submitFreeText(input: SubmitFreeTextInput): Promise<FreeTextModeration> {
   const url = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) return moderateLocally(input);
+  if (!url || !anonKey) return moderateLocally(input.text);
 
   try {
-    const response = await fetch(`${url}/functions/v1/moderate-text`, {
+    const response = await fetch(`${url}/functions/v1/submit-freetext`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${anonKey}`,
         apikey: anonKey,
       },
-      body: JSON.stringify({ text: input.slice(0, MAX_FREE_TEXT_LENGTH) }),
-      signal: AbortSignal.timeout(5_000),
+      body: JSON.stringify({ ...input, text: input.text.slice(0, MAX_FREE_TEXT_LENGTH) }),
+      signal: AbortSignal.timeout(8_000),
     });
     if (!response.ok) return DISCARDED;
-    return normalize(await response.json());
+
+    const data = (await response.json()) as SubmitFreeTextResponse;
+    const concern = data.concern === true;
+    if (data.ok !== true) {
+      return {
+        ...DISCARDED,
+        reason: typeof data.reason === 'string' ? data.reason : DISCARDED.reason,
+        concern,
+      };
+    }
+
+    const already = data.stored !== true && data.reason === 'already_submitted';
+    if (data.stored !== true && !already) {
+      return {
+        allowed: false,
+        reason:
+          typeof data.reason === 'string' ? data.reason : 'Dein Hinweis konnte nicht übernommen werden.',
+        cleaned: '',
+        topics: [],
+        cluster: '',
+        concern,
+      };
+    }
+
+    return {
+      allowed: true,
+      reason: '',
+      cleaned: '',
+      topics: Array.isArray(data.topics)
+        ? data.topics.filter((topic): topic is TopicSlug => typeof topic === 'string')
+        : [],
+      cluster: typeof data.cluster === 'string' ? data.cluster : '',
+      concern,
+    };
   } catch {
     return DISCARDED;
   }

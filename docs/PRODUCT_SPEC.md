@@ -239,7 +239,7 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
   - `cleaned`: bereinigter Text. **Schimpfwörter und unpassende Jugendsprache werden entfernt bzw. neutral umformuliert**, **Namen, Orte im Nahbereich, Klassen und andere persönliche Angaben werden entfernt**
   - `topics`: Zuordnung zu unseren Themen-Slugs (`docs/SURVEY_TOPICS.md`) + ein kurzes freies Cluster-Label
   - `concern` (bool): Hinweis auf Krise/Gefährdung → der Person werden direkt Hilfsangebote gezeigt (PRIVACY §5), **keine** Weiterleitung, keine Speicherung des Rohtexts
-- **Speicherung:** nur `cleaned`, `topics`, `cluster`, `allowed`, Schule, Welle, Tag. **Der Rohtext wird nie gespeichert und nicht geloggt.**
+- **Speicherung:** nur `cleaned`, `topics`, `cluster` (plus `concern`) in `freetext_entries`, verknüpft mit Schule, Welle und Tag über die bestehende Teilnahme. Abgelehnte Texte werden gar nicht gespeichert. **Der Rohtext wird nie gespeichert und nicht geloggt.**
 - **Anzeige:** Cluster mit Anzahl („📱 Handyregeln · 23 Nennungen“) und 2–3 bereinigte Beispielzitate pro Cluster, erst ab K_MIN Nennungen je Einheit. Abgelehnte Texte erscheinen nirgends.
 - **Robustheit:** Fällt OpenRouter aus oder dauert es zu lange (> 5 s), wird die Umfrage trotzdem gespeichert und der Freitext verworfen, mit freundlichem Hinweis. Der Mood-Check darf nie am LLM hängen. Im Mock-Modus gibt es einen einfachen lokalen Fallback (Wortliste + Schlüsselwort-Zuordnung).
 - **Kosten/Last:** 200 Texte im Pitch, günstiges, schnelles Modell mit JSON-Ausgabe. Die Modellwahl dokumentiert der umsetzende Agent im PR.

@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useReducer, useRef } from 'react';
 import { getDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
-import { saveFreeText, type FreeTextModeration } from '@/lib/freeText';
+import { saveFreeText, submitFreeText } from '@/lib/freeText';
 import type { GradeBand, Question } from '@/types';
 import { buildAnswers, cardsOf, checkReducer, initialState, type CardAnswer } from './checkFlow';
 
@@ -64,11 +64,20 @@ export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }:
         deviceToken: getDeviceToken(),
         answers: buildAnswers(state),
       })
-      .then((result) => {
+      .then(async (result) => {
         if (!mounted.current) return;
         if (result.ok || result.reason === 'already_submitted') markSubmitted(waveId);
         if (result.ok) {
-          if (state.freeText) saveFreeText(state.freeText);
+          if (state.freeText) {
+            const moderation = await submitFreeText({
+              schoolId,
+              waveId,
+              deviceToken: getDeviceToken(),
+              text: state.freeText,
+            });
+            saveFreeText(moderation);
+          }
+          if (!mounted.current) return;
           void queryClient.invalidateQueries();
         }
         dispatch({
@@ -92,6 +101,6 @@ export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }:
       attempt.current += 1;
       dispatch({ type: 'RETRY' });
     },
-    finish: (freeText: FreeTextModeration | null) => dispatch({ type: 'FREETEXT', freeText }),
+    finish: (freeText: string | null) => dispatch({ type: 'FREETEXT', freeText }),
   };
 }

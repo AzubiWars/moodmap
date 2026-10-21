@@ -1,5 +1,4 @@
 import { QUESTIONS_BY_ID } from '@/data/topics';
-import type { FreeTextModeration } from '@/lib/freeText';
 import type { AnswerInput, Question } from '@/types';
 
 /** Antwort auf eine Karte: Skalenwert (mood5/swipe) oder gewählte Optionen (choice). */
@@ -15,8 +14,8 @@ export interface CheckState {
   deep: Question | null;
   index: number;
   answers: Record<string, CardAnswer>;
-  /** Ergebnis der optionalen Freitext-Moderation; `null` = übersprungen. */
-  freeText: FreeTextModeration | null;
+  /** Rohtext der optionalen Freitext-Frage; Moderation/Speicherung erst nach der Abgabe. */
+  freeText: string | null;
 }
 
 export type CheckAction =
@@ -24,7 +23,7 @@ export type CheckAction =
   | { type: 'SKIP' }
   | { type: 'BACK' }
   | { type: 'RETRY' }
-  | { type: 'FREETEXT'; freeText: FreeTextModeration | null }
+  | { type: 'FREETEXT'; freeText: string | null }
   | { type: 'RESULT'; result: 'ok' | 'already' | 'error' };
 
 /** Vertiefung gibt es nur, wenn ein Thema mit Vertiefungsfrage schlecht bewertet wurde. */

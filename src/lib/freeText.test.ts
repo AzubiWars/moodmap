@@ -1,4 +1,11 @@
-import { clearFreeText, loadFreeText, MAX_FREE_TEXT_LENGTH, moderateLocally, saveFreeText } from './freeText';
+import {
+  clearFreeText,
+  loadFreeText,
+  MAX_FREE_TEXT_LENGTH,
+  moderateLocally,
+  saveFreeText,
+  submitFreeText,
+} from './freeText';
 
 describe('moderateLocally', () => {
   it('allows normal feedback and assigns a topic', () => {
@@ -43,6 +50,17 @@ describe('moderateLocally', () => {
 
   it('rejects empty text', () => {
     expect(moderateLocally('   ').allowed).toBe(false);
+  });
+
+  it('falls back locally when Supabase is not configured', async () => {
+    const result = await submitFreeText({
+      schoolId: '900000',
+      waveId: '2026-W43',
+      deviceToken: 'a'.repeat(20),
+      text: 'Die Mensa ist zu teuer.',
+    });
+    expect(result.allowed).toBe(true);
+    expect(result.cleaned).toContain('Mensa');
   });
 });
 
