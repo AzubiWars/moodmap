@@ -159,11 +159,7 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
         />
       </Source>
       <Source id="germany-outline" type="geojson" data={GERMANY_OUTLINE_URL}>
-        <Layer
-          id="germany-outline-line"
-          type="line"
-          paint={{ 'line-color': '#94a3b8', 'line-width': 1 }}
-        />
+        <Layer id="germany-outline-line" type="line" paint={{ 'line-color': '#94a3b8', 'line-width': 1 }} />
       </Source>
       {regions && (
         <Source id="regions" type="geojson" data={regions} promoteId="id">
