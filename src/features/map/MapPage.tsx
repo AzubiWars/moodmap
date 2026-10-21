@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { TOPICS } from '@/data/topics';
-import { demoScores } from './demoScores';
 import type { School } from '@/types';
 import {
   breadcrumb,
@@ -28,6 +27,7 @@ import { MoodMap } from './MoodMap';
 import { loadSchools, schoolsToGeoJSON } from './schools';
 import { TopicFilter } from './TopicFilter';
 import type { FilterTopic } from './topicSearch';
+import { type MapTopic, type ScoreMap, toScoreMap, useAggregates, useLiveAggregates } from './useAggregates';
 
 const MAP_TOPICS: FilterTopic[] = [
   { slug: 'all', title: 'Gesamt-Mood', icon: '🗺️' },
@@ -35,14 +35,8 @@ const MAP_TOPICS: FilterTopic[] = [
 ];
 
 /** Färbt die angezeigte Ebene; Flächen außerhalb des fokussierten Regierungsbezirks erhalten `dim`. */
-function scoreRegions(regions: RegionCollection, topic: string, focusRegbezId: string | null) {
-  const withData = withScores(
-    regions,
-    demoScores(
-      regions.features.map((f) => f.properties.id),
-      topic,
-    ),
-  );
+function scoreRegions(regions: RegionCollection, scores: ScoreMap, focusRegbezId: string | null) {
+  const withData = withScores(regions, scores);
   if (!focusRegbezId) return withData;
   return {
     ...withData,
@@ -77,6 +71,7 @@ export function MapPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTopic = searchParams.get('topic');
   const topic = MAP_TOPICS.find((entry) => entry.slug === requestedTopic) ?? MAP_TOPICS[0]!;
+  const topicSlug = topic.slug as MapTopic;
 
   function selectTopic(slug: string) {
     setSearchParams(
@@ -114,20 +109,22 @@ export function MapPage() {
 
   // Landesansicht: Regierungsbezirke (Fallback: Kreise, falls die RegBez-Datei fehlt).
   // Ab Regierungsbezirk: alle Kreise, die außerhalb des Bezirks werden abgeblendet.
-  const shown = drill.level === 'nrw' ? (regbezQuery.data ?? kreiseQuery.data) : kreiseQuery.data;
+  const regionLevel = drill.level === 'nrw' && regbezQuery.data ? 'regbez' : 'kreis';
+  const shown = regionLevel === 'regbez' ? regbezQuery.data : kreiseQuery.data;
 
-  // TODO(#9): demoScores durch DataSource.getAggregates({ level, topic }) ersetzen (#68)
-  const scored = shown ? scoreRegions(shown, topic.slug, focusRegbezId) : null;
+  // Aggregate aus der DataSource (#68), bereits k-anonymisiert (score null unter K_MIN)
+  useLiveAggregates();
+  const regionAggregates = useAggregates(regionLevel, topicSlug);
+  const schoolAggregates = useAggregates('school', topicSlug, {
+    parentId: drill.kreis?.properties.id,
+    enabled: drill.level !== 'nrw',
+  });
+
+  const scored = shown ? scoreRegions(shown, toScoreMap(regionAggregates.data), focusRegbezId) : null;
 
   const schoolsShown = schoolsQuery.data ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data) : [];
   const schoolPoints = schoolsShown.length
-    ? schoolsToGeoJSON(
-        schoolsShown,
-        demoScores(
-          schoolsShown.map((s) => s.id),
-          topic.slug,
-        ),
-      )
+    ? schoolsToGeoJSON(schoolsShown, toScoreMap(schoolAggregates.data))
     : null;
 
   const focusFeature = drill.kreis ?? drill.regbez;
