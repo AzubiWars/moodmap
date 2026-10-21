@@ -8,7 +8,7 @@ export default defineConfig({
       sizes: [192, 512],
       favicons: [[48, 'favicon.ico']],
     },
-    maskable: { sizes: [512], padding: 0.2, resizeOptions: { background: '#2B78B8' } },
+    maskable: { sizes: [512], padding: 0.15, resizeOptions: { background: '#2B78B8' } },
     apple: { sizes: [180], padding: 0.1, resizeOptions: { background: '#2B78B8' } },
   },
   images: ['public/favicon.svg'],
