@@ -34,6 +34,9 @@ export type QuestionType = (typeof QUESTION_TYPES)[number];
 export const KREIS_TYPES = ['kreis', 'kreisfreie_stadt'] as const;
 export type KreisType = (typeof KREIS_TYPES)[number];
 
+export const TOPIC_PRIORITIES = ['P0', 'P1', 'P2'] as const;
+export type TopicPriority = (typeof TOPIC_PRIORITIES)[number];
+
 export const TENSION_LEVELS = ['stable', 'watch', 'talk'] as const;
 export type TensionLevel = (typeof TENSION_LEVELS)[number];
 
@@ -87,6 +90,14 @@ export interface Topic {
   audience: Role[];
   mandatory: boolean;
   sort: number;
+  priority: TopicPriority;
+}
+
+export interface QuestionOption {
+  /** Stabiler Wert für Speicherung/Auswertung. */
+  value: string;
+  /** Anzeigetext in der UI. */
+  label: string;
 }
 
 export interface Question {
@@ -95,10 +106,12 @@ export interface Question {
   type: QuestionType;
   text: string;
   /** Nur bei `choice` gesetzt. */
-  options?: string[];
+  options?: QuestionOption[];
+  /** Bei `choice`: Mehrfachauswahl erlaubt. */
+  multiple?: boolean;
   /** Bei `true` wird der Score invertiert (z. B. „Stress" hoch = Stimmung schlecht). */
   invert?: boolean;
-  /** Gewicht im Themen-Score; Kernfrage 1.0, Swipe 0.5. */
+  /** Gewicht im Themen-Score; Kernfrage 1.0, Swipe 0.5, Verteilung 0. */
   weight?: number;
   audience?: Role;
 }

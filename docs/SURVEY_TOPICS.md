@@ -72,7 +72,7 @@ Wenn eine Antwort/Maßnahme der Politik angezeigt wird (Feature „Politik antwo
 ## 3. Datenformat (Vorschlag für `topics.ts`)
 
 ```ts
-type QuestionType = 'mood5' | 'swipe' | 'choice' | 'multichoice';
+type QuestionType = 'mood5' | 'swipe' | 'choice';
 type Audience = 'student' | 'teacher';
 
 interface Topic {
@@ -81,20 +81,25 @@ interface Topic {
   icon: string;          // '🧯'
   audience: Audience[];
   mandatory: boolean;    // immer im Mood-Check?
-  priority: 'P0' | 'P1';
+  sort: number;          // stabile Reihenfolge (0–15)
+  priority: 'P0' | 'P1' | 'P2';
 }
 
 interface Question {
   id: string;            // 'stress.core', 'stress.deep', 'ai.swipe.rules'
-  topic: string;         // Topic-Slug
+  topicSlug: string;     // Topic-Slug
   type: QuestionType;
   text: string;
   options?: { value: string; label: string }[];
+  multiple?: boolean;    // nur bei type: 'choice' – Mehrfachauswahl
   invert?: boolean;      // nur wenn nicht positiv formulierbar
   weight: number;        // Kernfrage 1.0, Swipe 0.5, choice 0 (zählt nicht in Score)
   audience: Audience;
 }
 ```
+
+> Umgesetzt in `src/data/topics.ts` (`TOPICS`, `QUESTIONS`). Mehrfachauswahl ist
+> `type: 'choice'` + `multiple: true` – kein eigener `multichoice`-Typ nötig.
 
 `choice`/`multichoice`-Fragen fließen **nicht** in den Mood-Score ein, sondern werden als Verteilungen im Detail-Panel gezeigt („42 % stresst am meisten: Klausuren-Häufung").
 
