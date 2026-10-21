@@ -2,6 +2,7 @@ import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { DemoBanner } from '@/components/DemoBanner';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -19,7 +20,7 @@ export function Layout() {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
           <NavLink to="/" className="flex items-center gap-2 text-lg font-bold">
             <img src="/favicon.svg" alt="" className="size-7" />
-            Moodmap <span className="text-mood-5">NRW</span>
+            Moodmap <span className="hidden text-mood-5 sm:inline">NRW</span>
           </NavLink>
           <nav className="hidden gap-1 md:flex" aria-label="Hauptnavigation">
             {NAV.map(({ to, label }) => (
@@ -38,7 +39,10 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
+          {/* Slot für Rollen-Umschalter (#30) und Theme-Toggle (#35) */}
           <div className="flex items-center gap-2" data-slot="header-actions">
+            <RoleSwitcher variant="segmented" className="hidden lg:inline-flex" />
+            <RoleSwitcher variant="compact" className="lg:hidden" />
             <ThemeToggle />
           </div>
         </div>

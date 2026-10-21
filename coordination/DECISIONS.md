@@ -85,3 +85,26 @@ Format:
 - **Kontext:** Mit #100 liegt das echte Schulverzeichnis NRW vor (5.327 Schulen, dl-de/by-2-0). Die Umfragewerte im Prototyp sind aber synthetisch. Würde die öffentlich erreichbare Demo echte, namentlich genannte Schulen mit erfundenen Werten zeigen („Städtische Gesamtschule X: ⛈️ sehr schlecht“), wären das falsche Aussagen über reale Einrichtungen. Das schadet Schulen und dem Pitch (Vertrauen, PRIVACY §4 „kein Pranger“).
 - **Entscheidung:** Synthetische Stimmungswerte erscheinen **nur auf synthetischen Schulen** (`public/data/schools.json`, Demo-Schule `DEMO42`). Das echte Verzeichnis (`schools.real.json`) darf für Standorte, Anzahlen und Abdeckung genutzt werden (z. B. „5.327 Schulen in NRW“, Kartenpunkte ohne Wertung) oder mit Namen nur dann, wenn **echte** Antworten vorliegen. `DEMO42` wird im echten Datensatz nie vergeben. Aggregate auf Kreis-/Bezirksebene mit Demo-Daten bleiben ok (klar als Demo gekennzeichnet).
 - **Konsequenzen:** #9 (MockDataSource) und #18 (Schul-Marker) nutzen für Werte die synthetischen Schulen. Ein Umschalten auf echte Schulen kommt erst mit echten Daten (Supabase-Modus).
+
+## ADR-013 · Demo-Daten auf echten Standorten, ohne echte Schulnamen (präzisiert ADR-012)
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen)
+- **Kontext:** Die Menschen bestätigen ADR-012 im Kern: keine echten Schulnamen mit Demo-Werten. Gewünscht ist aber, dass die Demo **echte Schulstandorte** nutzt.
+- **Entscheidung:** Demo-Schulen dürfen auf echten Standorten aus `schools.real.json` liegen (Koordinaten, Kreis, Schulform, Stadt, grobe Schülerzahl). Ihre **Namen werden anonymisiert** (z. B. „Gesamtschule · Düsseldorf #3“), Schulnummern und Join-Codes bleiben synthetisch. Echte Namen erscheinen nur mit echten Antworten. `DEMO42` bleibt die Demo-Schule mit synthetischem Namen.
+- **Konsequenzen:** Den synthetischen Schul-Datensatz für Mock/Seed aus den echten Standorten ableiten (eigenes Issue). Bis dahin gelten die 300 synthetischen Schulen.
+
+## ADR-014 · Agenten wählen ihre Aufgaben selbst
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen)
+- **Kontext:** Kurz testweise hat der Lead Issues aktiv zugewiesen (`coordination/PLAN.md`). Die Menschen bevorzugen den vorherigen Modus, „das lief gut“.
+- **Entscheidung:** Die Agenten claimen selbst nach `AGENTS.md` §5. Der Lead reviewt, merged, löst Konflikte, triagiert Feedback und pingt nur, wenn der kritische Pfad liegen bleibt. `PLAN.md` entfällt.
+
+## ADR-015 · Pitch-Live-Test auf eigenem Test-Standort außerhalb NRW
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen, FB-006)
+- **Kontext:** Im Pitch sollen 100–200 Personen live per QR-Code teilnehmen. Ihre Daten dürfen das NRW-Bild nicht verfälschen, und der Test muss wiederholbar sein.
+- **Entscheidung:** Ein Test-Standort mit `is_test`-Flag außerhalb NRW (konfigurierbar) mit eigenem Join-Code. Er wird aus allen NRW-Aggregaten, dem Dashboard und dem Radar ausgeschlossen. Der Live-Test läuft über **Supabase** (der Mock kann nicht geräteübergreifend). Die Beamer-Ansicht pollt die Aggregate alle 2–3 s. Der Reset löscht nur Test-Daten und ist per PIN/Token über eine Edge Function geschützt.
+- **Konsequenzen:** #23 (SupabaseDataSource) und #24 (Live) werden P0. Vor dem Pitch ist ein Lasttest mit 200 Abgaben Pflicht. Der Mock-Modus bleibt Fallback (Live dann nur über Tabs eines Geräts).
+
+## ADR-016 · Freitext mit KI-Moderation über OpenRouter (ersetzt das Freitext-Verbot aus ADR-005)
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen, FB-006)
+- **Kontext:** Die Menschen wollen freie Eingaben testen, KI-geprüft: Themen clustern, Schimpfwörter und unpassende Jugendsprache entfernen.
+- **Entscheidung:** Optionaler Freitext (≤ 280 Zeichen). Moderation in einer Supabase Edge Function über OpenRouter mit strukturiertem JSON (`allowed`, `cleaned`, `topics`, `cluster`, `concern`). Gespeichert wird nur das bereinigte Ergebnis, nie der Rohtext. Die Anzeige erfolgt clusterweise ab K_MIN. Fällt die KI aus, wird nur der Freitext verworfen, die Abgabe läuft durch. Die KI entfernt zusätzlich Namen und persönliche Angaben.
+- **Konsequenzen:** PRIVACY §1.3/§6b und PRODUCT_SPEC §3.13 angepasst. Der OpenRouter-Key kommt von den Menschen und wird nur als Supabase-Secret gesetzt. Ein Echtbetrieb erfordert eine Prüfung der Drittverarbeitung.

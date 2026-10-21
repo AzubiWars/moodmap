@@ -1,4 +1,5 @@
-import { breadcrumb, clickTarget, drillParams, kreisLabel, resolveDrill } from './drilldown';
+import type { School } from '@/types';
+import { breadcrumb, clickTarget, drillParams, kreisLabel, resolveDrill, schoolTarget } from './drilldown';
 import type { RegionCollection, RegionFeature } from './geo';
 
 function feature(properties: RegionFeature['properties']): RegionFeature {
@@ -14,11 +15,23 @@ const rheinErft = feature({ id: '05362', name: 'Rhein-Erft-Kreis', regbez_id: '0
 const regbez: RegionCollection = { type: 'FeatureCollection', features: [koelnRb, muensterRb] };
 const kreise: RegionCollection = { type: 'FeatureCollection', features: [koelnStadt, dueren, rheinErft] };
 
-const resolve = (search: string) => resolveDrill(new URLSearchParams(search), regbez, kreise);
+const gym: School = {
+  id: '900100',
+  name: 'Gymnasium Köln-Süd',
+  schoolForm: 'gymnasium',
+  kreisId: '05315',
+  city: 'Köln',
+  lat: 50.9,
+  lon: 6.95,
+  studentCount: 900,
+  joinCode: 'ABC123',
+};
+
+const resolve = (search: string) => resolveDrill(new URLSearchParams(search), regbez, kreise, [gym]);
 
 describe('resolveDrill', () => {
   it('starts at NRW without drill params', () => {
-    expect(resolve('topic=ai')).toEqual({ level: 'nrw', regbez: null, kreis: null });
+    expect(resolve('topic=ai')).toEqual({ level: 'nrw', regbez: null, kreis: null, school: null });
   });
 
   it('resolves a regbez and a kreis', () => {
@@ -44,6 +57,44 @@ describe('resolveDrill', () => {
     expect(resolveDrill(new URLSearchParams('regbez=053&kreis=05315'), undefined, undefined).level).toBe(
       'nrw',
     );
+  });
+});
+
+describe('school level (#18)', () => {
+  it('resolves a school and derives kreis and regbez from it', () => {
+    expect(resolve('school=900100')).toMatchObject({
+      level: 'school',
+      regbez: koelnRb,
+      kreis: koelnStadt,
+      school: gym,
+    });
+    expect(resolve('regbez=055&kreis=05358&school=900100')).toMatchObject({ kreis: koelnStadt });
+  });
+
+  it('falls back to the kreis for an unknown school', () => {
+    expect(resolve('regbez=053&kreis=05315&school=1')).toMatchObject({ level: 'kreis', school: null });
+  });
+
+  it('builds the school target and a four-step breadcrumb', () => {
+    expect(schoolTarget(resolve('regbez=053'), gym)).toEqual({
+      regbez: '053',
+      kreis: '05315',
+      school: '900100',
+    });
+    expect(breadcrumb(resolve('school=900100'))).toEqual([
+      { label: 'NRW', params: {} },
+      { label: 'Reg.-Bez. Köln', params: { regbez: '053' } },
+      { label: 'Stadt Köln', params: { regbez: '053', kreis: '05315' } },
+      { label: 'Gymnasium Köln-Süd', params: null },
+    ]);
+  });
+
+  it('drops the school param when navigating up', () => {
+    const next = drillParams(new URLSearchParams('topic=ai&regbez=053&kreis=05315&school=900100'), {
+      regbez: '053',
+      kreis: '05315',
+    });
+    expect(next.toString()).toBe('topic=ai&regbez=053&kreis=05315');
   });
 });
 

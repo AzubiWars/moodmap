@@ -234,7 +234,7 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
 
 | Daten | Quelle (vor Nutzung prüfen – Issue `fit:research`) | Aufbereitung |
 |---|---|---|
-| Schulverzeichnis NRW (echte Standorte) | ✅ **INSPIRE Schulstandorte NRW**, OGC API Features (`https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice`), Lizenz **dl-de/by-2-0** | `npm run data:schools:real` (`scripts/import-schools.ts`): 5.426 Features, WGS84, Schulform-Mapping, Kreis per Point-in-Polygon, `occupancy` als Schülerzahl, deterministische Join-Codes. → `public/data/schools.real.json` (5.327 Schulen: `id` = Schulnummer, `name`, `schoolForm`, `kreisId`, `city`, `lat`, `lon`, `studentCount`, `joinCode`) + `schools.real.meta.json`. **Nur Standorte/Stammdaten:** keine synthetischen Stimmungswerte an echten Schulnamen (ADR-012). `DEMO42` gehört der synthetischen Demo-Schule. |
+| Schulverzeichnis NRW (echte Standorte) | ✅ **INSPIRE Schulstandorte NRW**, OGC API Features (`https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice`), Lizenz **dl-de/by-2-0** | `npm run data:schools:real` (`scripts/import-schools.ts`): 5.426 Features, WGS84, Schulform-Mapping, Kreis per Point-in-Polygon, `occupancy` als Schülerzahl, deterministische Join-Codes. → `public/data/schools.real.json` (5.327 Schulen: `id` = Schulnummer, `name`, `schoolForm`, `kreisId`, `city`, `lat`, `lon`, `studentCount`, `joinCode`) + `schools.real.meta.json`. **Demo:** echte Standorte erlaubt, Namen anonymisiert, keine echten Schulnamen mit Demo-Werten (ADR-012/013). `DEMO42` gehört der synthetischen Demo-Schule. |
 | Kreise & kreisfreie Städte, Regierungsbezirke (Grenzen) | ✅ **BKG VG250** (Verwaltungsgebiete 1:250 000, Ebenen, Stand 01.01.2026), Lizenz **dl-de/by-2-0** | `npm run geo:build` (`scripts/simplify-geo.ts`): NRW filtern, WGS84, mapshaper `interval=100` m, Koordinaten auf 4 Nachkommastellen; RegBez werden aus den Kreisen gebildet (identische Grenzen). → `public/geo/nrw-kreise.geojson` (53 Features: `id` = AGS, `name`, `regbez_id`, `type` = `kreis`\|`kreisfreie_stadt`, ~290 KB) und `public/geo/nrw-regbez.geojson` (5 Features: `id` = `051`…`059`, `name`, ~105 KB). Für MapLibre-`feature-state`: `promoteId: 'id'`. |
 | Deutschland-Grenze (Maske für „nicht Deutschland ausblenden") | **Natural Earth** (Public Domain), via [datasets/geo-countries](https://github.com/datasets/geo-countries) | `public/geo/germany.geojson` (MultiPolygon) + `public/geo/non-germany-mask.geojson` (Weltpolygon mit Deutschland als Loch); MapLibre-Layer `germany-mask-fill` + `germany-outline-line`. |
 | Gemeinden mit Einwohnerzahl (nur Skript-Eingabe) | ✅ **BKG VG250-EW** (Stand 31.12.2024), Lizenz **dl-de/by-2-0** | ebenfalls `npm run geo:build`: 396 Gemeinden mit `ags`, `name`, `kreisId`, `population`, `areaKm2` und einem garantiert innenliegenden Punkt → `scripts/data/nrw-gemeinden.json` (~46 KB). Basis für die Verteilung der synthetischen Schulen. |
@@ -305,9 +305,76 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 VITE_K_MIN=10
 # nur serverseitig (Supabase Edge Function Secret), NIE im Frontend:
-# LLM_API_KEY=
+# OPENROUTER_API_KEY=
+# OPENROUTER_MODEL=openai/gpt-4o-mini
+# APP_URL=https://moodmap-cyan.vercel.app
 ```
+
+## 10a. Supabase: lokal & gehostet (#93)
+
+Die Supabase-CLI ist auf **`supabase@2.120.0`** gepinnt und läuft per `npx` (`npm run supabase -- <befehl>`). Sie ist bewusst keine devDependency, weil sie ein großes Binary lädt, das CI und Vercel nicht brauchen.
+
+| Befehl | Wirkung |
+|---|---|
+| `npm run db:start` | Lokale Instanz starten (braucht **Docker**). Spielt alle Migrationen + `supabase/seed.sql` ein. Studio: http://127.0.0.1:54323 |
+| `npm run db:reset` | Lokale DB neu aufsetzen (Migrationen + Seed), z. B. nach neuen Migrationen |
+| `npm run db:stop` | Lokale Instanz stoppen |
+| `npm run supabase -- status` | Lokale URL + anon key für `.env.local` |
+| `npm run db:seed:build` | `supabase/seed.sql` aus den Quellen neu erzeugen (Regierungsbezirke/Kreise aus `public/geo`, Schulen aus `public/data/schools.json`, Themen/Fragen aus `src/data/topics.ts`, Wellen `2026-W34`…`2027-W30`). Ein Test prüft, dass die Datei aktuell ist. |
+
+**Neue Migration anlegen:** Datei `supabase/migrations/<YYYYMMDDHHMMSS>_<name>.sql` (Zeitstempel = Reihenfolge). Neue Funktionen sind **nicht** automatisch öffentlich (#77): `grant execute on function … to anon, authenticated` explizit setzen. SQL-Tests in `supabase/tests/` laufen mit `npm test` in PGlite, ohne Docker.
+
+**Gehostetes Projekt:** `moodmap-nrw`, Ref **`woglymwqlremrvkwhban`**, URL `https://woglymwqlremrvkwhban.supabase.co`, Organisation „AzubiWars". Stand: Migrationen #77 + #78 und Seed eingespielt (PostgreSQL 17.11), Zugriffsregeln als `anon` über die REST-API geprüft.
+- Region `eu-central-1` (Frankfurt). Das Konto gehört den Menschen.
+- Admin-SQL ohne `service_role`-Key: `npm run supabase -- db query --linked "<sql>"` (nach `link`).
+- Migrationen spielt nur ein, wer vom Lead/den Menschen dazu bestimmt ist, und nur **gemergte** Migrationen von `main`: `npm run supabase -- link --project-ref <ref>`, dann `npm run supabase -- db push --include-seed`. Das DB-Passwort steht in `SUPABASE_DB_PASSWORD` (nur `.env.local`).
+- Keys: URL + anon/publishable Key sind für das Frontend gedacht, werden aber trotzdem **nicht** committet oder in Issues gepostet (AGENTS.md §9). Die Menschen geben sie weiter und setzen sie in Vercel (ADR-004). Den `service_role`-Key bekommen nur Seed-Skripte (#23), nie das Frontend.
+- `VITE_DATA_MODE` bleibt in Vercel `mock`, bis die SupabaseDataSource (#23) gemergt ist.
 
 ## 11. Geplante Schüler-Anmeldung (Vorschlag, #74)
 
 Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN.md](SSO_PLAN.md) beschreibt Anschlusswege, Schul-/Rollenprüfung, die Trennung von Identität und Antworten sowie die offenen Anbieter- und Datenschutzfragen. Anbieterwahl und Umsetzung sind noch nicht freigegeben; das bestehende Datenmodell, das `DataSource`-Interface und der Mock-Modus werden durch diesen Plan nicht geändert.
+
+## 12. Freitext-Moderation (nur Live-Test)
+
+Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR-016, `PRODUCT_SPEC.md` §3.13, `PRIVACY.md` §1.3/§6a). Umgesetzt in **`moderate-text` (#119)**: max. **280 Zeichen**, strukturiertes JSON, Timeout **5 s**, Speicherung ohne Rohtext.
+
+1. Client sendet `{ text }` an die Supabase Edge Function `moderate-text`.
+2. Die Function ruft OpenRouter (`https://openrouter.ai/api/v1/chat/completions`) mit einem Moderations-Prompt auf.
+3. OpenRouter liefert strukturiertes JSON:
+   - `allowed`: bool
+   - `reason`: kurzer Grund (z. B. Beleidigung, Spam)
+   - `cleaned`: bereinigter Text (Schimpfwörter/Jugendsprache neutralisiert, Namen/persönliche Angaben entfernt)
+   - `topics`: max. 3 Slugs aus `SURVEY_TOPICS.md`
+   - `cluster`: kurzes Cluster-Label
+   - `concern`: Krisen-/Gefährdungshinweis
+4. **Gespeichert wird nur** `allowed`, `cleaned`, `topics`, `cluster`, `concern`, Schule, Welle und Tag. Der Rohtext wird **nie** gespeichert oder geloggt.
+5. **Robustheit:** Timeout 5 s. Fällt OpenRouter aus oder fehlt der Key, wird **nur der Freitext verworfen** (`allowed:false`); die Umfrage wird trotzdem gespeichert. Im Mock-Modus gibt es einen lokalen Fallback (Wortliste + Themen-Keywords) in der Survey-UI.
+6. Bei `concern:true` zeigt der Client sofort Hilfsangebote (`PRIVACY.md` §5), keine Weiterleitung.
+
+**Secret setzen (niemals committen):**
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=<key>
+# optional:
+supabase secrets set OPENROUTER_MODEL=openai/gpt-4o-mini
+supabase functions deploy moderate-text
+```
+
+Lokal: `supabase functions serve moderate-text --env-file .env.local` (Key in `.env.local`, ist gitignored).
+
+**Client-Aufruf (später, wenn das Freitextfeld kommt):**
+
+```ts
+const { data, error } = await supabase.functions.invoke('moderate-text', {
+  body: { text },
+});
+if (error || !data?.allowed) {
+  // nur den Freitext verwerfen, die Umfrage trotzdem speichern
+} else {
+  // speichern: data.cleaned, data.topics, data.cluster, data.concern
+  // data.concern === true → sofort Hilfsangebote anzeigen
+}
+```
+
+Der Key darf **niemals** als `VITE_*`-Variable oder in `public/` landen – sonst ist er im Browser sichtbar.
