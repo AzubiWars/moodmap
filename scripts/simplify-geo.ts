@@ -1,12 +1,16 @@
 /**
- * Builds the NRW boundary files for the map (#6):
- *   public/geo/nrw-kreise.geojson  – 53 Kreise & kreisfreie Städte { id (AGS), name, regbez_id, type }
- *   public/geo/nrw-regbez.geojson  – 5 Regierungsbezirke { id, name }
+ * Builds the NRW geo base data from BKG open data (#6, #7):
+ *   public/geo/nrw-kreise.geojson    – 53 Kreise & kreisfreie Städte { id (AGS), name, regbez_id, type }
+ *   public/geo/nrw-regbez.geojson    – 5 Regierungsbezirke { id, name }
+ *   scripts/data/nrw-gemeinden.json  – 396 Gemeinden { ags, name, kreisId, population, areaKm2, lon, lat }
+ *                                      (input for scripts/generate-schools.ts, not shipped to the app)
  *
- * Source: BKG "Verwaltungsgebiete 1:250 000" (VG250, Ebenen, Stand 01.01.), © BKG, dl-de/by-2-0.
+ * Sources (© BKG, dl-de/by-2-0):
+ *   VG250    "Verwaltungsgebiete 1:250 000", Ebenen, Stand 01.01. → boundaries
+ *   VG250-EW same with population (Einwohnerzahl), Stand 31.12.   → Gemeinden
  * Regierungsbezirke are dissolved from the simplified Kreise, so both layers share identical borders.
  *
- * Usage: npm run geo:build   (downloads ~67 MB once into .cache/geo, output is committed)
+ * Usage: npm run geo:build   (downloads ~2 × 67 MB once into .cache/geo, output is committed)
  */
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -14,8 +18,9 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const VG250_URL =
-  'https://daten.gdz.bkg.bund.de/produkte/vg/vg250_ebenen_0101/aktuell/vg250_01-01.utm32s.shape.ebenen.zip';
+const BKG_VG = 'https://daten.gdz.bkg.bund.de/produkte/vg';
+const VG250_URL = `${BKG_VG}/vg250_ebenen_0101/aktuell/vg250_01-01.utm32s.shape.ebenen.zip`;
+const VG250_EW_URL = `${BKG_VG}/vg250-ew_ebenen_1231/aktuell/vg250-ew_12-31.utm32s.shape.ebenen.zip`;
 const MAPSHAPER_VERSION = '0.7.93';
 const SIMPLIFY_INTERVAL_M = 100;
 const COORD_PRECISION = 0.0001; // ~10 m
@@ -23,7 +28,7 @@ const COORD_PRECISION = 0.0001; // ~10 m
 const root = fileURLToPath(new URL('..', import.meta.url));
 const cacheDir = join(root, '.cache', 'geo');
 const outDir = join(root, 'public', 'geo');
-const zipPath = join(cacheDir, 'vg250.zip');
+const gemeindenPath = join(root, 'scripts', 'data', 'nrw-gemeinden.json');
 const toolsDir = join(cacheDir, `mapshaper-${MAPSHAPER_VERSION}`);
 const mapshaperBin = join(toolsDir, 'node_modules', 'mapshaper', 'bin', 'mapshaper');
 
@@ -33,15 +38,23 @@ function runNode(args: string[]): void {
   if (result.status !== 0) throw new Error(`node ${args[0]} failed with exit code ${result.status}`);
 }
 
-async function downloadVg250(): Promise<void> {
-  const expectedMd5 = (await (await fetch(`${VG250_URL}.md5`)).text()).trim().split(/\s+/)[0];
-  if (existsSync(zipPath) && md5(zipPath) === expectedMd5) return;
+/** Downloads a BKG archive into the cache. Verified via the `.md5` file, or via size where BKG has none. */
+async function downloadBkg(url: string, fileName: string): Promise<string> {
+  const zipPath = join(cacheDir, fileName);
+  const md5Res = await fetch(`${url}.md5`);
+  const expectedMd5 = md5Res.ok ? (await md5Res.text()).trim().split(/\s+/)[0] : null;
+  const expectedSize = Number((await fetch(url, { method: 'HEAD' })).headers.get('content-length'));
+  const isValid = () =>
+    existsSync(zipPath) &&
+    (expectedMd5 ? md5(zipPath) === expectedMd5 : statSync(zipPath).size === expectedSize);
+  if (isValid()) return zipPath;
 
-  console.log(`Downloading ${VG250_URL} …`);
-  const res = await fetch(VG250_URL);
+  console.log(`Downloading ${url} …`);
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
   writeFileSync(zipPath, Buffer.from(await res.arrayBuffer()));
-  if (md5(zipPath) !== expectedMd5) throw new Error('VG250 checksum mismatch');
+  if (!isValid()) throw new Error(`${fileName}: checksum/size mismatch`);
+  return zipPath;
 }
 
 function md5(path: string): string {
@@ -65,11 +78,15 @@ function installMapshaper(): void {
   ]);
 }
 
-function buildGeoJson(): void {
+/** One mapshaper command per inner array. */
+function runMapshaper(commands: string[][]): void {
+  runNode([mapshaperBin, ...commands.flat()]);
+}
+
+function buildBoundaries(zipPath: string): void {
   const out = (file: string) => join(outDir, file);
   const kreisType = 'BEZ === "Kreisfreie Stadt" ? "kreisfreie_stadt" : "kreis"';
-  // One mapshaper command per line.
-  const commands = [
+  runMapshaper([
     ['-i', zipPath, 'encoding=utf8'],
     ['-target', 'VG250_KRS'],
     ['-filter', 'SN_L === "05" && GF === 4'], // NRW, land areas only
@@ -84,16 +101,37 @@ function buildGeoJson(): void {
     ['-filter-fields', 'target=regbez', 'id,name'],
     ['-o', 'target=kreise', out('nrw-kreise.geojson'), 'rfc7946', `precision=${COORD_PRECISION}`],
     ['-o', 'target=regbez', out('nrw-regbez.geojson'), 'rfc7946', `precision=${COORD_PRECISION}`],
-  ];
-  runNode([mapshaperBin, ...commands.flat()]);
+  ]);
+}
+
+function buildGemeinden(zipPath: string): void {
+  const round5 = (v: string) => `Math.round(${v} * 1e5) / 1e5`; // ~1 m
+  runMapshaper([
+    ['-i', zipPath, 'encoding=utf8'],
+    ['-target', 'VG250_GEM'],
+    ['-filter', 'SN_L === "05" && GF === 4'],
+    ['-each', 'areaKm2 = Math.round(this.area / 1e4) / 100'], // planar area in UTM32 (m²)
+    ['-points', 'inner'], // guaranteed to lie inside the Gemeinde, unlike the centroid
+    ['-proj', 'wgs84'],
+    [
+      '-each',
+      `ags = AGS, name = GEN, kreisId = AGS.slice(0, 5), population = EWZ, lon = ${round5('this.x')}, lat = ${round5('this.y')}`,
+    ],
+    ['-filter-fields', 'ags,name,kreisId,population,areaKm2,lon,lat'],
+    ['-sort', 'ags'],
+    ['-o', gemeindenPath, 'format=json'],
+  ]);
 }
 
 mkdirSync(cacheDir, { recursive: true });
 mkdirSync(outDir, { recursive: true });
-await downloadVg250();
+mkdirSync(join(root, 'scripts', 'data'), { recursive: true });
+const vg250Zip = await downloadBkg(VG250_URL, 'vg250.zip');
+const vg250EwZip = await downloadBkg(VG250_EW_URL, 'vg250-ew.zip');
 installMapshaper();
-buildGeoJson();
+buildBoundaries(vg250Zip);
+buildGemeinden(vg250EwZip);
 
-for (const file of ['nrw-kreise.geojson', 'nrw-regbez.geojson']) {
-  console.log(`${file}: ${(statSync(join(outDir, file)).size / 1024).toFixed(0)} KB`);
+for (const path of [join(outDir, 'nrw-kreise.geojson'), join(outDir, 'nrw-regbez.geojson'), gemeindenPath]) {
+  console.log(`${path.slice(root.length)}: ${(statSync(path).size / 1024).toFixed(0)} KB`);
 }

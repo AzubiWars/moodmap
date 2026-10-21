@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "geo:build": "node scripts/simplify-geo.ts"
+    "geo:build": "node scripts/simplify-geo.ts",
+    "data:schools": "node scripts/generate-schools.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.5",

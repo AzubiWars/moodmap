@@ -39,7 +39,10 @@ moodmap/
 │   └── data/                # schools.json (aus Open Data aufbereitet)
 ├── scripts/
 │   ├── import-schools.ts    # Schulverzeichnis NRW → public/data/schools.json
-│   ├── simplify-geo.ts      # GeoJSON vereinfachen (mapshaper)
+│   ├── simplify-geo.ts      # npm run geo:build – Grenzen + Gemeinden aus BKG-Daten (mapshaper)
+│   ├── generate-schools.ts  # npm run data:schools – synthetische Schulen (Fallback bis #33)
+│   ├── lib/                 # reine, getestete Logik der Skripte
+│   ├── data/                # Zwischendaten der Skripte (nicht ausgeliefert), z. B. nrw-gemeinden.json
 │   └── generate-seed.ts     # synthetische Antworten erzeugen
 ├── supabase/
 │   ├── migrations/          # SQL-Schema, Views, RLS
@@ -214,13 +217,20 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
 |---|---|---|
 | Schulverzeichnis NRW (Schulnummer, Name, Schulform, Adresse, Koordinaten) | Open Data des Schulministeriums NRW („Schuldaten"/Schulverzeichnis, CSV, Koordinaten i. d. R. in UTM32 / EPSG:25832) | `scripts/import-schools.ts`: filtern, nach WGS84 umrechnen (`proj4`), Kreis zuordnen (Point-in-Polygon oder Gemeindeschlüssel), → `public/data/schools.json` |
 | Kreise & kreisfreie Städte, Regierungsbezirke (Grenzen) | ✅ **BKG VG250** (Verwaltungsgebiete 1:250 000, Ebenen, Stand 01.01.2026), Lizenz **dl-de/by-2-0** | `npm run geo:build` (`scripts/simplify-geo.ts`): NRW filtern, WGS84, mapshaper `interval=100` m, Koordinaten auf 4 Nachkommastellen; RegBez werden aus den Kreisen gebildet (identische Grenzen). → `public/geo/nrw-kreise.geojson` (53 Features: `id` = AGS, `name`, `regbez_id`, `type` = `kreis`\|`kreisfreie_stadt`, ~290 KB) und `public/geo/nrw-regbez.geojson` (5 Features: `id` = `051`…`059`, `name`, ~105 KB). Für MapLibre-`feature-state`: `promoteId: 'id'`. |
+| Gemeinden mit Einwohnerzahl (nur Skript-Eingabe) | ✅ **BKG VG250-EW** (Stand 31.12.2024), Lizenz **dl-de/by-2-0** | ebenfalls `npm run geo:build`: 396 Gemeinden mit `ags`, `name`, `kreisId`, `population`, `areaKm2` und einem garantiert innenliegenden Punkt → `scripts/data/nrw-gemeinden.json` (~46 KB). Basis für die Verteilung der synthetischen Schulen. |
 | Schulsozialindex (optional, P2) | Schulministerium NRW (veröffentlicht pro Schule) | Spannende Korrelation im Dashboard: Stimmung vs. Sozialindex |
 
 **Lizenzangaben** (z. B. „Datenlizenz Deutschland – Namensnennung 2.0") in der App unter „Quellen" anzeigen.
 Pflicht-Quellenvermerk für die Grenzen (sichtbar an der Karte, z. B. MapLibre-Attribution; „BKG" → https://www.bkg.bund.de, „dl-de/by-2-0" → https://www.govdata.de/dl-de/by-2-0 verlinken):
 `© BKG (2026) dl-de/by-2-0, Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf – Geometrien vereinfacht`
 
-**Fallback, falls Open Data nicht rechtzeitig klappt:** ~300 synthetische Schulen, gleichmäßig über die echten Kreis-Polygone verteilt, mit plausiblen Namen („Gesamtschule Musterstadt-Nord"). Die Karte muss zuerst funktionieren, echte Schulen sind ein Upgrade.
+**Fallback, falls Open Data nicht rechtzeitig klappt:** ~300 synthetische Schulen mit plausiblen Namen. Die Karte muss zuerst funktionieren, echte Schulen sind ein Upgrade.
+✅ Umgesetzt (#7): `npm run data:schools` erzeugt deterministisch `public/data/schools.json` – ein Array von `School` (`src/types/domain.ts`), eine Schule pro Zeile. Regeln:
+- 300 Schulen, jeder Kreis ≥ 2, der Rest nach Einwohnerzahl verteilt; innerhalb des Kreises in echten Gemeinden (gewichtet nach Einwohnern, Berufskollegs bevorzugt in größeren Städten), Koordinate nahe dem Gemeindepunkt und garantiert im eigenen Kreis-Polygon.
+- Schulform-Mix bewusst nicht wie in NRW (> 50 % Grundschulen), sondern auf die Zielgruppe ab Klasse 5 ausgerichtet; jeder Kreis hat mindestens ein Gymnasium oder eine Gesamtschule.
+- `id` = synthetische Schulnummer `9xxxxx` (kollidiert nicht mit echten Schulnummern), `joinCode` = 6 Zeichen ohne verwechselbare Zeichen (0/O, 1/I/L).
+- **Demo-Schule:** `900000` „Gesamtschule Düsseldorf-Mitte", `joinCode` **`DEMO42`**.
+- Das echte Schulverzeichnis (#33) soll dasselbe Format nach `public/data/schools.json` schreiben. Im Mock-Modus sind die Join-Codes damit öffentlich lesbar (für die Demo ok). Im Supabase-Modus darf `join_code` nicht per anon-SELECT lesbar sein, nur über `getSchoolByCode` (#22).
 
 ## 7. Synthetische Demo-Daten (`scripts/generate-seed.ts`)
 
