@@ -216,6 +216,18 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - `get_trend(query jsonb)` → `TrendPoint[]`: je gewählter Welle (in Kalenderreihenfolge, unbekannte Wellen fallen weg) eine Aggregation ohne Vorperiode. `waveIds` ist Pflicht.
 - `get_choice_distribution(question_id text, scope jsonb)` → `Distribution | null` für die **aktuelle** Welle. `null` bei `n < K_MIN` (n = unterschiedliche Teilnahmen) oder wenn die Frage keine `choice`-Frage ist. Optionen mit < 3 Nennungen haben `count: null` (PRIVACY §2). `scope.level = 'nrw'` nur mit `id: null`. Intern: `choice_distribution(question_id, scope, wave_id)`.
 
+✅ Frühwarn-Radar & „Politik antwortet" in `supabase/migrations/20261021140000_tension_policy.sql` (#81), paritätsgetestet gegen die MockDataSource (`supabase/tests/tension-policy.test.ts`):
+- `get_tension_index(query jsonb)` → `TensionRow[]` wie `tensionIndex()`:
+  - Gewichte in der Reihenfolge von `TENSION_WEIGHTS` summiert (0,15/0,1 sind keine exakten Binärbrüche)
+  - +10, wenn `voice` oder `safety` über die 3 Kalenderwellen bis zur letzten gewählten Welle streng fällt
+  - `trend` = Index − Index der Vorperiode
+- `get_policy_answers(filter jsonb)` → `PolicyAnswer[]`, neueste zuerst. Antworten mit Scope `nrw` passen zu jeder Region.
+  - `resonance` aus den Bewertungen, erst ab K_MIN.
+  - `topicDeltaSincePublished` = Themen-Score der Region in allen Wellen ab dem Veröffentlichungstag minus die letzte davor beendete Welle. Der Tag zählt als UTC-Mitternacht wie `Date.parse`.
+- `publish_policy_answer(input jsonb)` → `PolicyAnswer`. **Nur für eingeloggte Konten mit `app_metadata.moodmap_role` = `ministerium` | `bezreg`** (setzt nur ein Admin, nie der Nutzer selbst). `authorRole` muss dazu passen. So kann niemand im Namen des Ministeriums antworten. Der Mock hat diese Prüfung nicht.
+- `rate_policy_answer(answer_id, value, device_token)` → `{ ok }`: eine Bewertung pro Gerät und Antwort (neue ersetzt alte). Gespeichert wird nur `sha256(token:policy:answerId)`.
+- `aggregate_rows` kennt intern die Ebene `nrw` (Gesamtwert für NRW-weite Antworten). Die öffentlichen Funktionen lehnen sie ab.
+
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
 - `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`
