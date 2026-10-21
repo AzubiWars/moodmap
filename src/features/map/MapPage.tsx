@@ -44,7 +44,13 @@ import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
 import { MapSearch } from './MapSearch';
 import { MoodMap } from './MoodMap';
-import { loadSchools, type SchoolCollection, schoolsToGeoJSON } from './schools';
+import {
+  directoryToGeoJSON,
+  loadSchoolDirectory,
+  loadSchools,
+  type SchoolCollection,
+  schoolsToGeoJSON,
+} from './schools';
 import { TopicFilter } from './TopicFilter';
 import type { FilterTopic } from './topicSearch';
 import {
@@ -205,6 +211,12 @@ export function MapPage() {
     staleTime: Infinity,
     retry: false,
   });
+  const directoryQuery = useQuery({
+    queryKey: ['schools', 'directory'],
+    queryFn: loadSchoolDirectory,
+    staleTime: Infinity,
+    retry: false,
+  });
 
   const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
   const focusRegbezId = drill.regbez?.properties.id ?? null;
@@ -279,6 +291,7 @@ export function MapPage() {
         students: mode === 'participation' ? studentsBy(allSchools, 'school') : null,
       })
     : null;
+  const directoryPoints = directoryQuery.data ? directoryToGeoJSON(directoryQuery.data) : null;
 
   const focusFeature = drill.kreis ?? drill.regbez;
   const focusBounds = drill.school
@@ -404,6 +417,7 @@ export function MapPage() {
           clusterSchools={drill.level === 'regbez'}
           selectedSchoolId={drill.school?.id ?? null}
           onSelectSchool={selectSchool}
+          directorySchools={directoryPoints}
           pulses={pulses}
           mode={mode}
         />
@@ -459,6 +473,7 @@ export function MapPage() {
               {city && ` · Stadt ${city}`}
               {activeFilterCount(filters) > 0 && ' · gefiltert'}
               {selectedWave && ` · ${weekLabel(selectedWave)}`}
+              {directoryQuery.data && ` · ${directoryQuery.data.length} Schulstandorte`}
             </p>
           </div>
         </div>
