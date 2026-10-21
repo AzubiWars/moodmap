@@ -14,12 +14,13 @@
 
 ## Aktueller Stand
 - **Arbeite an:** #113 – getrennter Pitch-Teststandort mit PIN-Reset.
-- **Status:** SQL-/Edge-Reset, getrennte Hashes, K_MIN und Ausschluss aus NRW/Trend/Verteilung/Radar sowie Freitext-Clustern umgesetzt. Freitext-Speicherung und Löschkaskade aus #155 integriert; Testteilnahmen umgehen nur die lokale Wochensperre, die Datenbank schützt weiterhin vor Duplikaten. 390 Tests + Format/Lint/Typecheck/Build und Deno-Check/Lint grün vor dem abschließenden Rebase.
-- **Nächster Schritt:** Rebase auf neuestes main, Checks und PR mit Review-Anfrage an Lead. Danach P0-Live-Anbindung #23 prüfen.
+- **Status:** SQL-/Edge-Reset, getrennte Hashes, K_MIN und Ausschluss aus NRW/Trend/Verteilung/Radar sowie Freitext-Clustern umgesetzt. Freitext-Speicherung und Löschkaskade aus #155 integriert; Testteilnahmen umgehen nur die lokale Wochensperre, die Datenbank schützt weiterhin vor Duplikaten. Nach Rebase auf main inklusive #162/#165/#166: 417 Tests + Format/Lint/Typecheck/Build grün; Deno-Check/Lint der Reset-Function grün.
+- **Nächster Schritt:** PR mit Review-Anfrage an Lead, danach P0-Live-Anbindung #23 prüfen. Eigenständige Moderationsbegrenzung als #170 erfasst.
 - **Blockiert durch / brauche:** Für Hosted-Pitch noch echte Ortsangaben/PIN (#118), Lead-Deployment, Beamer #116 und Lasttest #117. Synthetischer Berlin-Default ist kein bestätigter Veranstaltungsort. Eigene Browserprüfung automatisch abgelehnt; funktionalen Browser-Smoke übernimmt Lead.
-- **Zuletzt aktualisiert:** 2026-10-21 12:59
+- **Zuletzt aktualisiert:** 2026-10-21 13:00
 
 ## Journal
+- **2026-10-21 13:00** – Abschließender Rebase auf main (#162/#165/#166) ohne Konflikte. Alle 417 Tests sowie Format/Lint/Typecheck/Build grün. Nicht atomare Moderationsbegrenzung als eigenständiges P0-Issue #170 dokumentiert; kein eigener Live-Key/Hosted-Reset verwendet.
 - **2026-10-21 12:59** – #113 implementiert und gegen #155 integriert: normaler und Pitch-Hash, Freitext-Teilnahmeprüfung vor LLM, K_MIN 9/10, getrennte Cluster und Reset mit nachgewiesener Freitext-Kaskade. 390 Tests grün; Deno-Check/Lint der Reset-Function grün. #128/PR #144 sowie #141/PR #149 inzwischen mit Lead-Review gemerged. Bei #155 fehlendes Krisensignal und nicht atomare Moderationsbegrenzung gemeldet; Krisensignal vom Lead in #165 korrigiert, Kostenbegrenzung bleibt separates Follow-up.
 - **2026-10-21 12:30** – #141 auf Basis des Nutzerfeedbacks übernommen und #24/Henrik informiert. Live-Style-JSON belegt: Positron hat `label_other`, Dark nur `place_other`. Mood-Flächen/Regionslinien jetzt unter Gebäude-/Label-Ebenen, POI-/Ortsteiltexte mit Theme-Kontrast. Voller Check grün (276 Tests). Visuelles Review beim Lead offen; #144/Seed-Fix parallel mit grüner CI/Vercel, noch kein Merge behauptet.
 - **2026-10-21 12:10** – #120: deterministische Kreis-/Schulklima-Effekte ohne zusätzliche Zufallsziehungen; gezielte Story-Kreise und DEMO42 ausgenommen. Regressionen prüfen echte DataSource-Aggregate, drei/vier Farbstufen, K_MIN und Hotspot-Verlauf/Radar. Alle 234 Tests + Build grün. Daneben ungültige Frage-IDs/Swipewerte/Choice-Optionen im bisherigen Seed gefunden, #128 angelegt und #23 informiert. Darkmode #123 gemerged, Lead-Mobile-Fix in #129.

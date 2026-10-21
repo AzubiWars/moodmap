@@ -383,7 +383,7 @@ Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR
 6. **Robustheit:** Timeout 5 s. Fällt OpenRouter aus oder fehlt der Key, wird **nur der Freitext verworfen** (`stored:false`); die Umfrage bleibt gespeichert. Im Mock-Modus gibt es einen lokalen Fallback (Wortliste + Themen-Keywords) in der Survey-UI.
 7. Bei `concern:true` zeigt der Client sofort Hilfsangebote (`PRIVACY.md` §5), keine Weiterleitung. Solche Einträge werden von `get_freetext_clusters` nicht öffentlich ausgewertet.
 8. Die öffentliche Auswertung läuft über `get_freetext_clusters(scope)` (nur aktuelle Welle, nur `concern = false`, Cluster erst ab `K_MIN`, max. 3 bereinigte Beispiele). Testschulen sind aus regionalen Auswertungen ausgeschlossen; der Pitch liest sie ausschließlich über den expliziten Scope `{ level: 'school', id: 'pitch-test' }`.
-9. Der Client ruft `submit-freetext` **nach** erfolgreicher Umfrage-Abgabe auf, sobald `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` gesetzt sind – auch bei `VITE_DATA_MODE=mock`. Ohne diese Env (reiner Dev/Mock) greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords.
+9. Der Client ruft `submit-freetext` **nach** erfolgreicher Umfrage-Abgabe nur bei `VITE_DATA_MODE=supabase` und gesetztem `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` auf. Im Mock-Modus greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords, auch wenn Supabase-Env gesetzt ist.
 
 **Secret setzen (niemals committen):**
 
