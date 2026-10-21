@@ -24,13 +24,23 @@ import {
 import { DetailPanel } from './DetailPanel';
 import { LiveToggle } from './LiveToggle';
 import { LIVE_POLL_MS, useLivePulses } from './live';
+import { MapModeSwitch } from './MapModeSwitch';
+import { type MapMode, parseMapMode, type TensionMap, toTensionMap } from './radar';
+import { useRoleStore } from '@/store/role';
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
 import { MoodMap } from './MoodMap';
-import { loadSchools, schoolsToGeoJSON } from './schools';
+import { loadSchools, type SchoolCollection, schoolsToGeoJSON } from './schools';
 import { TopicFilter } from './TopicFilter';
 import type { FilterTopic } from './topicSearch';
-import { type MapTopic, type ScoreMap, toScoreMap, useAggregates, useLiveAggregates } from './useAggregates';
+import {
+  type MapTopic,
+  type ScoreMap,
+  toScoreMap,
+  useAggregates,
+  useLiveAggregates,
+  useTension,
+} from './useAggregates';
 
 const MAP_TOPICS: FilterTopic[] = [
   { slug: 'all', title: 'Gesamt-Mood', icon: '🗺️' },
@@ -38,15 +48,38 @@ const MAP_TOPICS: FilterTopic[] = [
 ];
 
 /** Färbt die angezeigte Ebene; Flächen außerhalb des fokussierten Regierungsbezirks erhalten `dim`. */
-function scoreRegions(regions: RegionCollection, scores: ScoreMap, focusRegbezId: string | null) {
+function scoreRegions(
+  regions: RegionCollection,
+  scores: ScoreMap,
+  focusRegbezId: string | null,
+  tension: TensionMap | null,
+) {
   const withData = withScores(regions, scores);
-  if (!focusRegbezId) return withData;
   return {
     ...withData,
-    features: withData.features.map((f) => ({
-      ...f,
-      properties: { ...f.properties, dim: f.properties.regbez_id !== focusRegbezId },
-    })),
+    features: withData.features.map((f) => {
+      const t = tension?.get(f.properties.id);
+      return {
+        ...f,
+        properties: {
+          ...f.properties,
+          ...(focusRegbezId ? { dim: f.properties.regbez_id !== focusRegbezId } : {}),
+          // Frühwarn-Radar (#42): Stufe für die Einfärbung, 'none' unter K_MIN
+          ...(tension ? { tension: t?.level ?? 'none', tindex: t?.index ?? -1 } : {}),
+        },
+      };
+    }),
+  };
+}
+
+function withSchoolTension(points: SchoolCollection, tension: TensionMap | null): SchoolCollection {
+  if (!tension) return points;
+  return {
+    ...points,
+    features: points.features.map((f) => {
+      const t = tension.get(f.properties.id);
+      return { ...f, properties: { ...f.properties, tension: t?.level ?? 'none', tindex: t?.index ?? -1 } };
+    }),
   };
 }
 
@@ -75,6 +108,10 @@ export function MapPage() {
   const requestedTopic = searchParams.get('topic');
   const topic = MAP_TOPICS.find((entry) => entry.slug === requestedTopic) ?? MAP_TOPICS[0]!;
   const topicSlug = topic.slug as MapTopic;
+  const mode = parseMapMode(searchParams.get('mode'));
+  const radar = mode === 'radar';
+  // Spannungs-Index pro Schule nur für das Ministerium (Spec §3.10)
+  const ministry = useRoleStore((state) => state.role) === 'ministry';
 
   function selectTopic(slug: string) {
     setSearchParams(
@@ -129,11 +166,31 @@ export function MapPage() {
   const liveSchoolAggregates = useAggregates('school', 'all', { enabled: live, refetchInterval: poll });
   const { pulsing, added } = useLivePulses(liveSchoolAggregates.data, live, 'all');
 
-  const scored = shown ? scoreRegions(shown, toScoreMap(regionAggregates.data), focusRegbezId) : null;
+  const regionTension = useTension(regionLevel, { enabled: radar, refetchInterval: poll });
+  const schoolTension = useTension('school', {
+    parentId: drill.kreis?.properties.id,
+    enabled: radar && ministry && drill.level !== 'nrw',
+    refetchInterval: poll,
+  });
 
-  const schoolsShown = schoolsQuery.data ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data) : [];
+  const scored = shown
+    ? scoreRegions(
+        shown,
+        toScoreMap(regionAggregates.data),
+        focusRegbezId,
+        radar ? toTensionMap(regionTension.data) : null,
+      )
+    : null;
+
+  const schoolsShown =
+    schoolsQuery.data && (!radar || ministry)
+      ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data)
+      : [];
   const schoolPoints = schoolsShown.length
-    ? schoolsToGeoJSON(schoolsShown, toScoreMap(schoolAggregates.data))
+    ? withSchoolTension(
+        schoolsToGeoJSON(schoolsShown, toScoreMap(schoolAggregates.data)),
+        radar ? toTensionMap(schoolTension.data) : null,
+      )
     : null;
 
   const focusFeature = drill.kreis ?? drill.regbez;
@@ -145,6 +202,18 @@ export function MapPage() {
     const school = schoolsQuery.data?.find((s) => s.id === id);
     return school ? [{ id, lon: school.lon, lat: school.lat }] : [];
   });
+
+  function setMode(next: MapMode) {
+    setSearchParams(
+      (previous) => {
+        const params = new URLSearchParams(previous);
+        if (next === 'mood') params.delete('mode');
+        else params.set('mode', next);
+        return params;
+      },
+      { preventScrollReset: true },
+    );
+  }
 
   function setLive(on: boolean) {
     setSearchParams(
@@ -176,7 +245,8 @@ export function MapPage() {
 
   return (
     <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] flex-col md:h-[calc(100dvh-5.1rem)]">
-      <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />
+      {/* Der Spannungs-Index nutzt feste Themen (TENSION_WEIGHTS) – Themenfilter nur im Stimmungsmodus */}
+      {!radar && <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />}
 
       <div className="relative min-h-0 flex-1">
         <MoodMap
@@ -191,6 +261,7 @@ export function MapPage() {
           selectedSchoolId={drill.school?.id ?? null}
           onSelectSchool={selectSchool}
           pulses={pulses}
+          mode={mode}
         />
 
         <div className="pointer-events-none absolute top-0 right-12 left-0 p-3">
@@ -200,8 +271,10 @@ export function MapPage() {
               <LiveToggle live={live} added={added} onChange={setLive} />
             </div>
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
+            <MapModeSwitch mode={mode} onChange={setMode} />
             <p className="text-xs text-fg" aria-live="polite">
-              {topic.icon} {topic.title} · {levelCaption(drill)}
+              {radar ? '📡 Spannungs-Index aus 6 Themen' : `${topic.icon} ${topic.title}`} ·{' '}
+              {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
             </p>
           </div>
         </div>
@@ -214,12 +287,13 @@ export function MapPage() {
               : 'absolute bottom-[8.5rem] left-2 md:bottom-3 md:left-3'
           }
         >
-          <MapLegend />
+          <MapLegend mode={mode} />
         </div>
 
         <DetailPanel
           key={drill.school?.id ?? drill.kreis?.properties.id ?? drill.regbez?.properties.id}
           drill={drill}
+          mode={mode}
         />
 
         {kreiseQuery.isError && (

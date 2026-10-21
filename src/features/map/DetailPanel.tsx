@@ -1,20 +1,25 @@
-import { ChevronDown, ChevronUp, TrendingDown, TrendingUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Megaphone, Radar, TrendingDown, TrendingUp } from 'lucide-react';
 import { type ReactNode, useId, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { MoodBadge } from '@/components/MoodBadge';
 import { ScoreBar } from '@/components/ScoreBar';
 import { TOPICS } from '@/data/topics';
 import { cn } from '@/lib/utils';
+import { useRoleStore } from '@/store/role';
+import type { AggregateRow, TensionRow } from '@/types';
 import { type GapAnalysis, gapAnalysis, nrwReference, type TopicGap } from './detailStats';
 import { type DrillState, kreisLabel, regbezLabel } from './drilldown';
+import { type MapMode, publishAnswerHref, suggestionsFor, TENSION_INFO } from './radar';
 import { SCHOOL_FORM_LABELS } from './schools';
-import { useAggregates } from './useAggregates';
+import { useAggregates, useTension } from './useAggregates';
 
 interface DetailPanelProps {
   drill: DrillState;
+  mode?: MapMode;
 }
 
 /** Detail-Panel für Regierungsbezirk, Kreis oder Schule (#19, FB-005): Gesamt-Mood, Baustellen & Stärken vs. NRW, alle Themen. */
-export function DetailPanel({ drill }: DetailPanelProps) {
+export function DetailPanel({ drill, mode = 'mood' }: DetailPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const detailsId = useId();
 
@@ -25,6 +30,14 @@ export function DetailPanel({ drill }: DetailPanelProps) {
     enabled: drill.level !== 'nrw',
   });
   const nrwQuery = useAggregates('nrw', 'all', { enabled: drill.level !== 'nrw' });
+  const radar = mode === 'radar';
+  const ministry = useRoleStore((state) => state.role) === 'ministry';
+  // Spannungs-Index pro Schule nur für das Ministerium (Spec §3.10)
+  const tensionAllowed = level !== 'school' || ministry;
+  const tensionQuery = useTension(level, {
+    parentId: level === 'school' ? drill.kreis?.properties.id : undefined,
+    enabled: radar && tensionAllowed && drill.level !== 'nrw',
+  });
 
   if (drill.level === 'nrw' || !unitId) return null;
 
@@ -32,6 +45,7 @@ export function DetailPanel({ drill }: DetailPanelProps) {
   const nrw = nrwReference(nrwQuery.data);
   const gaps = gapAnalysis(TOPICS, row?.topicScores, nrw);
   const loading = unitQuery.isPending || nrwQuery.isPending;
+  const tension = tensionQuery.data?.find((t) => t.id === unitId);
 
   const title = drill.school
     ? drill.school.name
@@ -87,7 +101,12 @@ export function DetailPanel({ drill }: DetailPanelProps) {
       </header>
 
       {/* Mobile: Peek zeigt die wichtigste Baustelle, aufgeklappt alles. Desktop: immer alles. */}
-      {!expanded && gaps.weaknesses[0] && (
+      {!expanded && radar && tension?.level && (
+        <p className="px-4 pb-3 text-xs text-fg md:hidden">
+          Spannungs-Index {Math.round(tension.index ?? 0)} · {TENSION_INFO[tension.level].label}
+        </p>
+      )}
+      {!expanded && !radar && gaps.weaknesses[0] && (
         <p className="px-4 pb-3 text-xs text-fg md:hidden">
           Größte Baustelle: {gaps.weaknesses[0].icon} {gaps.weaknesses[0].title} (
           {formatDelta(gaps.weaknesses[0].delta)} vs. NRW)
@@ -101,9 +120,98 @@ export function DetailPanel({ drill }: DetailPanelProps) {
           'md:block md:max-h-none',
         )}
       >
+        {radar && (
+          <RadarSection
+            tension={tension}
+            allowed={tensionAllowed}
+            row={row}
+            publishScope={drill.kreis ? 'kreis' : 'regbez'}
+            publishRegionId={(drill.kreis ?? drill.regbez)!.properties.id}
+          />
+        )}
         <GapDetails gaps={gaps} hasData={row?.score != null} />
       </div>
     </aside>
+  );
+}
+
+/** Frühwarn-Radar (#42): Index, Trend, Treiber, Handlungsvorschläge und Weg zu „Antwort veröffentlichen“ (#43). */
+function RadarSection({
+  tension,
+  allowed,
+  row,
+  publishScope,
+  publishRegionId,
+}: {
+  tension: TensionRow | undefined;
+  allowed: boolean;
+  row: AggregateRow | undefined;
+  publishScope: 'regbez' | 'kreis';
+  publishRegionId: string;
+}) {
+  const box = 'mb-4 rounded-xl bg-subtle p-3 text-sm';
+  if (!allowed) {
+    return (
+      <p className={cn(box, 'text-muted')}>
+        Der Spannungs-Index je Schule ist nur in der Ansicht „Ministerium“ sichtbar.
+      </p>
+    );
+  }
+  if (!tension?.level || tension.index == null) {
+    return (
+      <p className={cn(box, 'text-muted')}>
+        Für den Spannungs-Index gibt es hier noch zu wenige Stimmen (mindestens 10).
+      </p>
+    );
+  }
+  const info = TENSION_INFO[tension.level];
+  const drivers = tension.drivers.map((slug) => ({ slug, topic: TOPICS.find((t) => t.slug === slug) }));
+  const suggestions = suggestionsFor(tension.drivers);
+  return (
+    <section className={box} aria-label="Frühwarn-Radar">
+      <h3 className="mb-2 flex items-center gap-1.5 font-semibold">
+        <Radar aria-hidden className="size-4" /> Frühwarn-Radar
+      </h3>
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+          style={{ backgroundColor: info.color, color: info.textColor }}
+        >
+          {Math.round(tension.index)} · {info.label}
+        </span>
+        {tension.trend != null && (
+          <span className="text-xs text-muted">
+            {tension.trend > 0 ? '↗' : tension.trend < 0 ? '↘' : '→'} {formatDelta(tension.trend)} zur
+            Vorwoche
+          </span>
+        )}
+      </div>
+      {drivers.length > 0 && (
+        <p className="mt-2 text-xs">
+          <span className="text-muted">Treiber: </span>
+          {drivers.map(({ slug, topic }, i) => (
+            <span key={slug}>
+              {i > 0 && ', '}
+              {topic?.icon} {topic?.title ?? slug}
+              {row?.topicScores?.[slug] != null && ` (${Math.round(row.topicScores[slug]!)})`}
+            </span>
+          ))}
+        </p>
+      )}
+      {suggestions.length > 0 && (
+        <ul className="mt-2 list-disc space-y-0.5 pl-5 text-xs">
+          {suggestions.map((text) => (
+            <li key={text}>{text}</li>
+          ))}
+        </ul>
+      )}
+      <Link
+        to={publishAnswerHref(publishScope, publishRegionId, tension.drivers[0])}
+        className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-fg hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+      >
+        <Megaphone aria-hidden className="size-3.5" /> Antwort veröffentlichen
+      </Link>
+    </section>
   );
 }
 

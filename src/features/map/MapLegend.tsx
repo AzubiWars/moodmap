@@ -1,4 +1,5 @@
 import { MOOD_LEVELS, NO_DATA } from '@/lib/colors';
+import { type MapMode, TENSION_INFO, TENSION_ORDER } from './radar';
 
 const NO_DATA_PATTERN = {
   backgroundColor: NO_DATA.color,
@@ -9,7 +10,8 @@ function rangeLabel(min: number, level: number) {
   return `${min}–${level === 5 ? 100 : min + 19}`;
 }
 
-export function MapLegend() {
+export function MapLegend({ mode = 'mood' }: { mode?: MapMode }) {
+  if (mode === 'radar') return <RadarLegend />;
   const levels = [...MOOD_LEVELS].reverse();
   return (
     <div
@@ -57,6 +59,38 @@ export function MapLegend() {
           </li>
         </ul>
       </div>
+    </div>
+  );
+}
+
+/** Legende Frühwarn-Radar (#42): drei Stufen + zu wenige Daten, ohne Alarmsprache. */
+function RadarLegend() {
+  return (
+    <div
+      className="rounded-2xl bg-card/95 p-2 text-xs shadow-md ring-1 ring-border backdrop-blur md:p-3"
+      role="group"
+      aria-label="Legende Frühwarn-Radar"
+    >
+      <div className="mb-1.5 font-semibold text-fg md:mb-2">Frühwarn-Radar</div>
+      <ul className="flex flex-wrap gap-x-3 gap-y-1 md:block md:space-y-1">
+        {TENSION_ORDER.map((level) => (
+          <li key={level} className="flex items-center gap-2">
+            <span
+              className="size-3.5 rounded-sm"
+              style={{ backgroundColor: TENSION_INFO[level].color }}
+              aria-hidden
+            />
+            <span>
+              {TENSION_INFO[level].label}{' '}
+              <span className="hidden text-muted md:inline">({TENSION_INFO[level].hint})</span>
+            </span>
+          </li>
+        ))}
+        <li className="flex items-center gap-2">
+          <span className="size-3.5 rounded-sm" style={NO_DATA_PATTERN} aria-hidden />
+          <span>{NO_DATA.label}</span>
+        </li>
+      </ul>
     </div>
   );
 }

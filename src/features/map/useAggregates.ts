@@ -48,3 +48,18 @@ export function useLiveAggregates() {
     [queryClient],
   );
 }
+
+/** Spannungs-Index (Frühwarn-Radar #42) einer Ebene; Themen sind fest (TENSION_WEIGHTS), daher ohne `topic`. */
+export function useTension(
+  level: Exclude<DataLevel, 'nrw'>,
+  options: { parentId?: string; enabled?: boolean; refetchInterval?: number | false } = {},
+) {
+  const { parentId, enabled = true, refetchInterval = false } = options;
+  return useQuery({
+    queryKey: ['aggregates', 'tension', level, parentId ?? null],
+    queryFn: () => getDataSource().getTensionIndex({ level, topic: 'all', parentId }),
+    placeholderData: keepPreviousData,
+    enabled,
+    refetchInterval,
+  });
+}

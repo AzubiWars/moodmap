@@ -8,6 +8,7 @@ import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from
 import { useTheme } from '@/lib/theme';
 import { type Bounds, GERMANY_MAX_BOUNDS, NRW_BOUNDS, type RegionProperties } from './geo';
 import { maplibre } from './maplibreSetup';
+import { type MapMode, TENSION_FILL_EXPRESSION, TENSION_INFO } from './radar';
 import type { SchoolCollection, SchoolPointProperties } from './schools';
 
 /** `dim` = liegt außerhalb des fokussierten Regierungsbezirks (Drill-down #17) */
@@ -27,6 +28,8 @@ interface MoodMapProps {
   schools?: SchoolCollection | null;
   /** Clustern (Regierungsbezirk); im Kreis sind es wenige genug für Einzel-Marker */
   clusterSchools?: boolean;
+  /** Kartenmodus (#42): im Frühwarn-Radar färben Flächen/Schulen nach Spannungs-Stufe (Property `tension`) */
+  mode?: MapMode;
   /** Live-Modus (#24): Schulen mit neuen Stimmen pulsieren – auf jeder Ebene */
   pulses?: readonly { id: string; lon: number; lat: number }[];
   selectedSchoolId?: string | null;
@@ -190,7 +193,7 @@ type HoverInfo = { lng: number; lat: number } & (
 
 /** Platz für Info-Box (oben) und Legende (unten), damit die fokussierte Fläche nicht verdeckt wird */
 const FOCUS_PADDING = { top: 120, bottom: 72, left: 24, right: 56 };
-const MOBILE_FOCUS_PADDING = { top: 128, bottom: 80, left: 16, right: 16 };
+const MOBILE_FOCUS_PADDING = { top: 168, bottom: 80, left: 16, right: 16 };
 /** Platz, den das Detail-Panel (#19) belegt: Sidebar-Breite inkl. Rand bzw. Höhe des eingeklappten Sheets */
 const PANEL_WIDTH = 392;
 const SHEET_PEEK = 120;
@@ -205,6 +208,7 @@ export function MoodMap({
   schools,
   clusterSchools = true,
   pulses = [],
+  mode = 'mood',
   selectedSchoolId,
   onSelectSchool,
 }: MoodMapProps) {
@@ -307,6 +311,11 @@ export function MoodMap({
         ? hover.props.score
         : null;
   const hoverLevel = scoreToLevel(hoverScore);
+  const radar = mode === 'radar';
+  const hoverTension =
+    radar && hover && hover.kind !== 'cluster'
+      ? (hover.props as { tension?: string; tindex?: number })
+      : null;
 
   return (
     <MapGL
@@ -446,7 +455,7 @@ export function MoodMap({
             beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
-              'fill-color': MOOD_FILL_EXPRESSION as unknown as string,
+              'fill-color': (radar ? TENSION_FILL_EXPRESSION : MOOD_FILL_EXPRESSION) as unknown as string,
               'fill-opacity': regionFillOpacity(muted),
             }}
           />
@@ -483,7 +492,8 @@ export function MoodMap({
             type="circle"
             filter={['has', 'point_count']}
             paint={{
-              'circle-color': moodColorExpression(CLUSTER_SCORE) as unknown as string,
+              // Im Radar ist ein Ø von Stufen nicht aussagekräftig → neutrale Cluster
+              'circle-color': (radar ? '#94a3b8' : moodColorExpression(CLUSTER_SCORE)) as unknown as string,
               'circle-radius': ['step', ['get', 'point_count'], 13, 10, 17, 30, 22],
               'circle-stroke-color': '#ffffff',
               'circle-stroke-width': 2,
@@ -510,7 +520,9 @@ export function MoodMap({
             type="circle"
             filter={['!', ['has', 'point_count']]}
             paint={{
-              'circle-color': moodColorExpression(['get', 'score']) as unknown as string,
+              'circle-color': (radar
+                ? TENSION_FILL_EXPRESSION
+                : moodColorExpression(['get', 'score'])) as unknown as string,
               // Fläche ~ n: Radius ~ √n (docs/DESIGN.md §5); Spanne passend zu ~10–100 Antworten je Schule
               'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 3, 6, 10, 13],
               'circle-stroke-color': '#ffffff',
@@ -559,11 +571,20 @@ export function MoodMap({
               {hover.kind === 'cluster' ? `${hover.props.point_count} Schulen` : hover.props.name}
             </div>
             {hover.kind === 'school' && (
-              <div className="text-xs text-slate-500">
+              <div className="text-xs text-muted">
                 {hover.props.form} · {hover.props.city}
               </div>
             )}
-            {hoverLevel && hoverScore != null ? (
+            {hoverTension ? (
+              hoverTension.tension && hoverTension.tension !== 'none' ? (
+                <div>
+                  Spannungs-Index {Math.round(hoverTension.tindex ?? 0)} ·{' '}
+                  {TENSION_INFO[hoverTension.tension as keyof typeof TENSION_INFO].label}
+                </div>
+              ) : (
+                <div className="text-muted">{NO_DATA.label}</div>
+              )
+            ) : hoverLevel && hoverScore != null ? (
               <div>
                 {hoverLevel.weather} {hover.kind === 'cluster' && 'Ø '}
                 {Math.round(hoverScore)} · {hoverLevel.label}
@@ -572,9 +593,7 @@ export function MoodMap({
             ) : (
               <div className="text-muted">{NO_DATA.label}</div>
             )}
-            {hover.kind === 'cluster' && (
-              <div className="text-xs text-slate-500">Klicken zum Hineinzoomen</div>
-            )}
+            {hover.kind === 'cluster' && <div className="text-xs text-muted">Klicken zum Hineinzoomen</div>}
           </div>
         </Popup>
       )}
