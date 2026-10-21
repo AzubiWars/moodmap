@@ -190,6 +190,7 @@ answers       (response_id uuid fk, question_id text fk, value int null, choice 
 -- Optionaler Freitext: nur moderierter Text, keine Rohtext-Spalte, keine direkten API-Grants
 freetext_entries (response_id uuid pk fk, cleaned text, topics text[], cluster text,
                concern bool default false, created_at date)
+freetext_moderation_claims (response_id uuid pk fk /* einmaliger Versuch, ON DELETE CASCADE */)
 
 -- Dialog-Rückkanal „Politik antwortet"
 policy_answers (id uuid pk, topic_slug text fk, scope text, region_id text null, title text, body text,
@@ -377,7 +378,7 @@ Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN
 Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR-016, `PRODUCT_SPEC.md` §3.13, `PRIVACY.md` §6a). Umgesetzt in **`submit-freetext` (#126)**: max. **280 Zeichen**, strukturiertes JSON, Timeout **5 s**, Speicherung ohne Rohtext.
 
 1. Client sendet `{ schoolId, waveId, deviceToken, text }` an die Supabase Edge Function `submit-freetext` – **erst nach** der Umfrage-Abgabe (`submit_response`).
-2. Die Function prüft über den gehashten Device-Token, ob für Schule + Welle bereits eine Teilnahme existiert. Ohne Teilnahme: `403 no_response`, **kein** LLM-Aufruf. Ein bereits gespeicherter Freitext führt ebenfalls zu keinem zweiten LLM-Aufruf.
+2. Die Function prüft über den gehashten Device-Token, ob für Schule + Welle bereits eine Teilnahme existiert. Ohne Teilnahme: `403 no_response`, **kein** LLM-Aufruf. Anschließend reserviert der ausschließlich für `service_role` zugängliche RPC `claim_freetext_moderation` atomar genau einen Versuch pro aktueller Teilnahme (#170). Die private Tabelle enthält nur `response_id`, keinen Text oder Zeitstempel. Parallelität, Ablehnung, Timeout, fehlender Key oder Speicherfehler erlauben keinen weiteren Versuch (`already_submitted`); bei Reservierungsfehlern: `503 unavailable`, kein LLM-Aufruf. Bestehende Freitexte werden durch die Migration als verbraucht übernommen. Reset/Rücknahme löschen die Reservierung per FK-Cascade; eine neue Teilnahme erhält eine neue Berechtigung.
 3. Nur der **Text** geht an OpenRouter (`https://openrouter.ai/api/v1/chat/completions`); Schule, Welle und Device-Token bleiben in Supabase.
 4. OpenRouter liefert strukturiertes JSON:
    - `allowed`: bool

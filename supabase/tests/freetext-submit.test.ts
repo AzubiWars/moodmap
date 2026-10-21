@@ -44,10 +44,13 @@ interface BackendOptions {
   lookupStatus?: number;
   recordStatus?: number;
   moderation?: unknown;
+  claimStatus?: number;
+  claimResult?: unknown;
 }
 
 function backend(options: BackendOptions = {}) {
   const calls: Array<{ url: string; body?: unknown }> = [];
+  const claims = new Set<string>();
   const fetchImpl = vi.fn<typeof fetch>(async (url, init) => {
     const target = String(url);
     const body = init?.body ? JSON.parse(String(init.body)) : undefined;
@@ -58,7 +61,14 @@ function backend(options: BackendOptions = {}) {
         return new Response('lookup failed', { status: options.lookupStatus });
       return json(options.responses ?? [{ id: 'resp-1' }]);
     }
-    if (target.includes('/rest/v1/freetext_entries?')) return json(options.existing ?? []);
+    if (target.includes('/rest/v1/rpc/claim_freetext_moderation')) {
+      if (options.claimStatus) return json({}, options.claimStatus);
+      if ('claimResult' in options) return json(options.claimResult);
+      const id = (body as { response_id: string }).response_id;
+      const used = claims.has(id) || (Array.isArray(options.existing) && options.existing.length > 0);
+      claims.add(id);
+      return json(!used);
+    }
     if (target.includes('/rest/v1/rpc/record_freetext')) {
       if (options.recordStatus && options.recordStatus !== 200)
         return new Response('record failed', { status: options.recordStatus });
@@ -121,7 +131,7 @@ describe('submitFreetext', () => {
     });
     expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
       '/rest/v1/responses',
-      '/rest/v1/freetext_entries',
+      '/rest/v1/rpc/claim_freetext_moderation',
       '/api/v1/chat/completions',
       '/rest/v1/rpc/record_freetext',
     ]);
@@ -164,6 +174,46 @@ describe('submitFreetext', () => {
     expect(calls.some((call) => call.url.includes('openrouter.ai'))).toBe(false);
   });
 
+  it('allows only one concurrent moderation attempt for the same participant', async () => {
+    const { fetchImpl, calls } = backend();
+    const results = await Promise.all(
+      Array.from({ length: 8 }, () => submitFreetext(input, deps(fetchImpl))),
+    );
+    expect(results.filter((result) => result.body.stored)).toHaveLength(1);
+    expect(results.filter((result) => result.body.reason === 'already_submitted')).toHaveLength(7);
+    expect(calls.filter((call) => call.url.includes('openrouter.ai'))).toHaveLength(1);
+    expect(calls.filter((call) => call.url.includes('/rpc/record_freetext'))).toHaveLength(1);
+    const reservation = calls.find((call) => call.url.includes('/rpc/claim_freetext_moderation'))!;
+    expect(reservation.body).toEqual({ response_id: 'resp-1' });
+    expect(JSON.stringify(reservation)).not.toContain(rawText);
+    expect(JSON.stringify(reservation)).not.toContain(TOKEN);
+  });
+
+  it.each([{ claimStatus: 500 }, { claimResult: null }, { claimResult: {} }])(
+    'spends no LLM call when the claim fails (%j)',
+    async (options) => {
+      const { fetchImpl, calls } = backend(options);
+      expect(await submitFreetext(input, deps(fetchImpl))).toEqual({
+        status: 503,
+        body: { ok: false, reason: 'unavailable' },
+      });
+      expect(calls.some((call) => call.url.includes('openrouter.ai'))).toBe(false);
+    },
+  );
+
+  it('spends no LLM call when the reservation request throws', async () => {
+    const { fetchImpl: rest, calls } = backend();
+    const fetchImpl = vi.fn<typeof fetch>(async (url, init) => {
+      if (String(url).includes('/rpc/claim_freetext_moderation')) throw new Error('network failure');
+      return rest(url, init);
+    });
+    expect(await submitFreetext(input, deps(fetchImpl))).toEqual({
+      status: 503,
+      body: { ok: false, reason: 'unavailable' },
+    });
+    expect(calls.some((call) => call.url.includes('openrouter.ai'))).toBe(false);
+  });
+
   it('stores nothing when moderation rejects the text', async () => {
     const { fetchImpl, calls } = backend({
       moderation: {
@@ -182,6 +232,8 @@ describe('submitFreetext', () => {
       body: { ok: true, stored: false, reason: 'Beleidigung', concern: false },
     });
     expect(calls.some((call) => call.url.includes('/rpc/record_freetext'))).toBe(false);
+    expect((await submitFreetext(input, deps(fetchImpl))).body.reason).toBe('already_submitted');
+    expect(calls.filter((call) => call.url.includes('openrouter.ai'))).toHaveLength(1);
   });
 
   it('keeps concern for a rejected text so the client shows crisis help', async () => {
@@ -195,11 +247,18 @@ describe('submitFreetext', () => {
   });
 
   it('stores nothing when the moderation is unavailable (timeout)', async () => {
+    let claimed = false;
+    let llmCalls = 0;
     const fetchImpl = vi.fn<typeof fetch>(async (url, init) => {
       const target = String(url);
       if (target.includes('/rest/v1/responses?')) return json([{ id: 'resp-1' }]);
-      if (target.includes('/rest/v1/freetext_entries?')) return json([]);
+      if (target.includes('/rpc/claim_freetext_moderation')) {
+        const available = !claimed;
+        claimed = true;
+        return json(available);
+      }
       if (target.includes('openrouter.ai')) {
+        llmCalls++;
         return new Promise<Response>((_resolve, reject) => {
           init?.signal?.addEventListener('abort', () => reject(new Error('timeout')));
         });
@@ -211,16 +270,20 @@ describe('submitFreetext', () => {
     expect(result.status).toBe(200);
     expect(result.body).toMatchObject({ ok: true, stored: false, concern: false });
     expect(result.body.reason).toBe(DISCARDED.reason);
+    expect((await submitFreetext(input, deps(fetchImpl))).body.reason).toBe('already_submitted');
+    expect(llmCalls).toBe(1);
   });
 
   it('does not fail the survey when storing fails', async () => {
-    const { fetchImpl } = backend({ recordStatus: 500 });
+    const { fetchImpl, calls } = backend({ recordStatus: 500 });
     const result = await submitFreetext(input, deps(fetchImpl));
 
     expect(result).toEqual({
       status: 200,
       body: { ok: true, stored: false, reason: 'storage_failed', concern: false },
     });
+    expect((await submitFreetext(input, deps(fetchImpl))).body.reason).toBe('already_submitted');
+    expect(calls.filter((call) => call.url.includes('openrouter.ai'))).toHaveLength(1);
   });
 
   it('returns already_submitted when the RPC enforces the one-entry rule', async () => {
