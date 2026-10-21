@@ -260,6 +260,15 @@ function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) 
           Strich = NRW-Durchschnitt. Themen mit weniger als 10 Stimmen werden nicht ausgewertet.
         </p>
       </section>
+
+      <Link
+        to={gaps.weaknesses[0] ? `/massnahmen?topic=${gaps.weaknesses[0].slug}` : '/massnahmen'}
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-fg"
+      >
+        {gaps.weaknesses[0]
+          ? `Maßnahmen zu „${gaps.weaknesses[0].title}“ ansehen`
+          : 'Maßnahmenkatalog ansehen'}
+      </Link>
     </div>
   );
 }

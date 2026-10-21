@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { ActionCatalogPage } from '@/features/actions/ActionCatalogPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { ComponentGallery } from '@/features/demo/ComponentGallery';
 import { DemoPage } from '@/features/demo/DemoPage';
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: '/check', element: <CheckPage /> },
       { path: '/check/done', element: <DonePage /> },
       { path: '/map', element: <LazyMapPage /> },
+      { path: '/massnahmen', element: <ActionCatalogPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/demo', element: <DemoPage /> },
