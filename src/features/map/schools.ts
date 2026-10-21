@@ -1,14 +1,13 @@
 import type { FeatureCollection, Point } from 'geojson';
+import { getDataSource } from '@/data';
 import type { School, SchoolForm } from '@/types';
 
-/** Synthetischer Fallback-Datensatz aus #7 (erzeugt von scripts/generate-schools.ts). */
-export const SCHOOLS_URL = '/data/schools.json';
-
-// TODO(#68): durch getDataSource().getSchools() ersetzen, sobald die MockDataSource (#9) registriert ist
-export async function loadSchools(url: string = SCHOOLS_URL): Promise<School[]> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Schulen ${url}: HTTP ${res.status}`);
-  return (await res.json()) as School[];
+/**
+ * Schulen mit Stimmungswerten. Im Mock-Modus nur die synthetischen Schulen aus #7 –
+ * das echte Verzeichnis (#100) bekommt keine erfundenen Werte (ADR-012).
+ */
+export function loadSchools(): Promise<School[]> {
+  return getDataSource().getSchools();
 }
 
 export const SCHOOL_FORM_LABELS: Record<SchoolForm, string> = {
