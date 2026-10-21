@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { demoScores } from './demoScores';
 import { MapPage } from './MapPage';
@@ -86,6 +86,11 @@ beforeEach(() => {
   Element.prototype.scrollIntoView = vi.fn();
 });
 
+function openTopicDialog() {
+  fireEvent.click(screen.getByRole('button', { name: 'Alle Themen' }));
+  return screen.getByRole('dialog', { name: 'Thema wählen' });
+}
+
 describe('map topic filter', () => {
   it('restores a shared topic URL and changes map data without reloading', async () => {
     const router = openMap('/map?topic=ai&mode=mood');
@@ -94,13 +99,33 @@ describe('map topic filter', () => {
     expect(screen.getByTestId('map-data')).toHaveTextContent(`"score":${expected.score ?? -1}`);
     const previousData = screen.getByTestId('map-data').textContent;
 
-    fireEvent.click(screen.getByRole('button', { name: 'Digitale Ausstattung' }));
+    const dialog = openTopicDialog();
+    fireEvent.click(within(dialog).getByRole('button', { name: /Digitale Ausstattung/ }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=digital&mode=mood'));
+    expect(screen.queryByRole('dialog', { name: 'Thema wählen' })).not.toBeInTheDocument();
     expect(screen.getByTestId('map-data').textContent).not.toBe(previousData);
 
     await act(() => router.navigate(-1));
     expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByTestId('map-data').textContent).toBe(previousData);
+  });
+
+  it('searches topics with regex and selects a result', async () => {
+    const router = openMap('/map?topic=ai&mode=mood');
+    const dialog = openTopicDialog();
+    const search = within(dialog).getByRole('searchbox', { name: 'Thema suchen' });
+
+    fireEvent.change(search, { target: { value: '/ki|stress/i' } });
+    expect(within(dialog).getByRole('button', { name: /KI im Schulalltag/ })).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: /Stress & Leistungsdruck/ })).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: /Digitale Ausstattung/ })).not.toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: /Stress & Leistungsdruck/ }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=stress&mode=mood'));
+    expect(screen.getByRole('button', { name: /Stress & Leistungsdruck/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 
   it('resets to overall mood while retaining other filters', async () => {

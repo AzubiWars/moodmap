@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { TopicChip } from '@/components/TopicChip';
 import { TOPICS } from '@/data/topics';
 import { demoScores } from './demoScores';
 import { breadcrumb, clickTarget, drillParams, levelCaption, resolveDrill } from './drilldown';
@@ -9,8 +7,10 @@ import { featureBounds, GEO_URLS, loadRegions, NRW_BOUNDS, type RegionCollection
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
 import { MoodMap } from './MoodMap';
+import { TopicFilter } from './TopicFilter';
+import type { FilterTopic } from './topicSearch';
 
-const MAP_TOPICS = [
+const MAP_TOPICS: FilterTopic[] = [
   { slug: 'all', title: 'Gesamt-Mood', icon: '🗺️' },
   ...[...TOPICS].sort((a, b) => a.sort - b.sort),
 ];
@@ -38,13 +38,6 @@ export function MapPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTopic = searchParams.get('topic');
   const topic = MAP_TOPICS.find((entry) => entry.slug === requestedTopic) ?? MAP_TOPICS[0]!;
-  const filterRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    filterRef.current
-      ?.querySelector('[aria-pressed="true"]')
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-  }, [topic.slug]);
 
   function selectTopic(slug: string) {
     setSearchParams(
@@ -95,21 +88,7 @@ export function MapPage() {
 
   return (
     <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] flex-col md:h-[calc(100dvh-5.1rem)]">
-      <div
-        ref={filterRef}
-        role="group"
-        aria-label="Karte nach Thema filtern"
-        className="flex shrink-0 gap-2 overflow-x-auto border-b border-slate-200 bg-slate-50 px-3 py-3"
-      >
-        {MAP_TOPICS.map((entry) => (
-          <TopicChip
-            key={entry.slug}
-            topic={entry}
-            selected={topic.slug === entry.slug}
-            onClick={selectTopic}
-          />
-        ))}
-      </div>
+      <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />
 
       <div className="relative min-h-0 flex-1">
         <MoodMap
