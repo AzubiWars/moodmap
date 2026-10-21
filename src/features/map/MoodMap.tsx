@@ -267,6 +267,17 @@ export function MoodMap({
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [loaded, setLoaded] = useState(false);
 
+  // Nicht bei jedem Tile-/Glyph-Fehler sofort auf den Raster-Fallback wechseln.
+  // Der Vektor-Style bekommt Zeit zu laden; erst wenn die Karte gar nicht ready wird,
+  // greift nach 8 s der OSM-Fallback mit Ortsnamen.
+  useEffect(() => {
+    if (loaded || basemapFailed) return;
+    const timer = setTimeout(() => {
+      if (!loaded) setBasemapFailed(true);
+    }, 8_000);
+    return () => clearTimeout(timer);
+  }, [loaded, basemapFailed]);
+
   // Kamera folgt der Ebene – auch bei Browser-Zurück und geteilten Links.
   const boundsKey = focusBounds.flat().join(',');
   // 2D/3D nur auf Wunsch – keine automatische Kippung beim Zoomen (#153).
@@ -401,12 +412,6 @@ export function MoodMap({
       mapStyle={mapStyle}
       onLoad={() => setLoaded(true)}
       onStyleData={() => setMapReady(true)}
-      onError={(e) => {
-        // Nur wenn der Basemap-Stil gar nicht lädt. Einzelne Kachel-Fehler (tragen eine sourceId) dürfen die
-        // Karte nicht mitten in der Demo auf den leeren Fallback umschalten und die Kamerafahrt abbrechen.
-        if ((e as unknown as { sourceId?: string }).sourceId || loaded) return;
-        setBasemapFailed(true);
-      }}
       onMoveEnd={(event) => onPitchChange?.(event.viewState.pitch > 10)}
       interactiveLayerIds={[
         FILL_LAYER_ID,
