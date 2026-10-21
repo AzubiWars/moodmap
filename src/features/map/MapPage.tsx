@@ -21,6 +21,7 @@ import {
   type RegionCollection,
   withScores,
 } from './geo';
+import { DetailPanel } from './DetailPanel';
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
 import { MoodMap } from './MoodMap';
@@ -158,6 +159,7 @@ export function MapPage() {
           selectedId={drill.kreis?.properties.id ?? null}
           focusBounds={focusBounds}
           muted={drill.level === 'kreis' || drill.level === 'school'}
+          detailOpen={drill.level !== 'nrw'}
           onSelect={selectRegion}
           schools={schoolPoints}
           clusterSchools={drill.level === 'regbez'}
@@ -175,9 +177,21 @@ export function MapPage() {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-2 md:bottom-3 md:left-3">
+        {/* Mobile: Legende über dem eingeklappten Detail-Sheet */}
+        <div
+          className={
+            drill.level === 'nrw'
+              ? 'absolute bottom-8 left-2 md:bottom-3 md:left-3'
+              : 'absolute bottom-[8.5rem] left-2 md:bottom-3 md:left-3'
+          }
+        >
           <MapLegend />
         </div>
+
+        <DetailPanel
+          key={drill.school?.id ?? drill.kreis?.properties.id ?? drill.regbez?.properties.id}
+          drill={drill}
+        />
 
         {kreiseQuery.isError && (
           <div className="absolute inset-x-3 top-24 rounded-2xl bg-card p-4 text-sm shadow-md ring-1 ring-border md:left-auto md:w-80">

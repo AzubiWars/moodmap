@@ -141,6 +141,9 @@ function openMap(url: string) {
   return router;
 }
 
+/** Breadcrumb-Navigation – Namen tauchen zusätzlich im Detail-Panel (#19) auf */
+const crumbs = () => within(screen.getByRole('navigation', { name: 'Kartenebene' }));
+
 beforeEach(() => {
   aggregateCalls.length = 0;
   Element.prototype.scrollIntoView = vi.fn();
@@ -223,12 +226,12 @@ describe('map drill-down', () => {
       [6, 50],
       [7, 51],
     ]);
-    expect(screen.getByText('Reg.-Bez. Köln')).toHaveAttribute('aria-current', 'location');
+    expect(crumbs().getByText('Reg.-Bez. Köln')).toHaveAttribute('aria-current', 'location');
 
     fireEvent.click(screen.getByRole('button', { name: 'Fläche 05315' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&regbez=053&kreis=05315'));
     expect(screen.getByTestId('map-selected')).toHaveTextContent('05315');
-    expect(screen.getByText('Stadt Köln')).toHaveAttribute('aria-current', 'location');
+    expect(crumbs().getByText('Stadt Köln')).toHaveAttribute('aria-current', 'location');
     expect(focus()).toEqual([
       [6.9, 50.9],
       [7.9, 51.9],
@@ -237,7 +240,7 @@ describe('map drill-down', () => {
 
   it('navigates up via breadcrumb, „Zurück zu NRW“ and browser back', async () => {
     const router = openMap('/map?topic=ai&regbez=053&kreis=05315');
-    expect(screen.getByText('Stadt Köln')).toBeInTheDocument();
+    expect(crumbs().getByText('Stadt Köln')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reg.-Bez. Köln' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&regbez=053'));
@@ -247,12 +250,12 @@ describe('map drill-down', () => {
     expect(mapData().features.map((f) => f.properties.id)).toEqual(['051', '053']);
 
     await act(() => router.navigate(-1));
-    expect(screen.getByText('Reg.-Bez. Köln')).toHaveAttribute('aria-current', 'location');
+    expect(crumbs().getByText('Reg.-Bez. Köln')).toHaveAttribute('aria-current', 'location');
   });
 
   it('ignores unknown drill ids from a shared link', () => {
     openMap('/map?regbez=999&kreis=00000');
-    expect(screen.getByText('NRW')).toHaveAttribute('aria-current', 'location');
+    expect(crumbs().getByText('NRW')).toHaveAttribute('aria-current', 'location');
     expect(mapData().features).toHaveLength(2);
   });
 });
@@ -276,7 +279,7 @@ describe('school markers (#18)', () => {
       expect(router.state.location.search).toBe('?topic=ai&regbez=053&kreis=05315&school=900002'),
     );
     expect(screen.getByTestId('map-selected-school')).toHaveTextContent('900002');
-    expect(screen.getByText('Schule 900002', { selector: '[aria-current]' })).toBeInTheDocument();
+    expect(crumbs().getByText('Schule 900002', { selector: '[aria-current]' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Stadt Köln' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&regbez=053&kreis=05315'));
@@ -314,5 +317,25 @@ describe('aggregates from the DataSource (#68)', () => {
     const before = aggregateCalls.length;
     act(() => liveCallback?.());
     await waitFor(() => expect(aggregateCalls.length).toBeGreaterThan(before));
+  });
+});
+
+describe('detail panel (#19)', () => {
+  it('is hidden on NRW level and shows the drilled unit with its votes', async () => {
+    const router = openMap('/map');
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fläche 053' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?regbez=053'));
+    const panel = await screen.findByRole('complementary', { name: 'Details: Reg.-Bez. Köln' });
+    await waitFor(() => expect(within(panel).getByText('50 Stimmen')).toBeInTheDocument());
+  });
+
+  it('shows school facts on school level', async () => {
+    openMap('/map?regbez=053&kreis=05315&school=900002');
+    const panel = await screen.findByRole('complementary', { name: 'Details: Schule 900002' });
+    expect(within(panel).getByText('Gymnasium · Testort · Schulnummer 900002')).toBeInTheDocument();
+    // 50 Stimmen bei 500 Schüler:innen
+    await waitFor(() => expect(within(panel).getByText(/10 % Beteiligung/)).toBeInTheDocument());
   });
 });
