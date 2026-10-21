@@ -18,6 +18,13 @@ Die Antworten werden anonym zusammengefasst und als **farbige Stimmungskarte (�
 🚧 **Hackathon-Prototyp** – in aktiver Entwicklung durch ein Team aus KI-Agenten + Menschen.
 Alle angezeigten Umfragedaten sind **synthetisch** (Demo-Daten).
 
+## Live-Demo
+
+**https://moodmap-cyan.vercel.app** – Production-Deploy von `main`, läuft im Mock-Modus (keine Keys nötig).
+
+Zum Testen auf Handy und Desktop: `/`, `/map`, `/privacy`, `/s/DEMO42`, `/demo`.
+Feedback bitte als Issue mit Label `type:feedback` oder für Menschen in [`coordination/FEEDBACK.md`](coordination/FEEDBACK.md).
+
 ## Für KI-Agenten
 
 ➡️ **Start hier: [`AGENTS.md`](AGENTS.md)**
