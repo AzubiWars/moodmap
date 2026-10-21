@@ -370,6 +370,35 @@ describe('detail panel (#19)', () => {
   });
 });
 
+describe('map search', () => {
+  it('finds a school and opens it directly on the map', async () => {
+    const router = openMap('/map');
+    const search = screen.getByRole('searchbox', { name: 'Schule oder Stadt suchen' });
+    fireEvent.change(search, { target: { value: '900002' } });
+
+    fireEvent.click(await screen.findByRole('button', { name: /Schule 900002/ }));
+    await waitFor(() => expect(router.state.location.search).toBe('?regbez=053&kreis=05315&school=900002'));
+    expect(screen.getByTestId('map-selected-school')).toHaveTextContent('900002');
+    expect(crumbs().getByText('Schule 900002', { selector: '[aria-current]' })).toBeInTheDocument();
+  });
+
+  it('jumps to a city and shows its schools', async () => {
+    const router = openMap('/map');
+    const search = screen.getByRole('searchbox', { name: 'Schule oder Stadt suchen' });
+    fireEvent.change(search, { target: { value: 'Testort' } });
+
+    const cityGroup = await screen.findByRole('region', { name: 'Städte' });
+    fireEvent.click(within(cityGroup).getByRole('button', { name: /Testort/ }));
+    await waitFor(() => expect(router.state.location.search).toBe('?regbez=051&kreis=05111&city=Testort'));
+    expect(screen.getByTestId('map-selected')).toHaveTextContent('05111');
+    expect(screen.getByText(/Stadt Testort · 2 Schulen/)).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /^Schule / }).map((button) => button.textContent)).toEqual([
+      'Schule 900001',
+      'Schule 900002',
+    ]);
+  });
+});
+
 describe('live mode (#24)', () => {
   it('toggles via ?live=1 without a history entry', async () => {
     const router = openMap('/map?topic=ai');

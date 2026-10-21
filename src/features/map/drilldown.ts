@@ -19,6 +19,8 @@ export interface DrillTarget {
   regbez?: string;
   kreis?: string;
   school?: string;
+  /** Optionaler Stadtfilter aus der Kartensuche (z. B. „Düsseldorf“). */
+  city?: string;
 }
 
 export interface Crumb {
@@ -27,7 +29,7 @@ export interface Crumb {
   params: DrillTarget | null;
 }
 
-export const DRILL_PARAMS = ['regbez', 'kreis', 'school'] as const;
+export const DRILL_PARAMS = ['regbez', 'kreis', 'school', 'city'] as const;
 
 const NRW_STATE: DrillState = { level: 'nrw', regbez: null, kreis: null, school: null };
 
