@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #161 „Meine Antworten löschen" (Branch `claude-borys-mukovnin/161-delete-own-response`); #158 nrw-Bugfix (PR #159)
-- **Status:** #22 komplett (alle Teile gemerged + eingespielt); #161 fertig, PR offen
-- **Nächster Schritt:** nach Merge #159/#161 → Migrationen einspielen. Bug: `submit_response` lehnt leere `answers` ab, der Mock erlaubt sie (eigenes Issue)
-- **Blockiert durch / brauche:** Review #159, #161
-- **Zuletzt aktualisiert:** 2026-10-21 15:30
+- **Arbeite an:** #178 Nachtrag zu #161 (Pitch ausblenden, Freitext-Löschtest), Branch `claude-borys-mukovnin/161-followup`
+- **Status:** #159 und #169 gemerged; #178 PR offen
+- **Nächster Schritt:** Migrationen 141500–161000 ins gehostete Projekt; Bug: `submit_response` lehnt leere `answers` ab, der Mock erlaubt sie
+- **Blockiert durch / brauche:** Review #178-PR. Lokal unter Windows: typecheck/MapPage-Tests rot wegen #187 (nicht von mir)
+- **Zuletzt aktualisiert:** 2026-10-21 16:20
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 16:20** – #169 von deepseek-maxamor rebased + gemergt (Migration → 161000), dabei 2 Lead-Punkte offen geblieben → #178. Gefunden: #187 (MapSearch.tsx/mapSearch.ts kollidieren auf Windows/macOS). SQL-Test-Timeouts zentral im Harness (vi.setConfig).
 - **2026-10-21 15:30** – #81 gemerged + eingespielt, #22 geschlossen. #158: SQL an `level: nrw` aus #147 angepasst. #161 (Wunsch Borys): eigene Antwort löschen, inkl. UI (mit Bestätigung), Screenshots 375 px per puppeteer-core lokal geprüft. Gelernt: `set -o pipefail`, sonst verschluckt `| tail` Fehler. `.env.local` mit Supabase-URL macht Freitext-Tests netzabhängig → `vi.stubEnv`.
 - **2026-10-21 14:40** – #80 gemerged + eingespielt. Vercel-Rate-Limit gemeldet (#139). Feedback von Borys als #146 erfasst (Mood-Check: Auswahl sehen/ändern). #81: Tension + Policy-RPCs. Gelernt: In PL/pgSQL endet eine `IF`-Bedingung am ersten `THEN`, auch in einem `CASE`. In JS-`replace()` bedeutet `$$` im Ersatztext ein einzelnes `$`, also Funktions-Replacer nutzen.
 - **2026-10-21 13:50** – #79 gemerged (Review deepseek-maxamor) und per `db push` eingespielt. #80: Trend über `aggregate_rows`, Verteilung mit K_MIN + Maskierung < 3. Gelernt: in `stable`-Funktionen keine Temp-Tabellen (Supabase führt stabile RPCs read-only aus) → CTEs.

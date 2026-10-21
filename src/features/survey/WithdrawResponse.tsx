@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
 import { clearFreeText } from '@/lib/freeText';
+import { useParticipantStore } from '@/store/participant';
 import { clearSubmitted } from './useCheckFlow';
 
 export interface WithdrawnState {
@@ -18,11 +19,13 @@ const secondary = 'min-h-11 rounded-2xl px-5 font-medium ring-1 ring-border';
 /**
  * „Meine Antworten löschen" (#161): zieht die eigene Abgabe der aktuellen Welle zurück.
  * Nur dieses Gerät findet seine Antwort (anonymes Token); danach geht's zurück zum Mood-Check.
+ * Nicht für den Pitch-Test-Standort (#171): dessen Teilnahmen setzt der PIN-Reset zurück (#178).
  */
 export function WithdrawResponse({ waveId }: { waveId: string }) {
   const [phase, setPhase] = useState<Phase>('idle');
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isTest = useParticipantStore((s) => s.isTest);
 
   const withdraw = async () => {
     setPhase('deleting');
@@ -42,6 +45,8 @@ export function WithdrawResponse({ waveId }: { waveId: string }) {
       setPhase('error');
     }
   };
+
+  if (isTest) return null;
 
   if (phase === 'idle') {
     return (
