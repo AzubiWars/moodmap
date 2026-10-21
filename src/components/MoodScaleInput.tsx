@@ -1,5 +1,6 @@
 import { MOOD_LEVELS } from '@/lib/colors';
 import { cn } from '@/lib/utils';
+import { ANSWER_LABELS } from './moodScaleLabels';
 
 /** 1–5 = Antwort, `null` = „weiß nicht / keine Angabe“ */
 export type MoodValue = 1 | 2 | 3 | 4 | 5 | null;
@@ -12,8 +13,6 @@ interface MoodScaleInputProps {
   label: string;
   className?: string;
 }
-
-const ANSWER_LABELS = ['richtig mies', 'eher schlecht', 'geht so', 'eher gut', 'richtig gut'] as const;
 
 /** 5er-Antwortskala aus docs/SURVEY_TOPICS.md §1 – große Touch-Ziele für die Daumenzone. */
 export function MoodScaleInput({ value, onChange, label, className }: MoodScaleInputProps) {
