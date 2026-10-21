@@ -41,6 +41,80 @@ const BUILDING_COLOR = ['coalesce', ['get', 'colour'], '#d6d3d1'] as unknown as 
 const BUILDING_HEIGHT = ['coalesce', ['get', 'render_height'], 8] as unknown as number;
 const BUILDING_BASE = ['coalesce', ['get', 'render_min_height'], 0] as unknown as number;
 
+/** Öffentliche Gebäude/POIs (#102) – Schulen kommen separat über #18. */
+const POI_LAYER_ID = 'public-buildings';
+const POI_SOURCE_LAYER = 'poi';
+const PLACE_DETAIL_LAYER_ID = 'places-detail';
+/** In Positron ist `label_other` die erste Ortsnamen-Ebene; davor einfügen. */
+const LABEL_INSERT_BEFORE = 'label_other';
+
+const PUBLIC_POI_CLASSES = [
+  'townhall',
+  'town_hall',
+  'courthouse',
+  'government',
+  'post',
+  'hospital',
+  'clinic',
+  'library',
+  'police',
+  'fire_station',
+  'community_centre',
+  'kindergarten',
+  'college',
+  'university',
+  'museum',
+  'place_of_worship',
+  'station',
+] as const;
+
+const PUBLIC_POI_FILTER = ['in', ['get', 'class'], ['literal', PUBLIC_POI_CLASSES]] as never;
+
+const PLACE_DETAIL_FILTER = [
+  'in',
+  ['get', 'class'],
+  ['literal', ['hamlet', 'suburb', 'quarter', 'neighbourhood']],
+] as never;
+
+const POI_ICON = [
+  'match',
+  ['get', 'class'],
+  ['townhall', 'town_hall', 'courthouse', 'government'],
+  '🏛️',
+  ['hospital', 'clinic'],
+  '🏥',
+  'library',
+  '📚',
+  'police',
+  '🚓',
+  'fire_station',
+  '🚒',
+  'community_centre',
+  '🏘️',
+  'kindergarten',
+  '🧸',
+  ['college', 'university'],
+  '🎓',
+  'museum',
+  '🖼️',
+  'place_of_worship',
+  '⛪',
+  'station',
+  '🚉',
+  'post',
+  '📮',
+  '🏢',
+] as unknown as string;
+
+const POI_LABEL = [
+  'case',
+  ['has', 'name'],
+  ['concat', POI_ICON, ' ', ['coalesce', ['get', 'name'], ['get', 'name_de']]],
+  POI_ICON,
+] as unknown as string;
+
+const PLACE_LABEL = ['coalesce', ['get', 'name'], ['get', 'name_de']] as unknown as string;
+
 /** Bei hohem Zoom zurückhaltender, damit Gebäude/Schulgelände sichtbar werden. */
 /** Deckkraft je Zoom (#85: Flächen treten für 3D-Gebäude zurück) und abgeblendet außerhalb des Drill-downs (#17). */
 const dimmed = (normal: number, dim: number) => ['case', ['==', ['get', 'dim'], true], dim, normal];
@@ -173,6 +247,69 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
             'fill-extrusion-opacity': 0.7,
           }}
         />
+      )}
+      {mapStyle === BASEMAP_URL && (
+        <>
+          <Layer
+            id={`${POI_LAYER_ID}-dot`}
+            source={BUILDING_SOURCE}
+            source-layer={POI_SOURCE_LAYER}
+            type="circle"
+            minzoom={14}
+            beforeId={LABEL_INSERT_BEFORE}
+            filter={PUBLIC_POI_FILTER}
+            paint={{
+              'circle-radius': 2.5,
+              'circle-color': '#475569',
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 1,
+            }}
+          />
+          <Layer
+            id={POI_LAYER_ID}
+            source={BUILDING_SOURCE}
+            source-layer={POI_SOURCE_LAYER}
+            type="symbol"
+            minzoom={14}
+            beforeId={LABEL_INSERT_BEFORE}
+            filter={PUBLIC_POI_FILTER}
+            layout={{
+              'text-field': POI_LABEL,
+              'text-size': ['interpolate', ['linear'], ['zoom'], 14, 10, 18, 12] as unknown as number,
+              'text-anchor': 'top',
+              'text-offset': [0, 0.8],
+              'text-max-width': 8,
+              'text-allow-overlap': false,
+              'text-optional': true,
+            }}
+            paint={{
+              'text-color': '#334155',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 1.2,
+            }}
+          />
+          <Layer
+            id={PLACE_DETAIL_LAYER_ID}
+            source={BUILDING_SOURCE}
+            source-layer="place"
+            type="symbol"
+            minzoom={11}
+            beforeId={LABEL_INSERT_BEFORE}
+            filter={PLACE_DETAIL_FILTER}
+            layout={{
+              'text-field': PLACE_LABEL,
+              'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 15, 12, 18, 13] as unknown as number,
+              'text-max-width': 8,
+              'text-allow-overlap': false,
+              'text-optional': true,
+            }}
+            paint={{
+              'text-color': '#64748b',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 1,
+            }}
+          />
+        </>
       )}
       <Source id="germany-mask" type="geojson" data={GERMANY_MASK_URL}>
         <Layer
