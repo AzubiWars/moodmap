@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "geo:build": "node scripts/simplify-geo.ts",
-    "data:schools": "node scripts/generate-schools.ts"
+    "data:schools": "node scripts/generate-schools.ts",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.5",

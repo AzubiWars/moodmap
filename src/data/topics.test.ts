@@ -30,14 +30,7 @@ describe('topics catalog', () => {
       'building',
       'voice',
     ]);
-    expect(P1_TOPIC_SLUGS).toEqual([
-      'cancellation',
-      'participation',
-      'future',
-      'safety',
-      'food',
-      'phones',
-    ]);
+    expect(P1_TOPIC_SLUGS).toEqual(['cancellation', 'participation', 'future', 'safety', 'food', 'phones']);
   });
 
   it('marks voice as mandatory', () => {
@@ -84,9 +77,7 @@ describe('topics catalog', () => {
 
   it('weights swipe statements 0.5, except the non-scoring voice.talk', () => {
     for (const question of QUESTIONS.filter((item) => item.type === 'swipe')) {
-      expect(question.weight, question.id).toBe(
-        question.id === 'voice.swipe.talk' ? 0 : 0.5,
-      );
+      expect(question.weight, question.id).toBe(question.id === 'voice.swipe.talk' ? 0 : 0.5);
     }
   });
 

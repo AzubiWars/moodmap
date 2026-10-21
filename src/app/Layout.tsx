@@ -1,5 +1,6 @@
 import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { DemoBanner } from '@/components/DemoBanner';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -12,7 +13,7 @@ const NAV = [
 export function Layout() {
   return (
     <div className="flex min-h-full flex-col">
-      <div className="bg-slate-900 px-4 py-1 text-center text-xs text-slate-100">Prototyp – Demo-Daten</div>
+      <DemoBanner />
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <NavLink to="/" className="flex items-center gap-2 text-lg font-bold">
