@@ -4,7 +4,8 @@ import type { AnswerInput, Question } from '@/types';
 /** Antwort auf eine Karte: Skalenwert (mood5/swipe) oder gewählte Optionen (choice). */
 export type CardAnswer = number | string[];
 
-export type CheckStatus = 'asking' | 'freetext' | 'submitting' | 'done' | 'already' | 'error';
+/** `queued`: offline abgegeben, liegt im Puffer (#36) und wird später gesendet. */
+export type CheckStatus = 'asking' | 'freetext' | 'submitting' | 'done' | 'queued' | 'already' | 'error';
 
 export interface CheckState {
   status: CheckStatus;
@@ -24,7 +25,7 @@ export type CheckAction =
   | { type: 'BACK' }
   | { type: 'RETRY' }
   | { type: 'FREETEXT'; freeText: string | null }
-  | { type: 'RESULT'; result: 'ok' | 'already' | 'error' };
+  | { type: 'RESULT'; result: 'ok' | 'queued' | 'already' | 'error' };
 
 /** Vertiefung gibt es nur, wenn ein Thema mit Vertiefungsfrage schlecht bewertet wurde. */
 const DEEP_MAX_VALUE = 3;

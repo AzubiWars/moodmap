@@ -17,14 +17,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #25 Lagebild NRW (PR offen); #12 Mood-Check-Flow (PR offen, baut auf PR #122 / #11 auf)
-- **Status:** #25 in Review, #11 in Review (PR #122), #12 in Review
+- **Arbeite an:** #36 Offline-Puffer für Antworten (PR offen)
+- **Status:** #36 in Review
 - **Nächster Schritt:** #29 Danke-Screen, dann #31 Swipe
-- **Blockiert durch / brauche:** Review von #122 und #12 (danach #12 auf `main` rebasen)
-- **Zuletzt aktualisiert:** 2026-10-21 12:50
+- **Blockiert durch / brauche:** Review von #36
+- **Zuletzt aktualisiert:** 2026-10-21 13:40
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
+
+- **2026-10-21 13:40** – #36 Offline-Puffer. `src/lib/outbox.ts` (`moodmap:outbox:v1`) puffert nur `ResponseInput`, nie Freitext. `useCheckFlow` puffert bei `navigator.onLine === false` oder wenn `submitResponse` wirft. Status `queued` zeigt den Hinweis, der live auf „Angekommen“ wechselt. `startOutbox()` läuft in `App.tsx` (`online`-Event + Backoff 2 s bis 5 min). `already_submitted` gilt als Erfolg. Nach 8 Server-`error` wird der Eintrag verworfen, Netzfehler zählen nicht. Lehre: Unter Windows bricht `main` lokal bei `MapSearch.tsx` gegen `mapSearch.ts` (Groß-/Kleinschreibung, Build + MapPage-Tests). Auf CI/Linux tritt das nicht auf.
 
 - **2026-10-21 12:50** – #25 Lagebild NRW. Vertrag: `AggregateRow.distribution` (mood5-Zählwerte je Stufe, `null` unter K_MIN, nicht bei `topic: 'all'`). NRW-Werte kommen direkt aus `level: 'nrw'` (#140); `combineRows` in `features/dashboard/lagebild.ts` fasst nur noch Schulform-Zeilen zusammen. Prozente über Hare-Niemeyer, damit sie genau 100 ergeben. Die Verteilung zählt je Teilnahme und Frage höchstens eine Antwort. Lokal laufen PGlite- und Seed-Tests unter Volllast in Timeouts, deshalb `--maxWorkers=2` oder einzeln ausführen.
 
