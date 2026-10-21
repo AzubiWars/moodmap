@@ -44,6 +44,33 @@ function dataset(...parts: Pick<MockDataset, 'responses' | 'answers'>[]): MockDa
 }
 
 describe('mock aggregates', () => {
+  it('aggregates NRW directly over all answers, not as a mean of the regbez rows (#140)', () => {
+    // RegBez 051: 30 × KI sehr schlecht · RegBez 053: 10 × KI und Digital sehr gut
+    const a = cohort(30, 'a', 1);
+    const b = cohort(10, 'b', 5);
+    const data: MockDataset = {
+      schools: [school('a'), { ...school('b'), kreisId: '05315' }],
+      waves: [],
+      responses: [...a.responses, ...b.responses],
+      answers: [
+        ...a.answers,
+        ...b.answers,
+        ...b.responses.map((r) => ({ responseId: r.id, questionId: 'digital.core', value: 5 })),
+      ],
+    };
+    const [nrw, ...rest] = aggregateRows(data, { level: 'nrw', topic: 'all' }, ['current'], [], 10);
+    expect(rest).toEqual([]);
+    expect(nrw).toMatchObject({ id: 'nrw', n: 40 });
+    // KI über alle 40 Antworten = 25, Digital = 100 → Gesamt-Mood = Ø der Themen = 62,5
+    expect(nrw!.topicScores?.ai).toBe(25);
+    expect(nrw!.topicScores?.digital).toBe(100);
+    expect(nrw!.score).toBe(62.5);
+    // Das n-gewichtete Mittel der Bezirke (0 × 30 + 100 × 10) / 40 = 25 wäre falsch
+    const regbez = aggregateRows(data, { level: 'regbez', topic: 'all' }, ['current'], [], 10);
+    const weighted = regbez.reduce((sum, r) => sum + (r.score ?? 0) * r.n, 0) / 40;
+    expect(weighted).not.toBe(nrw!.score);
+  });
+
   it('aggregates raw answers across schools instead of averaging school scores', () => {
     const data = dataset(cohort(9, 'a', 1), cohort(11, 'b', 5));
     expect(aggregateRows(data, { level: 'kreis', topic: 'ai' }, ['current'], [], 10)[0]).toMatchObject({

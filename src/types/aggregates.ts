@@ -1,7 +1,8 @@
-import type { DataLevel, GradeBand, Role, SchoolForm, ScopeLevel, TopicSlug, WaveId } from './domain';
+import type { DataLevel, GradeBand, Role, SchoolForm, TopicSlug, WaveId } from './domain';
 
 export interface AggregateQuery {
-  level: ScopeLevel;
+  /** `nrw` liefert genau eine Zeile `{ id: 'nrw' }`, direkt über alle Antworten aggregiert (Lead-Entscheidung #19/#140). */
+  level: DataLevel;
   /** `all` = Gesamt-Mood über alle Themen. */
   topic: TopicSlug | 'all';
   schoolForm?: SchoolForm[];

@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #80 `get_trend` + `get_choice_distribution` (Branch `claude-borys-mukovnin/80-trend-distribution`); #22 (Eltern)
-- **Status:** #79 gemerged (#127) und im gehosteten Projekt; #80 fertig, PR offen
-- **Nächster Schritt:** nach Merge #80 → Migration ins gehostete Projekt; dann #81 (Frühwarn-Index + „Politik antwortet")
-- **Blockiert durch / brauche:** Review #80-PR
-- **Zuletzt aktualisiert:** 2026-10-21 13:50
+- **Arbeite an:** #81 Frühwarn-Index + „Politik antwortet" (Branch `claude-borys-mukovnin/81-tension-policy`) – letzter Teil von #22
+- **Status:** #80 gemerged (#137) und im gehosteten Projekt; #81 fertig, PR offen
+- **Nächster Schritt:** nach Merge #81 → Migration ins gehostete Projekt, #22 schließen. Offene Lead-Frage: Demo-Konto mit `moodmap_role` fürs Veröffentlichen (#81)
+- **Blockiert durch / brauche:** Review #81-PR
+- **Zuletzt aktualisiert:** 2026-10-21 14:40
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 14:40** – #80 gemerged + eingespielt. Vercel-Rate-Limit gemeldet (#139). Feedback von Borys als #146 erfasst (Mood-Check: Auswahl sehen/ändern). #81: Tension + Policy-RPCs. Gelernt: In PL/pgSQL endet eine `IF`-Bedingung am ersten `THEN`, auch in einem `CASE`. In JS-`replace()` bedeutet `$$` im Ersatztext ein einzelnes `$`, also Funktions-Replacer nutzen.
 - **2026-10-21 13:50** – #79 gemerged (Review deepseek-maxamor) und per `db push` eingespielt. #80: Trend über `aggregate_rows`, Verteilung mit K_MIN + Maskierung < 3. Gelernt: in `stable`-Funktionen keine Temp-Tabellen (Supabase führt stabile RPCs read-only aus) → CTEs.
 - **2026-10-21 13:20** – #79: SQL rechnet wie MockDataSource (Paritätstest 150 Abfragen gegen echte `createMockSource`). `overallScore` in ganzen Zehnteln (reihenfolgeunabhängig, sonst nicht parity-fähig). Gelernt: SQL-Funktionen mit `set search_path` werden nicht inline ausgeführt; PGlite ist ~10× langsamer als natives PG → Test-Umfang knapp halten. Eigene `tsconfig.sqltest.json`, weil SQL-Tests App-Code (DOM, `import.meta.env`) importieren.
 - **2026-10-21 12:30** – #93: Supabase-Org „AzubiWars" + Projekt `moodmap-nrw` (eu-central-1) angelegt, `db push --include-seed`. Echter Lauf auf PG 17.11 ohne Anpassungen. REST-Check als anon: RPCs ok, `join_code`/Rohdaten/Schreibzugriffe verweigert. Test-Antwort per `db query --linked` wieder gelöscht. Die CLI gibt `sb_secret_…` maskiert aus → für Admin-SQL `db query --linked` nutzen. Keys nur in `.env.local`.

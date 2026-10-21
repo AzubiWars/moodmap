@@ -2,7 +2,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import MapGL, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
+import MapGL, { Layer, Marker, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from '@/lib/colors';
 import { useTheme } from '@/lib/theme';
@@ -27,6 +27,8 @@ interface MoodMapProps {
   schools?: SchoolCollection | null;
   /** Clustern (Regierungsbezirk); im Kreis sind es wenige genug für Einzel-Marker */
   clusterSchools?: boolean;
+  /** Live-Modus (#24): Schulen mit neuen Stimmen pulsieren – auf jeder Ebene */
+  pulses?: readonly { id: string; lon: number; lat: number }[];
   selectedSchoolId?: string | null;
   onSelectSchool?: (id: string) => void;
 }
@@ -199,6 +201,7 @@ export function MoodMap({
   detailOpen = false,
   schools,
   clusterSchools = true,
+  pulses = [],
   selectedSchoolId,
   onSelectSchool,
 }: MoodMapProps) {
@@ -518,6 +521,20 @@ export function MoodMap({
           />
         </Source>
       )}
+      {pulses.map((pulse) => (
+        <Marker
+          key={pulse.id}
+          longitude={pulse.lon}
+          latitude={pulse.lat}
+          anchor="center"
+          style={{ pointerEvents: 'none' }}
+        >
+          <span className="relative flex size-6" aria-hidden>
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-mood-1 opacity-70" />
+            <span className="relative m-auto inline-flex size-3 rounded-full bg-mood-1 ring-2 ring-white" />
+          </span>
+        </Marker>
+      ))}
       {hover && (
         <Popup
           longitude={hover.lng}
