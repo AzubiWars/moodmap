@@ -40,6 +40,8 @@ Feedback bitte als Issue mit Label `type:feedback` oder für Menschen in [`coord
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Tech-Stack, Datenmodell, Score-Logik, Ordnerstruktur |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | Design-System, Farbskala, UX-Prinzipien |
 | [`docs/PRIVACY.md`](docs/PRIVACY.md) | Datenschutz- & Anonymitätskonzept |
+| [`docs/PRIVACY.md`](docs/PRIVACY.md) | Datenschutz- & Anonymitätskonzept |
+| [`docs/SCIENTIFIC_FOUNDATION.md`](docs/SCIENTIFIC_FOUNDATION.md) | Wissenschaftliches Fundament, statistische Methodik & Algorithmen-Modellierung |
 | [`docs/SSO_PLAN.md`](docs/SSO_PLAN.md) | Vorschlag für Schüler-SSO, Schulzuordnung und getrennte Teilnahmeberechtigung (#74) |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Meilensteine & Start-Backlog |
 | [`docs/PITCH.md`](docs/PITCH.md) | Pitch-Story, Demo-Skript, Q&A |
