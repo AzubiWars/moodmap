@@ -7,7 +7,7 @@
 
 1. **Keine personenbezogenen Daten erheben.** Kein Name, keine E-Mail, kein Account, keine Telefonnummer, keine Klasse (nur grobe Stufe), **keine IP-Adressen speichern**, keine Tracking-/Analytics-Cookies.
 2. **Datenminimierung:** Nur Schule, grobe Stufe (`5–7`, `8–10`, `Oberstufe`, `Berufskolleg`), Rolle, Welle, Antworten.
-3. **Keine Freitexte im Prototyp** – Freitext kann Namen, Beleidigungen oder Hilferufe enthalten, die wir nicht verantwortungsvoll bearbeiten können.
+3. **Keine Freitexte im Prototyp.** Freitext kann Namen, Beleidigungen oder Hilferufe enthalten. Für den optionalen Live-Test kann ein freies Feedbackfeld aktiviert werden – es wird **vor dem Speichern serverseitig moderiert** (OpenRouter). Bei einem Verstoß wird der Text verworfen und nicht gespeichert oder geloggt.
 4. **Zeitstempel grob:** auf Tag gerundet speichern (verhindert Zuordnung über Uhrzeit, z. B. „wer war gerade in Stunde 3 am Handy").
 5. **Nur Aggregate sichtbar** – nie Einzelantworten, in keiner Rolle, auch nicht im Ministerium.
 6. **Synthetische Daten im Hackathon.** Alle Umfrageergebnisse in der Demo sind generiert und als „Demo-Daten" gekennzeichnet.
@@ -52,6 +52,15 @@ Ehrlich im Pitch: Ohne Login ist Manipulation nie 0 – aber durch Join-Codes, W
 - Das LLM erhält **ausschließlich aggregierte, bereits k-anonymisierte Kennzahlen** (Scores, n, Deltas, Verteilungen) – keine Rohdaten, keine Einzelantworten.
 - API-Key nur serverseitig (Edge Function Secret).
 - Bericht wird als „KI-generiert – bitte prüfen" gekennzeichnet.
+
+## 6a. Freitext-Moderation (nur Live-Test)
+
+- **Zweck:** Verhindern, dass beleidigende, hasserfüllte, bedrohende, sexuelle oder personenbezogene Inhalte in den Live-Test gelangen.
+- **Ablauf:** Der Text geht an die Supabase Edge Function `moderate-text`; nur bei `allowed: true` wird er gespeichert. Abgelehnte Texte werden **nicht** gespeichert und **nicht** geloggt.
+- **Auftragsverarbeiter:** OpenRouter erhält den Text ausschließlich zur Moderation; kein Training, keine Weitergabe durch uns. Der API-Key liegt nur als Supabase-Secret vor, nie im Frontend/Repo.
+- **Fail-closed:** Ohne Key oder bei API-Fehler wird der Text nicht freigegeben.
+- **Grenzen:** max. 500 Zeichen, keine Namen/Adressen/Telefonnummern; keine Freitexte in den synthetischen Demo-Daten.
+- **Transparenz:** Im Live-Test muss vor dem Absenden ein Hinweis stehen, dass der Text zur Moderationsprüfung an einen Dienstleister übermittelt wird.
 
 ## 7. Frühwarn-Radar & „Politik antwortet": Dialog, keine Überwachung
 

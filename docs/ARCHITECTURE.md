@@ -305,7 +305,9 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 VITE_K_MIN=10
 # nur serverseitig (Supabase Edge Function Secret), NIE im Frontend:
-# LLM_API_KEY=
+# OPENROUTER_API_KEY=
+# OPENROUTER_MODEL=openai/gpt-4o-mini
+# APP_URL=https://moodmap-cyan.vercel.app
 ```
 
 ## 10a. Supabase: lokal & gehostet (#93)
@@ -332,3 +334,39 @@ Die Supabase-CLI ist auf **`supabase@2.120.0`** gepinnt und läuft per `npx` (`n
 ## 11. Geplante Schüler-Anmeldung (Vorschlag, #74)
 
 Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN.md](SSO_PLAN.md) beschreibt Anschlusswege, Schul-/Rollenprüfung, die Trennung von Identität und Antworten sowie die offenen Anbieter- und Datenschutzfragen. Anbieterwahl und Umsetzung sind noch nicht freigegeben; das bestehende Datenmodell, das `DataSource`-Interface und der Mock-Modus werden durch diesen Plan nicht geändert.
+
+## 12. Freitext-Moderation (nur Live-Test)
+
+Im Prototyp gibt es **keine Freitexte** (`PRIVACY.md` §1.3). Für den Live-Test kann optional ein freies Feedbackfeld aktiviert werden. Dieses wird **vor dem Speichern serverseitig** moderiert:
+
+1. Client sendet `{ text }` an die Supabase Edge Function `moderate-text`.
+2. Die Function ruft OpenRouter (`https://openrouter.ai/api/v1/chat/completions`) mit einem Moderations-Prompt auf.
+3. Antwort `{ allowed: boolean, reason: string }`:
+   - `allowed: true` → Text darf gespeichert werden.
+   - `allowed: false` → Text **verwerfen**, nur eine neutrale Fehlermeldung anzeigen.
+4. **Fail-closed:** fehlt der Key oder ist OpenRouter nicht erreichbar, wird der Text nicht freigegeben.
+5. Max. **500 Zeichen**, keine Roh-Text-Logs, keine Weitergabe an Dritte außer OpenRouter als Auftragsverarbeiter.
+
+**Secret setzen (niemals committen):**
+
+```bash
+supabase secrets set OPENROUTER_API_KEY=<key>
+# optional:
+supabase secrets set OPENROUTER_MODEL=openai/gpt-4o-mini
+supabase functions deploy moderate-text
+```
+
+Lokal: `supabase functions serve moderate-text --env-file .env.local` (Key in `.env.local`, ist gitignored).
+
+**Client-Aufruf (später, wenn das Freitextfeld kommt):**
+
+```ts
+const { data, error } = await supabase.functions.invoke('moderate-text', {
+  body: { text },
+});
+if (error || !data?.allowed) {
+  // neutralen Hinweis zeigen, Text nicht speichern
+}
+```
+
+Der Key darf **niemals** als `VITE_*`-Variable oder in `public/` landen – sonst ist er im Browser sichtbar.
