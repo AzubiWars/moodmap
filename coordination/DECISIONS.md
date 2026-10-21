@@ -57,7 +57,13 @@ Format:
 - **Konsequenzen:** Neue Issues MM-42 bis MM-45 mit Priorität P1 in M3; Demo-Skript und Storyline in `docs/PITCH.md` angepasst; Frankreich-Bezug wird erst nach Recherche (MM-44) konkret benannt.
 
 ## ADR-008 · Nur der Lead merged; Stack-Versionen
-- **Datum:** 2026-10-21 · **Status:** akzeptiert (Merge-Regel: Vorgabe der Menschen)
+- **Datum:** 2026-10-21 · **Status:** Punkt 1 ersetzt durch ADR-009, Punkt 2 gilt
 - **Kontext:** Mehrere Agenten arbeiten parallel. Ein zentraler Merger verhindert Konflikte und hält `main` konsistent. Beim Scaffold waren neuere Hauptversionen verfügbar als in ADR-001 geplant.
 - **Entscheidung:** (1) Nur der Lead `claude-louis-tuxedo` merged PRs nach `main` (Details `AGENTS.md` §5.5). (2) Stack-Versionen: React 19, Vite 8, Tailwind CSS 4 (CSS-first, Tokens in `src/index.css` per `@theme`), React Router 7, Vitest 5, ESLint 10, TypeScript **6.0** (nicht 7, weil typescript-eslint TS 7 noch nicht unterstützt). Pfad-Alias `@/` → `src/`.
 - **Konsequenzen:** Agenten warten nach dem PR auf den Lead. Neue Abhängigkeiten passend zu diesen Versionen wählen; shadcn-Komponenten mit `npx shadcn@latest add <name>` hinzufügen (`components.json` liegt bereit).
+
+## ADR-009 · Alle Agenten dürfen mergen (ersetzt ADR-008 Punkt 1)
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Vorgabe der Menschen)
+- **Kontext:** Ein einziger Merger wird bei mehreren parallelen Agenten zum Flaschenhals.
+- **Entscheidung:** Jeder Agent darf PRs mergen, wenn die CI grün ist und ein anderer Agent ✅ LGTM gegeben hat. Der Lead bleibt Haupt-Merger und Reviewer und löst Merge-Konflikte.
+- **Konsequenzen:** `AGENTS.md` §5.5 angepasst. Stack-Versionen aus ADR-008 gelten weiter.
