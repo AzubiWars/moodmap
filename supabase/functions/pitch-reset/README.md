@@ -29,7 +29,7 @@ Die regulären Aggregate, Trends, Verteilungen und Politik-Effekte schließen Te
 }
 ```
 
-Ohne Stimmen: `n: 0`, `scoredN: 0`, `score: null`. Der Teilnahmenzähler ist kein individueller Antwortdatensatz. Rohantworten/Hashes bleiben unlesbar. Freitext-Cluster kommen separat aus #126. Ein Gerät kann unabhängig je einmal im normalen NRW- und im Test-Modus abstimmen; die Test-Hash-Namespace wird nur serverseitig aus der Schule bestimmt.
+Ohne Stimmen: `n: 0`, `scoredN: 0`, `score: null`. Der Teilnahmenzähler ist kein individueller Antwortdatensatz. Rohantworten/Hashes bleiben unlesbar. Freitext-Cluster kommen separat aus `get_freetext_clusters({level: 'school', id: 'pitch-test'})`, ebenfalls erst ab K_MIN; regionale Scopes schließen Testtexte aus. Ein Gerät kann unabhängig je einmal im normalen NRW- und im Test-Modus abstimmen; der zusätzliche Test-Hash wird nur serverseitig aus der Schule bestimmt. Die Freitextprüfung sucht beide Hashes, jeweils mit zwingendem Schul- und Wellenfilter, bevor sie den Moderator aufruft.
 
 ## Reset
 
@@ -41,10 +41,10 @@ Ohne Stimmen: `n: 0`, `scoredN: 0`, `score: null`. Der Teilnahmenzähler ist kei
 
 Mit dem normalen Supabase-Client/anon-Key `pitch-reset` aufrufen, Body `{ pin: "…" }`. Der Edge-Gateway-JWT-Check bleibt aktiv; zusätzlich prüft der Handler die PIN. Die Function ruft ausschließlich `reset_pitch_test()` auf, ohne clientseitige Ziel-ID. Fehlende/zu kurze Konfiguration → 503, falsche PIN → 401, Datenbankfehler → 502 mit generischer Meldung. PIN/Requests/Fehler werden nicht geloggt, Antworten nicht gecacht.
 
-Der RPC ist nur für `service_role` freigegeben. Er löscht nur Antworten der markierten Schule `pitch-test`, einschließlich Antworten und Hashes. Antwortgebundene Freitexte müssen `response_id ... ON DELETE CASCADE` verwenden (#126, mit Autor abgestimmt). Danach kann dasselbe Gerät erneut im Pitch abstimmen; NRW-Abgaben und deren Sperren bleiben erhalten. Gleichzeitige neue Abgaben nach der Reset-Transaktion zählen zur neuen Runde.
+Der RPC ist nur für `service_role` freigegeben. Er löscht nur Antworten der markierten Schule `pitch-test`, einschließlich Antworten und Hashes. Antwortgebundene Freitexte werden per `response_id ... ON DELETE CASCADE` mitgelöscht. Danach kann dasselbe Gerät erneut im Pitch abstimmen; NRW-Abgaben und deren Sperren bleiben erhalten. Der Client setzt und prüft für Testschulen keine lokale Wochensperre, da nur die Datenbank den Reset kennt. Gleichzeitige neue Abgaben nach der Reset-Transaktion zählen zur neuen Runde.
 
 ## Prüfung
 
-PGlite prüft getrennte Teilnahmen, K_MIN bei 9/10, öffentlichen Zugriff, Ausschluss aus NRW/Trend/Verteilung/Radar, gezielten Reset und erneute Teilnahme. HTTP-Tests prüfen falsche PIN ohne DB-Zugriff, fehlende Konfiguration, Origin, festen RPC und generische Fehlermeldungen. Mock-Testschulen werden ebenfalls aus regulären Auswertungen ausgeblendet.
+PGlite prüft getrennte Teilnahmen, K_MIN bei 9/10, öffentlichen Zugriff, Ausschluss aus NRW/Trend/Verteilung/Radar/Freitext-Clustern, gezielten Reset samt Freitext-Kaskade und erneute Teilnahme. HTTP-Tests prüfen falsche PIN ohne DB-Zugriff, fehlende Konfiguration, Origin, festen RPC, generische Fehlermeldungen und die Teilnahmeprüfung vor dem LLM-Aufruf. Ein Client-Test prüft den Pitch-Flow mit und ohne bestehende NRW-Wochensperre. Mock-Testschulen werden ebenfalls aus regulären Auswertungen ausgeblendet.
 
-Offen für den echten Pitch: Veranstaltungsort/PIN (#118), Hosted-Deployment durch Lead, Freitext-Kaskade nach #126 und Lasttest mit 200 Abgaben (#117). Im Standard-Mock wird kein Pitch-Teststandort angelegt; der normale Demo-Flow bleibt ohne Keys funktionsfähig.
+Offen für den echten Pitch: Veranstaltungsort/PIN (#118), Hosted-Deployment durch Lead und Lasttest mit 200 Abgaben (#117). Im Standard-Mock wird kein Pitch-Teststandort angelegt; der normale Demo-Flow bleibt ohne Keys funktionsfähig.

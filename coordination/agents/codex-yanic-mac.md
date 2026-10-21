@@ -13,13 +13,14 @@
 - **Bevorzugte Labels:** `fit:data`, `fit:reasoning`, `fit:fast`, `fit:ui`
 
 ## Aktueller Stand
-- **Arbeite an:** #141 – Stadt-/Ortsnamen und Kartenorientierung sichtbar halten.
-- **Status:** Ursache im Code und den Live-Style-JSONs gefunden: Mood-Flächen überdeckten Labels; Dark-POIs verwendeten nicht vorhandenes `label_other`. Reihenfolge/Einfügepunkte und Label-Kontrast korrigiert. 276 Tests + Lint/Typecheck/Build grün.
-- **Nächster Schritt:** PR/Lead-Review mit Sichtprüfung 375 px/Desktop in beiden Themes und beim Theme-Wechsel; #128/PR #144 ist parallel reviewfähig (278 Tests, CI/Vercel grün).
-- **Blockiert durch / brauche:** Eigene Browserprüfung nicht möglich (Zugriff automatisch abgelehnt). Lead-Screenshots/Review erforderlich. Main-Baseline für #141 enthält #128 noch nicht; deshalb dort 276 statt 278 Tests.
-- **Zuletzt aktualisiert:** 2026-10-21 12:30
+- **Arbeite an:** #113 – getrennter Pitch-Teststandort mit PIN-Reset.
+- **Status:** SQL-/Edge-Reset, getrennte Hashes, K_MIN und Ausschluss aus NRW/Trend/Verteilung/Radar sowie Freitext-Clustern umgesetzt. Freitext-Speicherung und Löschkaskade aus #155 integriert; Testteilnahmen umgehen nur die lokale Wochensperre, die Datenbank schützt weiterhin vor Duplikaten. 390 Tests + Format/Lint/Typecheck/Build und Deno-Check/Lint grün vor dem abschließenden Rebase.
+- **Nächster Schritt:** Rebase auf neuestes main, Checks und PR mit Review-Anfrage an Lead. Danach P0-Live-Anbindung #23 prüfen.
+- **Blockiert durch / brauche:** Für Hosted-Pitch noch echte Ortsangaben/PIN (#118), Lead-Deployment, Beamer #116 und Lasttest #117. Synthetischer Berlin-Default ist kein bestätigter Veranstaltungsort. Eigene Browserprüfung automatisch abgelehnt; funktionalen Browser-Smoke übernimmt Lead.
+- **Zuletzt aktualisiert:** 2026-10-21 12:59
 
 ## Journal
+- **2026-10-21 12:59** – #113 implementiert und gegen #155 integriert: normaler und Pitch-Hash, Freitext-Teilnahmeprüfung vor LLM, K_MIN 9/10, getrennte Cluster und Reset mit nachgewiesener Freitext-Kaskade. 390 Tests grün; Deno-Check/Lint der Reset-Function grün. #128/PR #144 sowie #141/PR #149 inzwischen mit Lead-Review gemerged. Bei #155 fehlendes Krisensignal und nicht atomare Moderationsbegrenzung gemeldet; Krisensignal vom Lead in #165 korrigiert, Kostenbegrenzung bleibt separates Follow-up.
 - **2026-10-21 12:30** – #141 auf Basis des Nutzerfeedbacks übernommen und #24/Henrik informiert. Live-Style-JSON belegt: Positron hat `label_other`, Dark nur `place_other`. Mood-Flächen/Regionslinien jetzt unter Gebäude-/Label-Ebenen, POI-/Ortsteiltexte mit Theme-Kontrast. Voller Check grün (276 Tests). Visuelles Review beim Lead offen; #144/Seed-Fix parallel mit grüner CI/Vercel, noch kein Merge behauptet.
 - **2026-10-21 12:10** – #120: deterministische Kreis-/Schulklima-Effekte ohne zusätzliche Zufallsziehungen; gezielte Story-Kreise und DEMO42 ausgenommen. Regressionen prüfen echte DataSource-Aggregate, drei/vier Farbstufen, K_MIN und Hotspot-Verlauf/Radar. Alle 234 Tests + Build grün. Daneben ungültige Frage-IDs/Swipewerte/Choice-Optionen im bisherigen Seed gefunden, #128 angelegt und #23 informiert. Darkmode #123 gemerged, Lead-Mobile-Fix in #129.
 - **2026-10-21 12:05** – #35 als PR #123 gepusht. Vollständige lokale Checks grün (197 Tests), Vercel-Preview erfolgreich. Lead um Konfliktlösung/Integration mit #18 und #30 sowie visuelles Review gebeten; noch kein LGTM oder Merge. Neue dunkle Textpaare rechnerisch mit Kontrast 7,1–13,4:1 geprüft.

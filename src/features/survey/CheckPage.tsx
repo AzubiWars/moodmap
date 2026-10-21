@@ -60,11 +60,13 @@ export function CheckPage() {
 function CheckFlow({ schoolId, waveId }: { schoolId: string; waveId: string }) {
   const navigate = useNavigate();
   const gradeBand = useParticipantStore((s) => s.gradeBand);
+  const isTest = useParticipantStore((s) => s.isTest);
   const questions = useMemo(() => selectQuestions(getDeviceToken(), waveId), [waveId]);
   const flow = useCheckFlow({
     questions,
     waveId,
     schoolId,
+    isTest,
     gradeBand,
     onDone: () => navigate('/check/done'),
   });

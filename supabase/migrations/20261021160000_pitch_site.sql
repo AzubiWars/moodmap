@@ -430,3 +430,167 @@ create function public.get_pitch_aggregate() returns jsonb
   where s.id = 'pitch-test' and s.is_test
 $$;
 grant execute on function public.get_pitch_aggregate() to anon, authenticated;
+
+-- Same moderated-text contract as #126, with the test participation hash namespace.
+create or replace function public.record_freetext(input jsonb) returns jsonb
+  language plpgsql
+  volatile
+  security definer
+  set search_path = ''
+as $$
+declare
+  v_school_id text := input ->> 'schoolId';
+  v_wave_id text := input ->> 'waveId';
+  v_token text := input ->> 'deviceToken';
+  v_cleaned text := btrim(input ->> 'cleaned');
+  v_cluster text := btrim(input ->> 'cluster');
+  v_topics jsonb := input -> 'topics';
+  v_concern boolean := false;
+  v_response_id uuid;
+  v_slug text;
+begin
+  if jsonb_typeof(input) is distinct from 'object' then
+    raise exception 'input must be an object' using errcode = '22023';
+  end if;
+  if v_school_id is null or not exists (select 1 from public.schools where id = v_school_id) then
+    raise exception 'unknown school' using errcode = '22023';
+  end if;
+  if v_wave_id is null or v_wave_id is distinct from public.current_wave_id() then
+    raise exception 'wave % is not the current wave', v_wave_id using errcode = '22023';
+  end if;
+  if v_token is null or char_length(v_token) not between 16 and 200 then
+    raise exception 'invalid device token' using errcode = '22023';
+  end if;
+  if v_cleaned is null or char_length(v_cleaned) not between 1 and 280 then
+    raise exception 'cleaned text must be 1-280 characters' using errcode = '22023';
+  end if;
+  if v_cluster is null or char_length(v_cluster) not between 1 and 60 then
+    raise exception 'cluster must be 1-60 characters' using errcode = '22023';
+  end if;
+  if jsonb_typeof(v_topics) is distinct from 'array' or jsonb_array_length(v_topics) > 3 then
+    raise exception 'topics must be an array with at most 3 entries' using errcode = '22023';
+  end if;
+  if input ? 'concern' and jsonb_typeof(input -> 'concern') <> 'boolean' then
+    raise exception 'concern must be a boolean' using errcode = '22023';
+  end if;
+  v_concern := coalesce((input ->> 'concern')::boolean, false);
+
+  for v_slug in select jsonb_array_elements_text(v_topics) loop
+    if not exists (select 1 from public.topics where slug = v_slug) then
+      raise exception 'unknown topic %', v_slug using errcode = '22023';
+    end if;
+  end loop;
+
+  select r.id into v_response_id
+  from public.responses r
+  where r.school_id = v_school_id
+    and r.wave_id = v_wave_id
+    and r.device_hash = encode(extensions.digest(v_token || ':' || v_wave_id ||
+      case when (select is_test from public.schools where id = v_school_id) then ':pitch' else '' end,
+      'sha256'), 'hex');
+
+  if v_response_id is null then
+    raise exception 'no response for this device and wave' using errcode = '22023';
+  end if;
+
+  insert into public.freetext_entries (response_id, cleaned, topics, cluster, concern)
+  values (
+    v_response_id,
+    v_cleaned,
+    coalesce(array(select distinct jsonb_array_elements_text(v_topics)), '{}'),
+    v_cluster,
+    v_concern
+  )
+  on conflict (response_id) do nothing;
+
+  if not found then
+    return jsonb_build_object('ok', false, 'reason', 'already_submitted');
+  end if;
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Regional free-text output excludes test entries; the Beamer explicitly selects pitch-test.
+create or replace function public.get_freetext_clusters(scope jsonb) returns jsonb
+  language plpgsql
+  stable
+  security definer
+  set search_path = ''
+as $$
+declare
+  v_level text := scope ->> 'level';
+  v_id text := scope ->> 'id';
+  v_wave text := public.current_wave_id();
+  v_result jsonb;
+begin
+  if jsonb_typeof(scope) is distinct from 'object' or v_level is null
+    or v_level not in ('nrw', 'regbez', 'kreis', 'school') then
+    raise exception 'scope.level must be nrw, regbez, kreis or school' using errcode = '22023';
+  end if;
+  if v_level = 'nrw' and v_id is not null then
+    raise exception 'nrw scope needs id = null' using errcode = '22023';
+  end if;
+  if v_level = 'regbez' and (v_id is null or v_id !~ '^05[1-9]$') then
+    raise exception 'invalid regbez id' using errcode = '22023';
+  end if;
+  if v_level = 'kreis' and (v_id is null or v_id !~ '^05[0-9]{3}$') then
+    raise exception 'invalid kreis id' using errcode = '22023';
+  end if;
+  if v_level = 'school' and (v_id is null or v_id = '') then
+    raise exception 'invalid school id' using errcode = '22023';
+  end if;
+
+  with scoped as (
+    select e.cluster, e.topics, e.cleaned, e.created_at, e.response_id
+    from public.freetext_entries e
+    join public.responses r on r.id = e.response_id
+    join public.schools s on s.id = r.school_id
+    where r.wave_id = v_wave
+      and not e.concern
+      -- Test clusters require an explicit test-school scope; no regional scope includes them.
+      and (not s.is_test or (v_level = 'school' and v_id = 'pitch-test'))
+      and case v_level
+        when 'nrw' then true
+        when 'school' then s.id = v_id
+        when 'kreis' then s.kreis_id = v_id
+        else left(s.kreis_id, 3) = v_id
+      end
+  ),
+  counted as (
+    select cluster, count(*)::int as n
+    from scoped
+    group by cluster
+    having count(*) >= public.k_min()
+  )
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'cluster', c.cluster,
+        'count', c.n,
+        'topics', coalesce(
+          (select jsonb_agg(distinct t order by t) from scoped s join unnest(s.topics) as t on true
+           where s.cluster = c.cluster),
+          '[]'::jsonb
+        ),
+        'examples', coalesce(
+          (select jsonb_agg(x.cleaned order by x.created_at, x.response_id)
+           from (
+             select s.cleaned, s.created_at, s.response_id
+             from scoped s
+             where s.cluster = c.cluster
+             order by s.created_at, s.response_id
+             limit 3
+           ) x),
+          '[]'::jsonb
+        )
+      )
+      order by c.n desc, c.cluster collate "C"
+    ),
+    '[]'::jsonb
+  )
+  into v_result
+  from counted c;
+
+  return v_result;
+end;
+$$;

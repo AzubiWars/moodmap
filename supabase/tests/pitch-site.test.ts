@@ -26,6 +26,22 @@ const input = (token: string, schoolId = 'pitch-test') => ({
   ],
 });
 const submit = (data: unknown) => rpc('public.submit_response($1::jsonb)', [JSON.stringify(data)]);
+const recordText = (token: string, schoolId = 'pitch-test') =>
+  rpc(
+    'public.record_freetext($1::jsonb)',
+    [
+      JSON.stringify({
+        schoolId,
+        waveId: CURRENT_WAVE,
+        deviceToken: token,
+        cleaned: 'Mehr Freiraum bei Tests.',
+        topics: ['stress'],
+        cluster: 'Freiraum',
+        concern: false,
+      }),
+    ],
+    'service_role',
+  );
 interface PitchRow {
   n: number;
   scoredN: number;
@@ -74,6 +90,22 @@ describe('isolated pitch site', () => {
     expect(await pitch()).toMatchObject({ n: 9, scoredN: 9, score: null });
     expect(await submit(input('shared-device-token-001'))).toEqual({ ok: true });
     expect(await pitch()).toMatchObject({ n: 10, scoredN: 10, score: 100, topicScores: { stress: 100 } });
+    expect(await recordText('shared-device-token-001', '900000')).toEqual({ ok: true });
+    for (let i = 0; i < 9; i++) expect(await recordText(`pitch-device-token-${i}`)).toEqual({ ok: true });
+    expect(
+      await rpc('public.get_freetext_clusters($1::jsonb)', [
+        JSON.stringify({ level: 'school', id: 'pitch-test' }),
+      ]),
+    ).toEqual([]);
+    expect(await recordText('shared-device-token-001')).toEqual({ ok: true });
+    expect(
+      await rpc('public.get_freetext_clusters($1::jsonb)', [
+        JSON.stringify({ level: 'school', id: 'pitch-test' }),
+      ]),
+    ).toEqual([expect.objectContaining({ cluster: 'Freiraum', count: 10, examples: expect.any(Array) })]);
+    expect(
+      await rpc('public.get_freetext_clusters($1::jsonb)', [JSON.stringify({ level: 'nrw', id: null })]),
+    ).toEqual([]);
     const aggregate = await rpc('public.get_aggregates(\'{"level":"school","topic":"all"}\')');
     expect(aggregate).toEqual([expect.objectContaining({ id: '900000', n: 1, score: null })]);
     expect(await rpc('public.get_aggregates(\'{"level":"nrw","topic":"all"}\')')).toEqual([
@@ -95,7 +127,13 @@ describe('isolated pitch site', () => {
     const { rows } = await db.query<{ result: unknown }>(`select public.aggregate_rows(
       '{"level":"nrw","topic":"all"}', array['${CURRENT_WAVE}'], '{}'::text[]) as result`);
     expect(rows[0]!.result).toEqual([expect.objectContaining({ id: 'nrw', n: 1, score: null })]);
-    await expect(rpc('public.get_aggregates(\'{"level":"pitch","topic":"all"}\')')).rejects.toThrow(/level/);
+    for (const fn of ['get_aggregates', 'get_trend', 'get_tension_index']) {
+      await expect(
+        rpc(`public.${fn}($1::jsonb)`, [
+          JSON.stringify({ level: 'pitch', topic: 'all', waveIds: [CURRENT_WAVE] }),
+        ]),
+      ).rejects.toThrow(/level/);
+    }
   });
 
   it('removes only test answers and hashes, making repeat participation possible', async () => {
@@ -108,6 +146,9 @@ describe('isolated pitch site', () => {
       (select count(*)::int from public.responses) as responses,
       (select count(*)::int from public.answers) as answers`);
     expect(rows[0]).toEqual({ responses: 1, answers: 2 });
+    expect(
+      (await db.query<{ n: number }>('select count(*)::int as n from public.freetext_entries')).rows[0]!.n,
+    ).toBe(1);
     expect(await submit(input('shared-device-token-001', '900000'))).toEqual({
       ok: false,
       reason: 'already_submitted',
