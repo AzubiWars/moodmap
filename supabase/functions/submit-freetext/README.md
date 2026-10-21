@@ -81,10 +81,17 @@ Abgelehnt oder Moderation nicht verfügbar (die Umfrage bleibt gespeichert):
 }
 ```
 
-Moderationsversuch bereits verbraucht, auch ohne gespeicherten Freitext (kein zweiter LLM-Aufruf):
+Bereits gespeicherter Freitext (kein zweiter LLM-Aufruf):
 
 ```json
 { "ok": true, "stored": false, "reason": "already_submitted" }
+```
+
+Moderationsversuch bereits verbraucht, aber kein Freitext gespeichert – z. B. nach Ablehnung
+oder Timeout (ebenfalls kein zweiter LLM-Aufruf):
+
+```json
+{ "ok": true, "stored": false, "reason": "moderation_used" }
 ```
 
 ## Regeln
@@ -97,7 +104,8 @@ Moderationsversuch bereits verbraucht, auch ohne gespeicherten Freitext (kein zw
   die private Tabelle `freetext_moderation_claims` enthält ausschließlich diese ID, keinen Text
   und keinen Zeitstempel. Parallele Aufrufe erhalten nur eine Berechtigung.
 - Auch Ablehnung, Timeout, fehlender Key oder fehlgeschlagene Speicherung verbrauchen den
-  Versuch; es gibt keinen automatischen Retry. Wiederholungen erhalten `already_submitted`.
+  Versuch; es gibt keinen automatischen Retry. Wiederholungen erhalten `already_submitted`
+  (Text wurde gespeichert) oder `moderation_used` (Versuch verbraucht, kein Text gespeichert).
   Bei Fehlern der Reservierung: `503 unavailable`, kein LLM-Aufruf. Bereits gespeicherte
   Freitexte werden bei der Migration als verbraucht übernommen.
 - Pitch-Reset und eigene Rücknahme löschen die zugehörige Reservierung per FK-Cascade.

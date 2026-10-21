@@ -107,6 +107,19 @@ describe('submitFreeText', () => {
     expect(new Headers(fetchMock.mock.calls[0]![1]!.headers).get('Authorization')).toBe(`Bearer ${key}`);
   });
 
+  it('shows a neutral message when the single attempt was already used', async () => {
+    stubBackend('supabase', { ok: true, stored: false, reason: 'moderation_used' });
+    const result = await submitFreeText(input);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('Dein Hinweis wurde bereits geprüft und konnte nicht übernommen werden.');
+  });
+
+  it('keeps already_submitted as an idempotent success', async () => {
+    stubBackend('supabase', { ok: true, stored: false, reason: 'already_submitted' });
+    const result = await submitFreeText(input);
+    expect(result.allowed).toBe(true);
+  });
+
   it('never shows internal server codes', async () => {
     stubBackend('supabase', { ok: true, stored: false, reason: 'storage_failed' });
     const result = await submitFreeText(input);
