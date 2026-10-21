@@ -19,7 +19,13 @@ beforeAll(async () => {
 });
 
 const count = async (table: string) =>
-  Number((await db.query<{ n: number }>(`select count(*)::int as n from public.${table}`)).rows[0]!.n);
+  Number(
+    (
+      await db.query<{ n: number }>(
+        `select count(*)::int as n from public.${table}${['regbez', 'kreise', 'schools'].includes(table) ? ' where not is_test' : ''}`,
+      )
+    ).rows[0]!.n,
+  );
 
 describe('supabase/seed.sql', () => {
   it('is up to date with its sources (run `npm run db:seed:build`)', () => {

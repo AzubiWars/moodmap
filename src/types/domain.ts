@@ -80,6 +80,8 @@ export interface School {
   studentCount: number | null;
   /** Nicht erratbarer Join-Code für QR-Links (`/s/:code`). */
   joinCode: string;
+  /** Isolierter Pitch-Standort; nur per Test-Code erreichbar, nie Teil einer NRW-Auswertung. */
+  isTest?: boolean;
 }
 
 export interface Topic {

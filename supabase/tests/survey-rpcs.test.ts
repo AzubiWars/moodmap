@@ -144,6 +144,7 @@ describe('get_school_by_code', () => {
       lon: 6.85,
       studentCount: 1100,
       joinCode: 'DEMO42',
+      isTest: false,
     });
   });
 

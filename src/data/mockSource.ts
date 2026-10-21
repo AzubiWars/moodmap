@@ -137,7 +137,7 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
 
   const source: DataSource & { dispose(): void } = {
     async getSchools() {
-      return structuredClone((await base()).schools);
+      return structuredClone((await base()).schools.filter((school) => !school.isTest));
     },
     async getSchoolByCode(code) {
       const school = (await base()).schools.find((school) => school.joinCode === code.trim().toUpperCase());
@@ -164,7 +164,8 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
           !validAnswers(input.answers, input.role)
         )
           return { ok: false, reason: 'error' };
-        const key = await hashDeviceToken(input.deviceToken, input.waveId);
+        const test = data.schools.find((school) => school.id === input.schoolId)?.isTest;
+        const key = await hashDeviceToken(input.deviceToken, input.waveId + (test ? ':pitch' : ''));
         const commit = (): SubmitResult => {
           // Ein separater Key je Gerät/Welle verhindert verlorene Updates anderer Geräte.
           if (storage.entries('response').some(([id]) => id === key))
