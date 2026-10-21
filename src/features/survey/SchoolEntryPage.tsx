@@ -4,7 +4,18 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { cn } from '@/lib/utils';
 import { useParticipantStore } from '@/store/participant';
-import type { GradeBand } from '@/types';
+import type { GradeBand, Role } from '@/types';
+
+const ROLE_OPTIONS: { value: Role; label: string }[] = [
+  { value: 'student', label: 'Schüler:in' },
+  { value: 'teacher', label: 'Lehrkraft' },
+];
+
+const chipClass = (selected: boolean) =>
+  cn(
+    'min-h-11 rounded-full px-4 text-sm font-medium ring-1 transition-colors',
+    selected ? 'bg-primary text-primary-fg ring-primary' : 'bg-card text-fg ring-border hover:bg-subtle',
+  );
 
 const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: '5-7', label: '5–7' },
@@ -19,6 +30,8 @@ export function SchoolEntryPage() {
   const navigate = useNavigate();
   const setSchool = useParticipantStore((s) => s.setSchool);
   const setGradeBand = useParticipantStore((s) => s.setGradeBand);
+  const saveRole = useParticipantStore((s) => s.setRole);
+  const [role, setRole] = useState<Role>(useParticipantStore.getState().role);
   const [grade, setGrade] = useState<GradeBand | undefined>(useParticipantStore.getState().gradeBand);
 
   const {
@@ -83,7 +96,8 @@ export function SchoolEntryPage() {
 
   const start = () => {
     setSchool({ id: school.id, code: school.joinCode, name: school.name, isTest: school.isTest });
-    setGradeBand(grade);
+    saveRole(role);
+    setGradeBand(role === 'student' ? grade : undefined);
     navigate('/check');
   };
 
@@ -97,28 +111,44 @@ export function SchoolEntryPage() {
         </div>
 
         <div>
-          <p id="grade-label" className="mb-2 text-sm font-medium">
-            In welcher Stufe bist du? <span className="text-muted">(freiwillig)</span>
+          <p id="role-label" className="mb-2 text-sm font-medium">
+            Ich bin …
           </p>
-          <div role="group" aria-labelledby="grade-label" className="flex flex-wrap gap-2">
-            {GRADE_OPTIONS.map((o) => (
+          <div role="group" aria-labelledby="role-label" className="flex flex-wrap gap-2">
+            {ROLE_OPTIONS.map((o) => (
               <button
                 key={o.value}
                 type="button"
-                aria-pressed={grade === o.value}
-                onClick={() => setGrade(grade === o.value ? undefined : o.value)}
-                className={cn(
-                  'min-h-11 rounded-full px-4 text-sm font-medium ring-1 transition-colors',
-                  grade === o.value
-                    ? 'bg-primary text-primary-fg ring-primary'
-                    : 'bg-card text-fg ring-border hover:bg-subtle',
-                )}
+                aria-pressed={role === o.value}
+                onClick={() => setRole(o.value)}
+                className={chipClass(role === o.value)}
               >
                 {o.label}
               </button>
             ))}
           </div>
         </div>
+
+        {role === 'student' && (
+          <div>
+            <p id="grade-label" className="mb-2 text-sm font-medium">
+              In welcher Stufe bist du? <span className="text-muted">(freiwillig)</span>
+            </p>
+            <div role="group" aria-labelledby="grade-label" className="flex flex-wrap gap-2">
+              {GRADE_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  type="button"
+                  aria-pressed={grade === o.value}
+                  onClick={() => setGrade(grade === o.value ? undefined : o.value)}
+                  className={chipClass(grade === o.value)}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <p className="rounded-2xl bg-subtle p-3 text-sm">
           🔒 100 % anonym – keine Namen, keine E-Mail, keine IP.{' '}

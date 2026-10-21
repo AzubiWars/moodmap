@@ -13,7 +13,9 @@ import {
   filterMeasures,
 } from './catalog';
 
-const SORTED_TOPICS = [...TOPICS].sort((a, b) => a.sort - b.sort);
+const SORTED_TOPICS = TOPICS.filter((topic) => topic.audience.includes('student')).sort(
+  (a, b) => a.sort - b.sort,
+);
 
 const EVIDENCE_STYLES: Record<EvidenceLevel, string> = {
   A: 'bg-mood-5 text-white',

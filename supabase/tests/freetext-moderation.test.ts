@@ -32,7 +32,9 @@ const apiKey = 'test-key';
 
 describe('TOPIC_SLUGS', () => {
   it('matches the survey topic catalog', () => {
-    expect([...TOPIC_SLUGS].sort()).toEqual(TOPICS.map((topic) => topic.slug).sort());
+    // Freitext gibt es nur für Schüler:innen; Lehrkräfte-Themen (`t_*`, #37) gehören nicht dazu.
+    const studentTopics = TOPICS.filter((topic) => topic.audience.includes('student'));
+    expect([...TOPIC_SLUGS].sort()).toEqual(studentTopics.map((topic) => topic.slug).sort());
   });
 });
 

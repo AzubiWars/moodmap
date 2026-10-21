@@ -48,7 +48,11 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
 
   const row = unitQuery.data?.find((r) => r.id === unitId);
   const nrw = nrwReference(nrwQuery.data);
-  const gaps = gapAnalysis(TOPICS, row?.topicScores, nrw);
+  const gaps = gapAnalysis(
+    TOPICS.filter((topic) => topic.audience.includes('student')),
+    row?.topicScores,
+    nrw,
+  );
   const loading = unitQuery.isPending || nrwQuery.isPending;
   const tension = tensionQuery.data?.find((t) => t.id === unitId);
 

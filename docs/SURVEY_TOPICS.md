@@ -118,6 +118,8 @@ interface Question {
 | `t_violence` | Konflikte & Gewalt | Wie sicher fühlen Sie sich im Schulalltag? |
 | `t_health` | Gesundheit | Wie gut gelingt es Ihnen, gesund zu bleiben und abzuschalten? |
 
+**Umsetzung (#37):** Beim Schul-Einstieg `/s/:code` wählt man „Schüler:in" oder „Lehrkraft" (gespeichert nur auf dem Gerät, kein Pflichtfeld). Lehrkräfte bekommen genau diese 10 Kernfragen in fester Reihenfolge (`t_overall` zuerst, keine Rotation, keine Vertiefungen, keine Stufe, kein Freitext) und senden mit `role: 'teacher'`. Die Themen tragen `audience: ['teacher']`, Priorität P2, und erscheinen nicht in Karten-Filter, Lagebild oder Maßnahmenkatalog der Schüler:innen. Ein Gerät kann pro Welle nur einmal teilnehmen, egal in welcher Rolle (Doppelteilnahme-Schutz über das Geräte-Token).
+
 **Spannende Kreuz-Auswertung für den Pitch:** Themen, die beide Gruppen haben (`ai`/`t_ai`, `digital`/`t_digital`, `overall`/`t_overall`) → „Schüler und Lehrkräfte sind sich einig: Die KI-Regeln fehlen."
 
 ## 5. Formulierungsregeln

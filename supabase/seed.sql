@@ -384,7 +384,17 @@ insert into public.topics (slug, title, icon, audience, mandatory, sort, priorit
   ('safety', 'Sicherheit', '🛡️', array['student']::text[], false, 12, 'P1'),
   ('food', 'Mensa & Pausen', '🥪', array['student']::text[], false, 13, 'P1'),
   ('phones', 'Handy & Social Media', '📱', array['student']::text[], false, 14, 'P1'),
-  ('voice', 'Gehört werden – Politik & Schüler', '📣', array['student']::text[], true, 15, 'P0')
+  ('voice', 'Gehört werden – Politik & Schüler', '📣', array['student']::text[], true, 15, 'P0'),
+  ('t_overall', 'Gesamtstimmung (Lehrkräfte)', '🌡️', array['teacher']::text[], false, 16, 'P2'),
+  ('t_workload', 'Arbeitsbelastung', '⚖️', array['teacher']::text[], false, 17, 'P2'),
+  ('t_bureaucracy', 'Verwaltung & Bürokratie', '🗂️', array['teacher']::text[], false, 18, 'P2'),
+  ('t_staffing', 'Personalsituation', '👥', array['teacher']::text[], false, 19, 'P2'),
+  ('t_inclusion', 'Inklusion & Heterogenität', '🧩', array['teacher']::text[], false, 20, 'P2'),
+  ('t_ai', 'KI im Unterricht', '🤖', array['teacher']::text[], false, 21, 'P2'),
+  ('t_digital', 'Digitale Ausstattung (Lehrkräfte)', '💻', array['teacher']::text[], false, 22, 'P2'),
+  ('t_leadership', 'Rückhalt', '🧭', array['teacher']::text[], false, 23, 'P2'),
+  ('t_violence', 'Konflikte & Gewalt', '🛡️', array['teacher']::text[], false, 24, 'P2'),
+  ('t_health', 'Gesundheit', '🌿', array['teacher']::text[], false, 25, 'P2')
 on conflict (slug) do update set title = excluded.title, icon = excluded.icon, audience = excluded.audience, mandatory = excluded.mandatory, sort = excluded.sort, priority = excluded.priority;
 
 insert into public.questions (id, topic_slug, type, text, options, multiple, invert, weight, audience) values
@@ -404,6 +414,16 @@ insert into public.questions (id, topic_slug, type, text, options, multiple, inv
   ('food.core', 'food', 'mood5', 'Wie zufrieden bist du mit Pausen, Essen und Trinken an der Schule?', null, false, false, 1, 'student'),
   ('phones.core', 'phones', 'mood5', 'Wie gut findest du die Handy-Regeln an deiner Schule?', null, false, false, 1, 'student'),
   ('voice.core', 'voice', 'mood5', 'Wie sehr hast du das Gefühl, dass die Politik sich für die Meinung von Schüler:innen interessiert?', null, false, false, 1, 'student'),
+  ('t_overall.core', 't_overall', 'mood5', 'Wie geht es Ihnen derzeit mit Ihrer Arbeit an der Schule?', null, false, false, 1, 'teacher'),
+  ('t_workload.core', 't_workload', 'mood5', 'Wie gut ist Ihre Arbeitsbelastung derzeit zu bewältigen?', null, false, false, 1, 'teacher'),
+  ('t_bureaucracy.core', 't_bureaucracy', 'mood5', 'Wie viel Ihrer Zeit können Sie für das eigentliche Unterrichten nutzen?', null, false, false, 1, 'teacher'),
+  ('t_staffing.core', 't_staffing', 'mood5', 'Wie gut ist Ihre Schule personell aufgestellt?', null, false, false, 1, 'teacher'),
+  ('t_inclusion.core', 't_inclusion', 'mood5', 'Wie gut fühlen Sie sich unterstützt, allen Schüler:innen gerecht zu werden?', null, false, false, 1, 'teacher'),
+  ('t_ai.core', 't_ai', 'mood5', 'Wie gut fühlen Sie sich auf den Umgang mit KI im Unterricht vorbereitet (Fortbildung, Regeln)?', null, false, false, 1, 'teacher'),
+  ('t_digital.core', 't_digital', 'mood5', 'Wie gut ist Ihre Schule digital ausgestattet?', null, false, false, 1, 'teacher'),
+  ('t_leadership.core', 't_leadership', 'mood5', 'Wie gut fühlen Sie sich von Schulleitung und Schulaufsicht unterstützt?', null, false, false, 1, 'teacher'),
+  ('t_violence.core', 't_violence', 'mood5', 'Wie sicher fühlen Sie sich im Schulalltag?', null, false, false, 1, 'teacher'),
+  ('t_health.core', 't_health', 'mood5', 'Wie gut gelingt es Ihnen, gesund zu bleiben und abzuschalten?', null, false, false, 1, 'teacher'),
   ('learning.deep', 'learning', 'choice', 'Woran liegt''s?', '[{"value":"too_fast","label":"zu schnell"},{"value":"too_much","label":"zu viel"},{"value":"boring","label":"zu langweilig"},{"value":"unclear","label":"unklar erklärt"},{"value":"fits","label":"passt"}]'::jsonb, false, false, 0, 'student'),
   ('stress.deep', 'stress', 'choice', 'Was stresst am meisten?', '[{"value":"exams","label":"Klausuren-Häufung"},{"value":"homework","label":"Hausaufgaben"},{"value":"grades_future","label":"Noten/Zukunftsangst"},{"value":"parents","label":"Erwartungen Eltern"},{"value":"comparison","label":"Vergleich mit anderen"}]'::jsonb, false, false, 0, 'student'),
   ('ai.deep', 'ai', 'choice', 'Wie nutzt du KI für die Schule?', '[{"value":"none","label":"gar nicht"},{"value":"explain","label":"Erklären lassen"},{"value":"homework","label":"Hausaufgaben"},{"value":"writing","label":"Texte schreiben"},{"value":"practice","label":"Lernen/Üben"},{"value":"unsure_rules","label":"Ich weiß nicht, ob ich darf"}]'::jsonb, true, false, 0, 'student'),

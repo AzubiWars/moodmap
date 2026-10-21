@@ -2,10 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { loadFreeText } from '@/lib/freeText';
+import { useParticipantStore } from '@/store/participant';
 import { WithdrawResponse } from './WithdrawResponse';
 
 /** Platzhalter bis #29 („Deine Schule vs. NRW" + Teilen). */
 export function DonePage() {
+  const isTeacher = useParticipantStore((s) => s.role) === 'teacher';
   const freeText = loadFreeText();
   const wave = useQuery({ queryKey: ['wave', 'current'], queryFn: () => getDataSource().getCurrentWave() });
 
@@ -15,8 +17,12 @@ export function DonePage() {
         <p className="text-5xl" aria-hidden>
           ☀️
         </p>
-        <h1 className="text-2xl font-bold">Danke! Deine Stimme zählt.</h1>
-        <p className="text-muted">Deine Antworten sind anonym angekommen.</p>
+        <h1 className="text-2xl font-bold">
+          {isTeacher ? 'Danke! Ihre Stimme zählt.' : 'Danke! Deine Stimme zählt.'}
+        </h1>
+        <p className="text-muted">
+          {isTeacher ? 'Ihre Antworten sind anonym angekommen.' : 'Deine Antworten sind anonym angekommen.'}
+        </p>
         <Link
           to="/map"
           className="inline-flex min-h-11 items-center rounded-2xl bg-primary px-5 font-semibold text-primary-fg"

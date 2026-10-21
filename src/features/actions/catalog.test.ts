@@ -16,9 +16,11 @@ describe('action catalog data', () => {
     }
   });
 
-  it('covers every survey topic at least once', () => {
+  it('covers every student survey topic at least once', () => {
     const covered = new Set(ACTION_MEASURES.flatMap((measure) => measure.topics));
-    for (const topic of TOPICS) expect(covered).toContain(topic.slug);
+    for (const topic of TOPICS.filter((t) => t.audience.includes('student'))) {
+      expect(covered).toContain(topic.slug);
+    }
   });
 });
 

@@ -55,6 +55,7 @@ describe('CheckPage', () => {
       schoolCode: 'DEMO42',
       schoolName: 'Demo',
       isTest: false,
+      role: 'student',
       gradeBand: '8-10',
     });
   });
@@ -90,6 +91,21 @@ describe('CheckPage', () => {
     expect(input.answers.map((a) => a.questionId)).not.toContain(qs[1]?.id);
     expect(input.answers.every((a) => 'value' in a && a.value === 4)).toBe(true);
     expect(localStorage.getItem(`moodmap:submitted:${WAVE}`)).toBe('1');
+  });
+
+  it('asks teachers their own topics and submits with role "teacher" (no grade band, no free text)', async () => {
+    useParticipantStore.setState({ role: 'teacher' });
+    const submit = setup();
+    const qs = selectQuestions(getDeviceToken(), WAVE, 'teacher');
+    expect(qs).toHaveLength(10);
+    for (const q of qs) await answerScale(q.text, 'eher gut');
+    await screen.findByText('FERTIG');
+    expect(submit).toHaveBeenCalledTimes(1);
+    const input = firstCall(submit);
+    expect(input).toMatchObject({ schoolId: '900000', waveId: WAVE, role: 'teacher' });
+    expect(input.gradeBand).toBeUndefined();
+    expect(input.answers.map((a) => a.questionId)).toEqual(qs.map((q) => q.id));
+    expect(input.answers.every((a) => a.questionId.startsWith('t_'))).toBe(true);
   });
 
   it('offers a deep question for the worst topic and sends it as choice', async () => {

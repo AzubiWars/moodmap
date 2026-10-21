@@ -1,11 +1,12 @@
-import type { Question, QuestionOption, Topic } from '@/types';
+import type { Question, QuestionOption, Role, Topic } from '@/types';
 
 /**
  * Themen- und Fragenkatalog als Code.
  * Quelle der Wahrheit: docs/SURVEY_TOPICS.md – Slugs und IDs müssen dort passen.
  *
  * P0 für den Prototyp: Themen 0–8 und 15 (`voice`).
- * Themen 9–14 sind als Daten vorhanden (P1), Lehrkräfte-Themen folgen in #37.
+ * Themen 9–14 sind als Daten vorhanden (P1). Lehrkräfte-Themen (`t_*`, P2, docs/SURVEY_TOPICS.md §4) haben
+ * `audience: ['teacher']` und kommen nur im Lehrkräfte-Modus (#37) vor.
  */
 
 export const TOPICS: readonly Topic[] = [
@@ -153,15 +154,105 @@ export const TOPICS: readonly Topic[] = [
     sort: 15,
     priority: 'P0',
   },
+  {
+    slug: 't_overall',
+    title: 'Gesamtstimmung (Lehrkräfte)',
+    icon: '🌡️',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 16,
+    priority: 'P2',
+  },
+  {
+    slug: 't_workload',
+    title: 'Arbeitsbelastung',
+    icon: '⚖️',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 17,
+    priority: 'P2',
+  },
+  {
+    slug: 't_bureaucracy',
+    title: 'Verwaltung & Bürokratie',
+    icon: '🗂️',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 18,
+    priority: 'P2',
+  },
+  {
+    slug: 't_staffing',
+    title: 'Personalsituation',
+    icon: '👥',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 19,
+    priority: 'P2',
+  },
+  {
+    slug: 't_inclusion',
+    title: 'Inklusion & Heterogenität',
+    icon: '🧩',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 20,
+    priority: 'P2',
+  },
+  {
+    slug: 't_ai',
+    title: 'KI im Unterricht',
+    icon: '🤖',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 21,
+    priority: 'P2',
+  },
+  {
+    slug: 't_digital',
+    title: 'Digitale Ausstattung (Lehrkräfte)',
+    icon: '💻',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 22,
+    priority: 'P2',
+  },
+  {
+    slug: 't_leadership',
+    title: 'Rückhalt',
+    icon: '🧭',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 23,
+    priority: 'P2',
+  },
+  {
+    slug: 't_violence',
+    title: 'Konflikte & Gewalt',
+    icon: '🛡️',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 24,
+    priority: 'P2',
+  },
+  {
+    slug: 't_health',
+    title: 'Gesundheit',
+    icon: '🌿',
+    audience: ['teacher'],
+    mandatory: false,
+    sort: 25,
+    priority: 'P2',
+  },
 ];
 
-const mood5 = (topicSlug: string, text: string): Question => ({
+const mood5 = (topicSlug: string, text: string, audience: Role = 'student'): Question => ({
   id: `${topicSlug}.core`,
   topicSlug,
   type: 'mood5',
   text,
   weight: 1,
-  audience: 'student',
+  audience,
 });
 
 const choice = (topicSlug: string, text: string, options: QuestionOption[], multiple = false): Question => ({
@@ -205,6 +296,30 @@ export const QUESTIONS: readonly Question[] = [
     'voice',
     'Wie sehr hast du das Gefühl, dass die Politik sich für die Meinung von Schüler:innen interessiert?',
   ),
+
+  // Lehrkräfte-Kernfragen (Sie-Form, docs/SURVEY_TOPICS.md §4)
+  mood5('t_overall', 'Wie geht es Ihnen derzeit mit Ihrer Arbeit an der Schule?', 'teacher'),
+  mood5('t_workload', 'Wie gut ist Ihre Arbeitsbelastung derzeit zu bewältigen?', 'teacher'),
+  mood5(
+    't_bureaucracy',
+    'Wie viel Ihrer Zeit können Sie für das eigentliche Unterrichten nutzen?',
+    'teacher',
+  ),
+  mood5('t_staffing', 'Wie gut ist Ihre Schule personell aufgestellt?', 'teacher'),
+  mood5(
+    't_inclusion',
+    'Wie gut fühlen Sie sich unterstützt, allen Schüler:innen gerecht zu werden?',
+    'teacher',
+  ),
+  mood5(
+    't_ai',
+    'Wie gut fühlen Sie sich auf den Umgang mit KI im Unterricht vorbereitet (Fortbildung, Regeln)?',
+    'teacher',
+  ),
+  mood5('t_digital', 'Wie gut ist Ihre Schule digital ausgestattet?', 'teacher'),
+  mood5('t_leadership', 'Wie gut fühlen Sie sich von Schulleitung und Schulaufsicht unterstützt?', 'teacher'),
+  mood5('t_violence', 'Wie sicher fühlen Sie sich im Schulalltag?', 'teacher'),
+  mood5('t_health', 'Wie gut gelingt es Ihnen, gesund zu bleiben und abzuschalten?', 'teacher'),
 
   // Vertiefungen (choice, Gewicht 0 – nur Verteilungen)
   choice('learning', "Woran liegt's?", [
@@ -305,6 +420,10 @@ export const QUESTIONS: readonly Question[] = [
   swipe('voice', 'talk', 'Ich würde gern direkt mit Politiker:innen über Schule sprechen.', 0),
   swipe('safety', 'conflict', 'Wenn es an meiner Schule Streit gibt, wird er gut gelöst.'),
 ];
+
+/** Themen-Slugs je Zielgruppe der Antwortenden (Schüler:innen vs. Lehrkräfte). */
+export const topicSlugsFor = (role: Role): string[] =>
+  TOPICS.filter((topic) => topic.audience.includes(role)).map((topic) => topic.slug);
 
 export const P0_TOPIC_SLUGS: readonly string[] = TOPICS.filter((topic) => topic.priority === 'P0').map(
   (topic) => topic.slug,
