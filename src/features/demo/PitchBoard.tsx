@@ -21,8 +21,12 @@ export function PitchBoard({ aggregate, clusters, joinUrl, local }: Props) {
   })
     .sort((a, b) => a.score - b.score)
     .slice(0, 3);
-  const visibleClusters = clusters.filter((cluster) => cluster.count >= minimum).sort((a, b) => b.count - a.count).slice(0, 3);
-  const score = ready && aggregate.score !== null && Number.isFinite(aggregate.score) ? aggregate.score : null;
+  const visibleClusters = clusters
+    .filter((cluster) => cluster.count >= minimum)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+  const score =
+    ready && aggregate.score !== null && Number.isFinite(aggregate.score) ? aggregate.score : null;
 
   return (
     <div className="space-y-5 lg:space-y-6">
@@ -47,7 +51,14 @@ export function PitchBoard({ aggregate, clusters, joinUrl, local }: Props) {
               <h2 className="mb-4 text-sm font-medium text-muted lg:text-xl">So geht es uns</h2>
               {score === null ? (
                 <p className="text-sm font-medium lg:text-2xl">
-                  {ready ? 'Für die Stimmung fehlen noch genügend vergleichbare Antworten.' : <>Noch {minimum - aggregate.scoredN} {minimum - aggregate.scoredN === 1 ? 'Stimme' : 'Stimmen'} bis zur ersten Auswertung</>}
+                  {ready ? (
+                    'Für die Stimmung fehlen noch genügend vergleichbare Antworten.'
+                  ) : (
+                    <>
+                      Noch {minimum - aggregate.scoredN}{' '}
+                      {minimum - aggregate.scoredN === 1 ? 'Stimme' : 'Stimmen'} bis zur ersten Auswertung
+                    </>
+                  )}
                 </p>
               ) : (
                 <MoodBadge score={score} size="lg" className="text-sm lg:px-5 lg:py-3 lg:text-3xl" />
@@ -144,10 +155,14 @@ export function PitchBoard({ aggregate, clusters, joinUrl, local }: Props) {
               {visibleClusters.map((cluster) => (
                 <li key={cluster.cluster}>
                   <p className="flex justify-between gap-3 text-base font-semibold lg:text-xl">
-                    <span>{cluster.cluster}</span>
+                    <span className="min-w-0 [overflow-wrap:anywhere]">{cluster.cluster}</span>
                     <span className="shrink-0 tabular-nums">{cluster.count} Nennungen</span>
                   </p>
-                  {cluster.examples.slice(0, 2).map((example, index) => <p key={index} className="mt-1 line-clamp-1 text-sm text-muted lg:text-base">„{example}“</p>)}
+                  {cluster.examples.slice(0, 2).map((example, index) => (
+                    <p key={index} className="mt-1 line-clamp-1 text-sm text-muted lg:text-base">
+                      „{example}“
+                    </p>
+                  ))}
                 </li>
               ))}
             </ul>
