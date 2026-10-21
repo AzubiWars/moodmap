@@ -8,7 +8,15 @@ import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from
 import { useTheme } from '@/lib/theme';
 import { type Bounds, GERMANY_MAX_BOUNDS, NRW_BOUNDS, type RegionProperties } from './geo';
 import { maplibre } from './maplibreSetup';
-import { type MapMode, TENSION_FILL_EXPRESSION, TENSION_INFO } from './radar';
+import {
+  formatRate,
+  formatTrend,
+  hasTrend,
+  type MapMode,
+  PARTICIPATION_FILL_EXPRESSION,
+  TREND_FILL_EXPRESSION,
+} from './modes';
+import { TENSION_FILL_EXPRESSION, TENSION_INFO } from './radar';
 import type { SchoolCollection, SchoolPointProperties } from './schools';
 
 /** `dim` = liegt außerhalb des fokussierten Regierungsbezirks (Drill-down #17) */
@@ -312,10 +320,17 @@ export function MoodMap({
         : null;
   const hoverLevel = scoreToLevel(hoverScore);
   const radar = mode === 'radar';
-  const hoverTension =
-    radar && hover && hover.kind !== 'cluster'
-      ? (hover.props as { tension?: string; tindex?: number })
+  const modeProps =
+    mode !== 'mood' && hover && hover.kind !== 'cluster'
+      ? (hover.props as { tension?: string; tindex?: number; tdelta?: number; rate?: number })
       : null;
+  const hoverTension = radar ? modeProps : null;
+  const fillExpression = {
+    mood: MOOD_FILL_EXPRESSION,
+    trend: TREND_FILL_EXPRESSION,
+    participation: PARTICIPATION_FILL_EXPRESSION,
+    radar: TENSION_FILL_EXPRESSION,
+  }[mode];
 
   return (
     <MapGL
@@ -455,7 +470,7 @@ export function MoodMap({
             beforeId={basemapFailed ? undefined : BUILDING_LAYER_ID}
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
-              'fill-color': (radar ? TENSION_FILL_EXPRESSION : MOOD_FILL_EXPRESSION) as unknown as string,
+              'fill-color': fillExpression as unknown as string,
               'fill-opacity': regionFillOpacity(muted),
             }}
           />
@@ -492,8 +507,10 @@ export function MoodMap({
             type="circle"
             filter={['has', 'point_count']}
             paint={{
-              // Im Radar ist ein Ø von Stufen nicht aussagekräftig → neutrale Cluster
-              'circle-color': (radar ? '#94a3b8' : moodColorExpression(CLUSTER_SCORE)) as unknown as string,
+              // Außerhalb der Stimmung (Stufen, Δ, Quoten) ist ein Cluster-Ø nicht aussagekräftig → neutral
+              'circle-color': (mode === 'mood'
+                ? moodColorExpression(CLUSTER_SCORE)
+                : '#94a3b8') as unknown as string,
               'circle-radius': ['step', ['get', 'point_count'], 13, 10, 17, 30, 22],
               'circle-stroke-color': '#ffffff',
               'circle-stroke-width': 2,
@@ -520,9 +537,9 @@ export function MoodMap({
             type="circle"
             filter={['!', ['has', 'point_count']]}
             paint={{
-              'circle-color': (radar
-                ? TENSION_FILL_EXPRESSION
-                : moodColorExpression(['get', 'score'])) as unknown as string,
+              'circle-color': (mode === 'mood'
+                ? moodColorExpression(['get', 'score'])
+                : fillExpression) as unknown as string,
               // Fläche ~ n: Radius ~ √n (docs/DESIGN.md §5); Spanne passend zu ~10–100 Antworten je Schule
               'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 3, 6, 10, 13],
               'circle-stroke-color': '#ffffff',
@@ -575,7 +592,21 @@ export function MoodMap({
                 {hover.props.form} · {hover.props.city}
               </div>
             )}
-            {hoverTension ? (
+            {mode === 'trend' && modeProps ? (
+              hasTrend(modeProps.tdelta) ? (
+                <div>{formatTrend(modeProps.tdelta!)}</div>
+              ) : (
+                <div className="text-muted">Trend: {NO_DATA.label}</div>
+              )
+            ) : mode === 'participation' && modeProps ? (
+              (modeProps.rate ?? -1) >= 0 ? (
+                <div>
+                  {formatRate(modeProps.rate!)} · n = {(hover!.props as { n: number }).n}
+                </div>
+              ) : (
+                <div className="text-muted">Beteiligung unbekannt</div>
+              )
+            ) : hoverTension ? (
               hoverTension.tension && hoverTension.tension !== 'none' ? (
                 <div>
                   Spannungs-Index {Math.round(hoverTension.tindex ?? 0)} ·{' '}

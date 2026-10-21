@@ -25,7 +25,8 @@ import { DetailPanel } from './DetailPanel';
 import { LiveToggle } from './LiveToggle';
 import { LIVE_POLL_MS, useLivePulses } from './live';
 import { MapModeSwitch } from './MapModeSwitch';
-import { type MapMode, parseMapMode, type TensionMap, toTensionMap } from './radar';
+import { type MapMode, modeUsesTopic, parseMapMode, studentsBy, trendValue } from './modes';
+import { type TensionMap, toTensionMap } from './radar';
 import { useRoleStore } from '@/store/role';
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
@@ -48,38 +49,52 @@ const MAP_TOPICS: FilterTopic[] = [
 ];
 
 /** Färbt die angezeigte Ebene; Flächen außerhalb des fokussierten Regierungsbezirks erhalten `dim`. */
+/** Zusatzwerte je Kartenmodus: Spannungs-Stufe (#42), Trend-Δ und Beteiligungsquote (#21). */
+interface ModeData {
+  tension: TensionMap | null;
+  students: ReadonlyMap<string, number> | null;
+}
+
+function modeProperties(id: string, scores: ScoreMap, data: ModeData) {
+  const s = scores.get(id);
+  const t = data.tension?.get(id);
+  const students = data.students?.get(id);
+  return {
+    // Frühwarn-Radar: Stufe für die Einfärbung, 'none' unter K_MIN
+    ...(data.tension ? { tension: t?.level ?? 'none', tindex: t?.index ?? -1 } : {}),
+    tdelta: trendValue(s?.delta),
+    // Beteiligung: Stimmen ÷ Schülerzahl der Schulen in der Einheit (−1 = unbekannt)
+    rate: students && s ? (100 * s.n) / students : -1,
+  };
+}
+
 function scoreRegions(
   regions: RegionCollection,
   scores: ScoreMap,
   focusRegbezId: string | null,
-  tension: TensionMap | null,
+  data: ModeData,
 ) {
   const withData = withScores(regions, scores);
   return {
     ...withData,
-    features: withData.features.map((f) => {
-      const t = tension?.get(f.properties.id);
-      return {
-        ...f,
-        properties: {
-          ...f.properties,
-          ...(focusRegbezId ? { dim: f.properties.regbez_id !== focusRegbezId } : {}),
-          // Frühwarn-Radar (#42): Stufe für die Einfärbung, 'none' unter K_MIN
-          ...(tension ? { tension: t?.level ?? 'none', tindex: t?.index ?? -1 } : {}),
-        },
-      };
-    }),
+    features: withData.features.map((f) => ({
+      ...f,
+      properties: {
+        ...f.properties,
+        ...(focusRegbezId ? { dim: f.properties.regbez_id !== focusRegbezId } : {}),
+        ...modeProperties(f.properties.id, scores, data),
+      },
+    })),
   };
 }
 
-function withSchoolTension(points: SchoolCollection, tension: TensionMap | null): SchoolCollection {
-  if (!tension) return points;
+function withModeData(points: SchoolCollection, scores: ScoreMap, data: ModeData): SchoolCollection {
   return {
     ...points,
-    features: points.features.map((f) => {
-      const t = tension.get(f.properties.id);
-      return { ...f, properties: { ...f.properties, tension: t?.level ?? 'none', tindex: t?.index ?? -1 } };
-    }),
+    features: points.features.map((f) => ({
+      ...f,
+      properties: { ...f.properties, ...modeProperties(f.properties.id, scores, data) },
+    })),
   };
 }
 
@@ -102,6 +117,14 @@ function schoolBounds(school: School): Bounds {
     [school.lon + d * 1.6, school.lat + d],
   ];
 }
+
+/** Untertitel je Modus; `null` = gewähltes Thema anzeigen */
+const MODE_CAPTION: Record<MapMode, string | null> = {
+  mood: null,
+  trend: null,
+  participation: '🙋 Beteiligung diese Woche',
+  radar: '📡 Spannungs-Index aus 6 Themen',
+};
 
 export function MapPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -173,24 +196,24 @@ export function MapPage() {
     refetchInterval: poll,
   });
 
+  const allSchools = schoolsQuery.data ?? [];
   const scored = shown
-    ? scoreRegions(
-        shown,
-        toScoreMap(regionAggregates.data),
-        focusRegbezId,
-        radar ? toTensionMap(regionTension.data) : null,
-      )
+    ? scoreRegions(shown, toScoreMap(regionAggregates.data), focusRegbezId, {
+        tension: radar ? toTensionMap(regionTension.data) : null,
+        students: mode === 'participation' ? studentsBy(allSchools, regionLevel) : null,
+      })
     : null;
 
   const schoolsShown =
     schoolsQuery.data && (!radar || ministry)
       ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data)
       : [];
+  const schoolScores = toScoreMap(schoolAggregates.data);
   const schoolPoints = schoolsShown.length
-    ? withSchoolTension(
-        schoolsToGeoJSON(schoolsShown, toScoreMap(schoolAggregates.data)),
-        radar ? toTensionMap(schoolTension.data) : null,
-      )
+    ? withModeData(schoolsToGeoJSON(schoolsShown, schoolScores), schoolScores, {
+        tension: radar ? toTensionMap(schoolTension.data) : null,
+        students: mode === 'participation' ? studentsBy(allSchools, 'school') : null,
+      })
     : null;
 
   const focusFeature = drill.kreis ?? drill.regbez;
@@ -246,7 +269,9 @@ export function MapPage() {
   return (
     <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] flex-col md:h-[calc(100dvh-5.1rem)]">
       {/* Der Spannungs-Index nutzt feste Themen (TENSION_WEIGHTS) – Themenfilter nur im Stimmungsmodus */}
-      {!radar && <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />}
+      {modeUsesTopic(mode) && (
+        <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />
+      )}
 
       <div className="relative min-h-0 flex-1">
         <MoodMap
@@ -273,7 +298,7 @@ export function MapPage() {
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
             <MapModeSwitch mode={mode} onChange={setMode} />
             <p className="text-xs text-fg" aria-live="polite">
-              {radar ? '📡 Spannungs-Index aus 6 Themen' : `${topic.icon} ${topic.title}`} ·{' '}
+              {MODE_CAPTION[mode] ?? `${topic.icon} ${topic.title}`} ·{' '}
               {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
             </p>
           </div>
