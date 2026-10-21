@@ -194,6 +194,11 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - Typ-spezifische Wertebereiche der Antworten (mood5 1–5, swipe 0/1, gültige `choice`-Optionen) prüft zusätzlich ein Trigger.
 - SQL-Tests (`supabase/tests/`) laufen mit `npm test` gegen PGlite und prüfen Rechte, RLS, Constraints und die Gleichheit der Enums mit `src/types/domain.ts`.
 
+✅ Umfrage-RPCs in `supabase/migrations/20261021094500_survey_rpcs.sql` (#78). Alle sind `security definer` und liefern camelCase-JSON wie `src/types`:
+- `submit_response(input jsonb)` → `SubmitResult`. Prüft Schule, **aktuelle** Welle, Rolle, Gerät-Token (16–200 Zeichen), Frage-IDs (keine Duplikate, Zielgruppe passt zur Rolle) und Werte je Fragetyp. Speichert `device_hash = sha256(deviceToken + ':' + waveId)`, nie das Token. Doppelte Teilnahme → `{ ok: false, reason: 'already_submitted' }` (atomar per `on conflict`). Ungültige Eingaben lösen einen Fehler aus und speichern nichts; die Supabase-DataSource (#23) macht daraus `reason: 'error'`.
+- `get_school_by_code(code text)` → `School | null`, Groß-/Kleinschreibung und Leerzeichen egal. Einziger Weg zum `joinCode`.
+- `get_current_wave()` → `Wave | null`: die Welle, die `now()` enthält. Bei Lücken im Wellenkalender die zuletzt begonnene, damit die Live-Demo nie an einer fehlenden Welle scheitert. `submit_response` nutzt dieselbe Definition.
+
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
 - `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`

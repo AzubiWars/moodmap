@@ -37,7 +37,13 @@ export async function asRole<T>(db: PGlite, role: DbRole, fn: () => Promise<T>):
   }
 }
 
-/** Minimal master data + config: 1 RegBez, 1 Kreis, 1 school, 1 topic with all three question types, 1 wave. */
+export const CURRENT_WAVE = '2026-W43';
+export const PREVIOUS_WAVE = '2026-W42';
+
+/**
+ * Minimal master data + config: 1 RegBez, 1 Kreis, 1 school, 1 topic with all three question types,
+ * 2 waves. Waves are relative to now(), so "current" does not depend on the real calendar.
+ */
 export async function insertFixtures(db: PGlite): Promise<void> {
   await db.exec(`
     insert into public.regbez values ('051', 'Düsseldorf');
@@ -50,7 +56,9 @@ export async function insertFixtures(db: PGlite): Promise<void> {
       ('stress.swipe', 'stress', 'swipe', 'Ich habe genug Freizeit.', null, false, 0.5),
       ('stress.deep', 'stress', 'choice', 'Was stresst am meisten?',
         '[{"value":"exams","label":"Klausuren"},{"value":"homework","label":"Hausaufgaben"}]', true, 0);
-    insert into public.waves values ('2026-W43', '2026-10-19T00:00:00Z', '2026-10-26T00:00:00Z');
+    insert into public.waves values
+      ('${PREVIOUS_WAVE}', now() - interval '8 days', now() - interval '1 day'),
+      ('${CURRENT_WAVE}', now() - interval '1 day', now() + interval '6 days');
   `);
 }
 
