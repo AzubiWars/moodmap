@@ -137,7 +137,7 @@ export interface AggregateQuery {
 
 export interface AggregateRow {
   id: string;                      // regbez-/kreis-ID oder Schulnummer
-  n: number;                       // Anzahl Antworten
+  n: number;                       // Anzahl unterschiedlicher gewerteter Teilnahmen
   score: number | null;            // 0–100, null wenn n < K_MIN
   delta: number | null;            // Δ zur Vorperiode
   topicScores?: Record<string, number | null>;
@@ -196,7 +196,7 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
    gewichteter Mittelwert aller gewerteten Antworten zu *t* (Kernfrage Gewicht 1.0, Swipe 0.5).
 3. **Gesamt-Mood einer Einheit:** Mittelwert der Themen-Scores der Themen 1–n mit ausreichendem n (gleich gewichtet), **plus** die direkte Frage `overall` als eigenes Thema. → Ein schlecht abgedecktes Thema verzerrt nicht.
 4. **Aggregation nach oben (Schule → Kreis → RegBez → NRW):** Berechnung direkt über alle Antworten der Ebene (nicht Mittelwert der Schul-Mittelwerte), damit große Schulen nicht untergewichtet werden. *(Optional P2: Gewichtung nach Schülerzahl, um Beteiligungsunterschiede auszugleichen.)*
-5. **Mindestanzahl:** `K_MIN = 10` Antworten pro angezeigter Zelle (Einheit × Thema × Filterkombination). Darunter: `score = null` → grau „zu wenige Daten". Siehe `docs/PRIVACY.md`.
+5. **Mindestanzahl:** `K_MIN = 10` unterschiedliche Teilnahmen pro angezeigter Zelle (Einheit × Thema × Filterkombination). `n` zählt nur Teilnahmen mit mindestens einer gültigen, gewerteten Antwort (Gewicht > 0) in dieser Zelle. Mehrere Kern-/Swipe-Fragen derselben Teilnahme erhöhen `n` nicht. TypeScript: `AnswerScoreInput.responseId`; SQL-Views/RPCs (#22): `COUNT(DISTINCT response_id)` nach derselben Filterung. Die Score-Berechnung bleibt der gewichtete Mittelwert aller gewerteten Antworten. Darunter: `score = null` → grau „zu wenige Daten". Siehe `docs/PRIVACY.md`.
 6. **Trend (Δ):** Score aktuelle Periode − Score Vorperiode (nur wenn beide ≥ `K_MIN`).
 7. **Hotspot-Regel (Dashboard):** Einheit mit `score < 40` **oder** `delta ≤ −10` und `n ≥ 30`.
 8. **Spannungs-Index (Frühwarn-Radar)**, 0–100, hoch = mehr Spannung:
