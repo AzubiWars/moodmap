@@ -1,7 +1,7 @@
 # `moderate-text` – Freitext-Moderation (Live-Test)
 
-Supabase Edge Function, die anonyme Freitexte **vor dem Speichern** prüft.
-Moderation optionaler Freitexte (ADR-016). Aktuell: `{ allowed, reason }`. Ausbau zu Bereinigung, Clustern und `concern` folgt in #114.
+Supabase Edge Function für optionale Freitexte (ADR-016, `PRODUCT_SPEC.md` §3.13).
+Der Prototyp hat keine Freitexte; diese Function ist für den Pitch-/Live-Test gedacht.
 
 ## Secret setzen
 
@@ -33,20 +33,38 @@ supabase functions serve moderate-text --env-file .env.local
 POST /functions/v1/moderate-text
 Content-Type: application/json
 
-{ "text": "Der Unterricht ist oft zu schnell." }
+{ "text": "Herr Müller ist oft zu schnell und die Toiletten sind kaputt." }
 ```
 
 ```json
-{ "allowed": true, "reason": "" }
+{
+  "allowed": true,
+  "reason": "",
+  "cleaned": "Eine Lehrkraft ist oft zu schnell und die Toiletten sind kaputt.",
+  "topics": ["learning", "building"],
+  "cluster": "Unterricht & Gebäude",
+  "concern": false
+}
 ```
 
 Bei Ablehnung:
 
 ```json
-{ "allowed": false, "reason": "Beleidigung" }
+{
+  "allowed": false,
+  "reason": "Beleidigung",
+  "cleaned": "",
+  "topics": [],
+  "cluster": "",
+  "concern": false
+}
 ```
 
-- Max. 500 Zeichen.
-- **Fail-closed:** ohne Key oder bei OpenRouter-Fehler wird der Text nicht freigegeben.
-- Kein Logging des Rohtexts.
-- Client muss `allowed: true` abwarten und den Text sonst verwerfen.
+## Regeln
+
+- Max. **280 Zeichen** (`PRODUCT_SPEC` §3.13).
+- Nur `allowed`, `reason`, `cleaned`, `topics`, `cluster`, `concern` werden zurückgegeben.
+- **Rohtext wird nie gespeichert oder geloggt**; gespeichert wird nur `cleaned` + `topics` + `cluster`.
+- Timeout **5 s**; bei Fehler/fehlendem Key wird nur der Freitext verworfen, die Umfrage läuft weiter (`allowed:false`).
+- `concern: true` → Client zeigt sofort Hilfsangebote (PRIVACY §5), keine Weiterleitung.
+- Im Mock-Modus gibt es zusätzlich einen lokalen Fallback (Wortliste + Themen-Keywords); der ist Teil der Survey-UI.
