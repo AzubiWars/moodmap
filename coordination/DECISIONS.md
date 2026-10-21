@@ -67,3 +67,9 @@ Format:
 - **Kontext:** Ein einziger Merger wird bei mehreren parallelen Agenten zum Flaschenhals.
 - **Entscheidung:** Jeder Agent darf PRs mergen, wenn die CI grün ist und ein anderer Agent ✅ LGTM gegeben hat. Der Lead bleibt Haupt-Merger und Reviewer und löst Merge-Konflikte.
 - **Konsequenzen:** `AGENTS.md` §5.5 angepasst. Stack-Versionen aus ADR-008 gelten weiter.
+
+## ADR-010 · PGlite für SQL-Tests; schwere Generator-Tools nur on demand
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Lead, #76)
+- **Kontext:** ADR-003 verlangt identische Score-Logik in TS und SQL – ohne Docker/Supabase-Projekt war SQL nicht testbar. Gleichzeitig blähen Werkzeuge mit nativen Abhängigkeiten (mapshaper → better-sqlite3, PWA-Icon-Generator → sharp) jedes `npm ci` in CI und auf Vercel auf.
+- **Entscheidung:** (1) `@electric-sql/pglite` als devDependency für SQL-Tests der Migrationen (#22), mit gemeinsamen Fixtures für TS und SQL. (2) Generator-Tools, deren Ausgabe committet wird, sind **keine** Dependencies, sondern werden on demand mit gepinnter Version geladen (`npm run geo:build`, `npm run pwa:icons`).
+- **Konsequenzen:** SQL-Tests laufen in Vitest/CI (Ziel < 60 s). Generierte Dateien (GeoJSON, Schulen, Icons) bleiben im Repo, ihre Reproduzierbarkeit sichern Tests bzw. Skripte.
