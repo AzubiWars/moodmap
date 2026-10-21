@@ -1,11 +1,41 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { demoScores } from './demoScores';
+import type { AggregateQuery, AggregateRow } from '@/types';
 import { MapPage } from './MapPage';
 import type { School } from '@/types';
 import type { Bounds, RegionCollection } from './geo';
 import type { SchoolCollection } from './schools';
+
+/** Deterministische Fake-Aggregate: Score hängt von ID und Thema ab, damit Themenwechsel sichtbar umfärbt. */
+function fakeScore(id: string, topic: string) {
+  const sum = [...`${id}:${topic}`].reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return 20 + (sum % 70);
+}
+
+const aggregateCalls: AggregateQuery[] = [];
+let liveCallback: (() => void) | null = null;
+
+vi.mock('@/data', () => ({
+  getDataSource: () => ({
+    getAggregates: async (query: AggregateQuery): Promise<AggregateRow[]> => {
+      aggregateCalls.push(query);
+      const ids =
+        query.level === 'regbez'
+          ? ['051', '053']
+          : query.level === 'kreis'
+            ? ['05111', '05315']
+            : ['900001', '900002'];
+      return ids.map((id) => ({ id, n: 50, score: fakeScore(id, query.topic), delta: null }));
+    },
+    subscribeToNewResponses: (callback: () => void) => {
+      liveCallback = callback;
+      return () => {
+        liveCallback = null;
+      };
+    },
+  }),
+}));
 
 vi.mock('./MoodMap', () => ({
   MoodMap: ({
@@ -112,6 +142,7 @@ function openMap(url: string) {
 }
 
 beforeEach(() => {
+  aggregateCalls.length = 0;
   Element.prototype.scrollIntoView = vi.fn();
 });
 
@@ -124,19 +155,20 @@ describe('map topic filter', () => {
   it('restores a shared topic URL and changes map data without reloading', async () => {
     const router = openMap('/map?topic=ai&mode=mood');
     expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toHaveAttribute('aria-pressed', 'true');
-    const expected = demoScores(['051'], 'ai').get('051')!;
-    expect(screen.getByTestId('map-data')).toHaveTextContent(`"score":${expected.score ?? -1}`);
+    await waitFor(() =>
+      expect(screen.getByTestId('map-data')).toHaveTextContent(`"score":${fakeScore('051', 'ai')}`),
+    );
     const previousData = screen.getByTestId('map-data').textContent;
 
     const dialog = openTopicDialog();
     fireEvent.click(within(dialog).getByRole('button', { name: /Digitale Ausstattung/ }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=digital&mode=mood'));
     expect(screen.queryByRole('dialog', { name: 'Thema wählen' })).not.toBeInTheDocument();
-    expect(screen.getByTestId('map-data').textContent).not.toBe(previousData);
+    await waitFor(() => expect(screen.getByTestId('map-data').textContent).not.toBe(previousData));
 
     await act(() => router.navigate(-1));
     expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByTestId('map-data').textContent).toBe(previousData);
+    await waitFor(() => expect(screen.getByTestId('map-data').textContent).toBe(previousData));
   });
 
   it('searches topics with regex and selects a result', async () => {
@@ -249,5 +281,38 @@ describe('school markers (#18)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Stadt Köln' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&regbez=053&kreis=05315'));
     expect(screen.getByTestId('map-selected-school')).toBeEmptyDOMElement();
+  });
+});
+
+describe('aggregates from the DataSource (#68)', () => {
+  const scoreOf = (id: string) =>
+    (JSON.parse(screen.getByTestId('map-data').textContent!) as RegionCollection).features.find(
+      (f) => f.properties.id === id,
+    )?.properties as unknown as { score: number; n: number };
+
+  it('colors regbez on NRW level and kreise after drilling in', async () => {
+    const router = openMap('/map?topic=stress');
+    await waitFor(() => expect(scoreOf('053').score).toBe(fakeScore('053', 'stress')));
+    expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'regbez', topic: 'stress' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fläche 053' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=stress&regbez=053'));
+    await waitFor(() => expect(scoreOf('05315').score).toBe(fakeScore('05315', 'stress')));
+    expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', topic: 'stress' }));
+  });
+
+  it('asks only for the schools of the kreis on kreis level', async () => {
+    openMap('/map?regbez=053&kreis=05315');
+    await waitFor(() =>
+      expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', parentId: '05315' })),
+    );
+  });
+
+  it('refetches aggregates when a new response arrives', async () => {
+    openMap('/map');
+    await waitFor(() => expect(aggregateCalls.length).toBeGreaterThan(0));
+    const before = aggregateCalls.length;
+    act(() => liveCallback?.());
+    await waitFor(() => expect(aggregateCalls.length).toBeGreaterThan(before));
   });
 });

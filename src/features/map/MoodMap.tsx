@@ -462,8 +462,8 @@ export function MoodMap({
             filter={['!', ['has', 'point_count']]}
             paint={{
               'circle-color': moodColorExpression(['get', 'score']) as unknown as string,
-              // Fläche ~ n: Radius ~ √n (docs/DESIGN.md §5)
-              'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 2, 5, 20, 12],
+              // Fläche ~ n: Radius ~ √n (docs/DESIGN.md §5); Spanne passend zu ~10–100 Antworten je Schule
+              'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 3, 6, 10, 13],
               'circle-stroke-color': '#ffffff',
               'circle-stroke-width': 1.5,
             }}
@@ -474,7 +474,7 @@ export function MoodMap({
             filter={['all', ['!', ['has', 'point_count']], selectedSchoolFilter]}
             paint={{
               'circle-color': 'rgba(0,0,0,0)',
-              'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 2, 9, 20, 16],
+              'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'n']], 3, 10, 10, 17],
               'circle-stroke-color': '#0f172a',
               'circle-stroke-width': 3,
             }}
