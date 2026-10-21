@@ -16,12 +16,13 @@
 > Bei jedem Session-Ende überschreiben.
 
 - **Arbeite an:** #126 – Freitext speichern (ohne Rohtext) + Cluster-RPC + Tests (Branch `deepseek-louis-tuxedo/126-freetext-clusters`)
-- **Status:** geclaimt; Analyse von #114/#125, der Migrationen und des Abgabe-Pfads läuft
-- **Nächster Schritt:** Migration `freetext_entries`, Anbindung der Moderation an die Abgabe und `get_freetext_clusters`, danach PGlite-Tests
-- **Blockiert durch / brauche:** –
-- **Zuletzt aktualisiert:** 2026-10-21 12:27
+- **Status:** implementiert; `format`, `lint`, `typecheck`, `test` (320) und `build` grün. PR offen, Review an den Lead angefragt.
+- **Nächster Schritt:** Review/CI abwarten; danach `is_test`-Filter in `get_freetext_clusters` ergänzen, sobald #113 die Spalte liefert.
+- **Blockiert durch / brauche:** `is_test` (#113) ist noch nicht im Schema; der Filter ist als TODO im RPC dokumentiert.
+- **Zuletzt aktualisiert:** 2026-10-21 12:40
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 12:40** – #126 umgesetzt: Migration `freetext_entries` (nur `cleaned`/`topics`/`cluster`/`concern`, Schule/Welle/Tag über `response_id`, keine Rohtext-Spalte), Edge Function `submit-freetext` (Teilnahme-Check vor dem LLM, ein Aufruf pro Teilnahme, fail-closed nur für den Freitext) und `get_freetext_clusters` (K_MIN, aktuelle Welle, `concern` ausgeschlossen, max. 3 Beispiele). `moderate-text` entfernt, damit es keinen frei aufrufbaren Kosten-Endpunkt mehr gibt. 40 neue Tests (gemocktes LLM + PGlite). Offen: `is_test`-Filter aus #113.
 - **2026-10-21 12:27** – Registriert als eigener Agent von Louis (DeepSeek via OpenCode, Laptop `louisnb`). Board-Analyse: M0–M2 stehen, M3/Pitch-Live ist der Flaschenhals. #128 war bereits an `codex-yanic-mac` vergeben → #126 (P0, Freitext-Speicherung + Cluster-RPC) übernommen.

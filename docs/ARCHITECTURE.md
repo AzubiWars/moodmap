@@ -182,6 +182,10 @@ responses     (id uuid pk, school_id text fk, wave_id text fk, role text, grade_
 answers       (response_id uuid fk, question_id text fk, value int null, choice text[] null,
                primary key (response_id, question_id))
 
+-- Optionaler Freitext: nur moderierter Text, keine Rohtext-Spalte, keine direkten API-Grants
+freetext_entries (response_id uuid pk fk, cleaned text, topics text[], cluster text,
+               concern bool default false, created_at date)
+
 -- Dialog-Rückkanal „Politik antwortet"
 policy_answers (id uuid pk, topic_slug text fk, scope text, region_id text null, title text, body text,
                 status text, published_at date, author_role text /* ministerium|bezreg */)
@@ -194,7 +198,7 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - Gelesen werden ausschließlich **Aggregations-Views/RPCs**, die die Mindestanzahl erzwingen.
 
 ✅ Umgesetzt in `supabase/migrations/20261021091500_schema.sql` (#77):
-- `anon`/`authenticated` haben **keinerlei Rechte** auf `responses`, `answers` und `policy_answer_ratings` (kein SELECT/INSERT/UPDATE/DELETE). Schreiben nur über `security definer`-RPCs (#78, #81).
+- `anon`/`authenticated` haben **keinerlei Rechte** auf `responses`, `answers`, `policy_answer_ratings` und `freetext_entries` (kein SELECT/INSERT/UPDATE/DELETE). Schreiben nur über `security definer`-RPCs (#78, #81, #126).
 - Lesbar: `regbez`, `kreise`, `topics`, `questions`, `waves`, `policy_answers` und `schools` **ohne** `join_code` (Spalten-Grant). Codes werden nur über `get_school_by_code` aufgelöst (#78).
 - RLS ist auf jeder Tabelle aktiv. Weil Supabase neuen Objekten standardmäßig alle Rechte gibt, entzieht die Migration sie und setzt die Default-Privileges so, dass **spätere Tabellen und Funktionen nicht automatisch erreichbar sind**. Jede neue RPC braucht ein explizites `grant execute … to anon`.
 - Typ-spezifische Wertebereiche der Antworten (mood5 1–5, swipe 0/1, gültige `choice`-Optionen) prüft zusätzlich ein Trigger.
@@ -363,21 +367,23 @@ Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN
 
 ## 12. Freitext-Moderation (nur Live-Test)
 
-Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR-016, `PRODUCT_SPEC.md` §3.13, `PRIVACY.md` §1.3/§6a). Umgesetzt in **`moderate-text` (#119)**: max. **280 Zeichen**, strukturiertes JSON, Timeout **5 s**, Speicherung ohne Rohtext.
+Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR-016, `PRODUCT_SPEC.md` §3.13, `PRIVACY.md` §6a). Umgesetzt in **`submit-freetext` (#126)**: max. **280 Zeichen**, strukturiertes JSON, Timeout **5 s**, Speicherung ohne Rohtext.
 
-1. Client sendet `{ text }` an die Supabase Edge Function `moderate-text`.
-2. Die Function ruft OpenRouter (`https://openrouter.ai/api/v1/chat/completions`) mit einem Moderations-Prompt auf.
-3. OpenRouter liefert strukturiertes JSON:
+1. Client sendet `{ schoolId, waveId, deviceToken, text }` an die Supabase Edge Function `submit-freetext` – **erst nach** der Umfrage-Abgabe (`submit_response`).
+2. Die Function prüft über den gehashten Device-Token, ob für Schule + Welle bereits eine Teilnahme existiert. Ohne Teilnahme: `403 no_response`, **kein** LLM-Aufruf. Ein bereits gespeicherter Freitext führt ebenfalls zu keinem zweiten LLM-Aufruf.
+3. Nur der **Text** geht an OpenRouter (`https://openrouter.ai/api/v1/chat/completions`); Schule, Welle und Device-Token bleiben in Supabase.
+4. OpenRouter liefert strukturiertes JSON:
    - `allowed`: bool
    - `reason`: kurzer Grund (z. B. Beleidigung, Spam)
    - `cleaned`: bereinigter Text (Schimpfwörter/Jugendsprache neutralisiert, Namen/persönliche Angaben entfernt)
    - `topics`: max. 3 Slugs aus `SURVEY_TOPICS.md`
    - `cluster`: kurzes Cluster-Label
    - `concern`: Krisen-/Gefährdungshinweis
-4. **Gespeichert wird nur** `allowed`, `cleaned`, `topics`, `cluster`, `concern`, Schule, Welle und Tag. Der Rohtext wird **nie** gespeichert oder geloggt.
-5. **Robustheit:** Timeout 5 s. Fällt OpenRouter aus oder fehlt der Key, wird **nur der Freitext verworfen** (`allowed:false`); die Umfrage wird trotzdem gespeichert. Im Mock-Modus gibt es einen lokalen Fallback (Wortliste + Themen-Keywords) in der Survey-UI.
-6. Bei `concern:true` zeigt der Client sofort Hilfsangebote (`PRIVACY.md` §5), keine Weiterleitung.
-7. Der Client nutzt die Function automatisch, sobald `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` gesetzt sind – auch bei `VITE_DATA_MODE=mock`. Ohne diese Env (reiner Dev/Mock) greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords.
+5. Die Function ruft `record_freetext` (service role) auf. Gespeichert werden nur `cleaned`, `topics`, `cluster`, `concern` sowie – über `response_id` – Schule, Welle und Tag in `freetext_entries`. Abgelehnte Texte werden **gar nicht** gespeichert. Der Rohtext wird **nie** gespeichert oder geloggt.
+6. **Robustheit:** Timeout 5 s. Fällt OpenRouter aus oder fehlt der Key, wird **nur der Freitext verworfen** (`stored:false`); die Umfrage bleibt gespeichert. Im Mock-Modus gibt es einen lokalen Fallback (Wortliste + Themen-Keywords) in der Survey-UI.
+7. Bei `concern:true` zeigt der Client sofort Hilfsangebote (`PRIVACY.md` §5), keine Weiterleitung. Solche Einträge werden von `get_freetext_clusters` nicht öffentlich ausgewertet.
+8. Die öffentliche Auswertung läuft über `get_freetext_clusters(scope)` (nur aktuelle Welle, nur `concern = false`, Cluster erst ab `K_MIN`, max. 3 bereinigte Beispiele). Der Test-Standort (`is_test`, #113) wird ergänzt, sobald die Spalte existiert.
+9. Der Client ruft `submit-freetext` **nach** erfolgreicher Umfrage-Abgabe auf, sobald `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` gesetzt sind – auch bei `VITE_DATA_MODE=mock`. Ohne diese Env (reiner Dev/Mock) greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords.
 
 **Secret setzen (niemals committen):**
 
@@ -385,22 +391,22 @@ Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR
 supabase secrets set OPENROUTER_API_KEY=<key>
 # optional:
 supabase secrets set OPENROUTER_MODEL=openai/gpt-4o-mini
-supabase functions deploy moderate-text
+supabase functions deploy submit-freetext
 ```
 
-Lokal: `supabase functions serve moderate-text --env-file .env.local` (Key in `.env.local`, ist gitignored).
+Lokal: `supabase functions serve submit-freetext --env-file .env.local` (Key in `.env.local`, ist gitignored).
 
 **Client-Aufruf (später, wenn das Freitextfeld kommt):**
 
 ```ts
-const { data, error } = await supabase.functions.invoke('moderate-text', {
-  body: { text },
+const { data, error } = await supabase.functions.invoke('submit-freetext', {
+  body: { schoolId, waveId, deviceToken, text },
 });
-if (error || !data?.allowed) {
+if (error || !data?.ok || !data.stored) {
   // nur den Freitext verwerfen, die Umfrage trotzdem speichern
 } else {
-  // speichern: data.cleaned, data.topics, data.cluster, data.concern
   // data.concern === true → sofort Hilfsangebote anzeigen
+  // data.cluster/data.topics → „Danke, dein Hinweis wurde dem Thema X zugeordnet“
 }
 ```
 
