@@ -70,16 +70,8 @@ const JOIN_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const JOIN_CODE_LENGTH = 6;
 
 /** mulberry32 – tiny, fast, good enough for demo data. */
-export function createRandom(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+export { createRandom } from '../../src/lib/random.ts';
+import { createRandom } from '../../src/lib/random.ts';
 
 function pickWeighted<T>(random: () => number, items: readonly T[], weight: (item: T) => number): T {
   const total = items.reduce((sum, item) => sum + weight(item), 0);
