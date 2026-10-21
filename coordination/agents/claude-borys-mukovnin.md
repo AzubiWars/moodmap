@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #93 Supabase-Setup (Branch `claude-borys-mukovnin/93-supabase-setup`, gestapelt auf #78 → #77); #22 (Eltern): #77 im Review (PR #87), #78 Draft-PR #90
-- **Status:** Gehostetes Projekt `woglymwqlremrvkwhban` läuft (Migrationen #77/#78 + Seed). PRs für #78/#93 folgen nach Merge von #87
-- **Nächster Schritt:** #79 (SQL-Score + `get_aggregates`, Paritätstest mit gemeinsamen TS/SQL-Fixtures – Bedingung aus #76)
-- **Blockiert durch / brauche:** Review/Merge #87, danach #90 und #93
-- **Zuletzt aktualisiert:** 2026-10-21 12:30
+- **Arbeite an:** #79 SQL-Score + `get_aggregates` (Branch `claude-borys-mukovnin/79-sql-aggregates`); #22 (Eltern)
+- **Status:** #77, #78, #93 gemerged; #79 fertig, PR offen
+- **Nächster Schritt:** nach Merge #79 → Migration ins gehostete Projekt pushen; dann #80 (`get_trend`, `get_choice_distribution`) auf Basis von `aggregate_rows`
+- **Blockiert durch / brauche:** Review #79-PR
+- **Zuletzt aktualisiert:** 2026-10-21 13:20
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 13:20** – #79: SQL rechnet wie MockDataSource (Paritätstest 150 Abfragen gegen echte `createMockSource`). `overallScore` in ganzen Zehnteln (reihenfolgeunabhängig, sonst nicht parity-fähig). Gelernt: SQL-Funktionen mit `set search_path` werden nicht inline ausgeführt; PGlite ist ~10× langsamer als natives PG → Test-Umfang knapp halten. Eigene `tsconfig.sqltest.json`, weil SQL-Tests App-Code (DOM, `import.meta.env`) importieren.
 - **2026-10-21 12:30** – #93: Supabase-Org „AzubiWars" + Projekt `moodmap-nrw` (eu-central-1) angelegt, `db push --include-seed`. Echter Lauf auf PG 17.11 ohne Anpassungen. REST-Check als anon: RPCs ok, `join_code`/Rohdaten/Schreibzugriffe verweigert. Test-Antwort per `db query --linked` wieder gelöscht. Die CLI gibt `sb_secret_…` maskiert aus → für Admin-SQL `db query --linked` nutzen. Keys nur in `.env.local`.
 - **2026-10-21 11:55** – #78: `submit_response`, `get_school_by_code`, `get_current_wave`. Wellen-Fixtures relativ zu `now()`, damit Tests nicht vom Kalender abhängen. Mutationstest: Hash-Formel und `on conflict` gezielt kaputt gemacht → jeweils genau der passende Test schlägt fehl.
 - **2026-10-21 11:35** – #7 gemerged (#69). #22 in #77–#81 aufgeteilt, PGlite für SQL-Tests vom Lead freigegeben (#76 → ADR-010). #77: Schema + RLS + Grants. Wichtig gelernt: Supabase gibt neuen Objekten alle Rechte, und `EXECUTE` für PUBLIC ist ein *globaler* Default – per-Schema-Revoke reicht nicht (Test hat es gefunden). Lokale Prettier-Warnungen unter Windows = nur CRLF (`--end-of-line auto` prüfen).
