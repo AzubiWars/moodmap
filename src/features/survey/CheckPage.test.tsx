@@ -44,6 +44,11 @@ async function answerScale(text: string, label: string) {
   );
 }
 
+/** Letzter Schritt: die Übersicht vor dem Absenden (#146). */
+async function sendFromReview() {
+  fireEvent.click(await screen.findByRole('button', { name: 'Jetzt anonym absenden' }));
+}
+
 describe('CheckPage', () => {
   beforeEach(() => {
     localStorage.clear();
@@ -77,6 +82,7 @@ describe('CheckPage', () => {
       }
     }
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    await sendFromReview();
     await screen.findByText('FERTIG');
     expect(submit).toHaveBeenCalledTimes(1);
     const input = firstCall(submit);
@@ -99,6 +105,7 @@ describe('CheckPage', () => {
     const qs = selectQuestions(getDeviceToken(), WAVE, 'teacher');
     expect(qs).toHaveLength(10);
     for (const q of qs) await answerScale(q.text, 'eher gut');
+    await sendFromReview();
     await screen.findByText('FERTIG');
     expect(submit).toHaveBeenCalledTimes(1);
     const input = firstCall(submit);
@@ -116,6 +123,7 @@ describe('CheckPage', () => {
     fireEvent.click(screen.getAllByRole('button', { pressed: false }).at(0) as HTMLElement);
     fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    await sendFromReview();
     await screen.findByText('FERTIG');
     const last = firstCall(submit).answers.at(-1);
     expect(last?.questionId).toBe(`${qs[3]?.topicSlug}.deep`);
@@ -148,6 +156,7 @@ describe('CheckPage', () => {
       const submit = setup();
       for (const q of questions()) await answerScale(q.text, 'eher gut');
       fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+      await sendFromReview();
       await screen.findByText('FERTIG');
       expect(firstCall(submit).schoolId).toBe('pitch-test');
       // Completing the test never sets/clears the normal NRW flag.
@@ -161,6 +170,7 @@ describe('CheckPage', () => {
     // Tiefe Frage kann nur bei ≤ 3 erscheinen: „geht so" = 3
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    await sendFromReview();
     expect(await screen.findByText(/Nächster Mood-Check ab Montag/)).toBeInTheDocument();
   });
 
@@ -172,7 +182,8 @@ describe('CheckPage', () => {
     fireEvent.change(await screen.findByRole('textbox', { name: 'Dein Freitext' }), {
       target: { value: 'Mehr WLAN bitte' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
+    await sendFromReview();
 
     expect(await screen.findByText(/sobald du wieder online bist/)).toBeInTheDocument();
     expect(screen.getByText(/Freitext haben wir offline nicht gespeichert/)).toBeInTheDocument();
@@ -195,6 +206,7 @@ describe('CheckPage', () => {
     submit.mockRejectedValueOnce(new TypeError('Failed to fetch'));
     for (const q of questions()) await answerScale(q.text, 'eher gut');
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    await sendFromReview();
     expect(await screen.findByText('Gespeichert ✓')).toBeInTheDocument();
     expect(JSON.parse(localStorage.getItem('moodmap:outbox:v1') ?? '[]')).toHaveLength(1);
   });
@@ -203,6 +215,7 @@ describe('CheckPage', () => {
     const submit = setup({ ok: false, reason: 'error' });
     for (const q of questions()) await answerScale(q.text, 'richtig gut');
     fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+    await sendFromReview();
     fireEvent.click(await screen.findByRole('button', { name: 'Nochmal versuchen' }));
     await waitFor(() => expect(submit).toHaveBeenCalledTimes(2));
     expect(submit.mock.calls[1]?.[0].answers).toEqual(firstCall(submit).answers);
@@ -220,7 +233,8 @@ describe('CheckPage', () => {
     fireEvent.change(screen.getByRole('textbox', { name: 'Dein Freitext' }), {
       target: { value: 'Herr Müller ist oft zu schnell.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
+    await sendFromReview();
 
     await screen.findByText('FERTIG');
     expect(submit).toHaveBeenCalledTimes(1);
@@ -231,6 +245,61 @@ describe('CheckPage', () => {
     expect(stored.cleaned).not.toContain('Müller');
   });
 
+  it('shows a review before sending; editing one answer returns to the review and submits the change (#146)', async () => {
+    const submit = setup();
+    const qs = questions();
+    for (const [i, q] of qs.entries()) {
+      if (i === 1) {
+        await screen.findByRole('heading', { name: q.text });
+        fireEvent.click(screen.getByRole('button', { name: /weiß nicht/ }));
+      } else {
+        await answerScale(q.text, 'eher gut');
+      }
+    }
+    fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+
+    expect(await screen.findByRole('heading', { name: 'Alles klar?' })).toBeInTheDocument();
+    expect(screen.getByText(/Nach dem Absenden kannst du nichts mehr ändern/)).toBeInTheDocument();
+    expect(submit).not.toHaveBeenCalled();
+    expect(screen.getAllByText(/eher gut/).length).toBe(qs.length - 1);
+    expect(screen.getAllByText(/keine Angabe/).length).toBe(1);
+
+    // Zweite Frage (übersprungen) ändern: „keine Angabe" ist vorausgewählt, danach direkt zurück zur Übersicht.
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${qs[1]?.text}`) }));
+    expect(await screen.findByRole('heading', { name: qs[1]?.text })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /weiß nicht/ })).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(screen.getByRole('radio', { name: 'richtig gut' }));
+    expect(await screen.findByRole('heading', { name: 'Alles klar?' })).toBeInTheDocument();
+    expect(screen.queryByText(/keine Angabe/)).not.toBeInTheDocument();
+
+    // Frühere Auswahl ist beim Bearbeiten vorausgewählt; „Zurück zur Übersicht" ändert nichts.
+    fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${qs[0]?.text}`) }));
+    await screen.findByRole('heading', { name: qs[0]?.text });
+    expect(screen.getByRole('radio', { name: 'eher gut' })).toHaveAttribute('aria-checked', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Fertig? Zurück zur Übersicht' }));
+    expect(await screen.findByRole('heading', { name: 'Alles klar?' })).toBeInTheDocument();
+
+    await sendFromReview();
+    await screen.findByText('FERTIG');
+    expect(submit).toHaveBeenCalledTimes(1);
+    const answers = firstCall(submit).answers;
+    expect(answers).toHaveLength(qs.length);
+    expect(answers.find((a) => a.questionId === qs[1]?.id)).toMatchObject({ value: 5 });
+    expect(answers.find((a) => a.questionId === qs[0]?.id)).toMatchObject({ value: 4 });
+  });
+
+  it('keeps the free text when going back from the review (#146)', async () => {
+    setup();
+    for (const q of questions()) await answerScale(q.text, 'eher gut');
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Dein Freitext' }), {
+      target: { value: 'Mehr WLAN bitte' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
+    expect(await screen.findByText('Mehr WLAN bitte')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Zurück' }));
+    expect(await screen.findByRole('textbox', { name: 'Dein Freitext' })).toHaveValue('Mehr WLAN bitte');
+  });
+
   it('rejects a threatening free text but still submits the survey', async () => {
     const submit = setup();
     for (const q of questions()) await answerScale(q.text, 'eher gut');
@@ -238,7 +307,8 @@ describe('CheckPage', () => {
     fireEvent.change(await screen.findByRole('textbox', { name: 'Dein Freitext' }), {
       target: { value: 'Ich will dich umbringen.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Absenden' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Weiter' }));
+    await sendFromReview();
 
     await screen.findByText('FERTIG');
     expect(submit).toHaveBeenCalledTimes(1);

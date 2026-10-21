@@ -5,7 +5,8 @@ import type { AnswerInput, Question } from '@/types';
 export type CardAnswer = number | string[];
 
 /** `queued`: offline abgegeben, liegt im Puffer (#36) und wird später gesendet. */
-export type CheckStatus = 'asking' | 'freetext' | 'submitting' | 'done' | 'queued' | 'already' | 'error';
+export type CheckStatus =
+  'asking' | 'freetext' | 'review' | 'submitting' | 'done' | 'queued' | 'already' | 'error';
 
 export interface CheckState {
   status: CheckStatus;
@@ -17,12 +18,18 @@ export interface CheckState {
   answers: Record<string, CardAnswer>;
   /** Rohtext der optionalen Freitext-Frage; Moderation/Speicherung erst nach der Abgabe. */
   freeText: string | null;
+  /** Übersprungene Karten („keine Angabe"), damit die Auswahl beim Zurückgehen sichtbar bleibt. */
+  skipped: Record<string, true>;
+  /** Aus der Übersicht heraus bearbeitet: nach der Antwort geht es direkt zurück zur Übersicht (#146). */
+  returnToReview: boolean;
 }
 
 export type CheckAction =
   | { type: 'ANSWER'; answer: CardAnswer }
   | { type: 'SKIP' }
   | { type: 'BACK' }
+  | { type: 'EDIT'; index: number }
+  | { type: 'SUBMIT' }
   | { type: 'RETRY' }
   | { type: 'FREETEXT'; freeText: string | null }
   | { type: 'RESULT'; result: 'ok' | 'queued' | 'already' | 'error' };
@@ -38,6 +45,8 @@ export function initialState(core: Question[], alreadySubmitted = false): CheckS
     index: 0,
     answers: {},
     freeText: null,
+    skipped: {},
+    returnToReview: false,
   };
 }
 
@@ -58,14 +67,28 @@ export function pickDeepQuestion(core: Question[], answers: Record<string, CardA
   return best?.question ?? null;
 }
 
-function advance(state: CheckState, answers: Record<string, CardAnswer>): CheckState {
+function advance(
+  state: CheckState,
+  answers: Record<string, CardAnswer>,
+  skipped: Record<string, true>,
+): CheckState {
+  const next = { ...state, answers, skipped };
+  if (state.returnToReview) {
+    // Eine geänderte Antwort kann eine andere Vertiefung auslösen; die alte Antwort darauf entfällt.
+    const deep = pickDeepQuestion(state.core, answers);
+    if (state.deep && deep?.id !== state.deep.id) {
+      delete answers[state.deep.id];
+      delete skipped[state.deep.id];
+    }
+    return { ...next, deep, status: 'review', returnToReview: false };
+  }
   const cards = cardsOf(state);
-  if (state.index < state.core.length - 1) return { ...state, answers, index: state.index + 1 };
+  if (state.index < state.core.length - 1) return { ...next, index: state.index + 1 };
   if (state.index === state.core.length - 1) {
     const deep = pickDeepQuestion(state.core, answers);
-    if (deep) return { ...state, answers, deep, index: state.index + 1 };
+    if (deep) return { ...next, deep, index: state.index + 1 };
   }
-  return { ...state, answers, status: 'freetext', index: Math.min(state.index, cards.length - 1) };
+  return { ...next, status: 'freetext', index: Math.min(state.index, cards.length - 1) };
 }
 
 export function checkReducer(state: CheckState, action: CheckAction): CheckState {
@@ -74,7 +97,9 @@ export function checkReducer(state: CheckState, action: CheckAction): CheckState
       if (state.status !== 'asking') return state;
       const card = cardsOf(state)[state.index];
       if (!card) return state;
-      return advance(state, { ...state.answers, [card.id]: action.answer });
+      const skipped = { ...state.skipped };
+      delete skipped[card.id];
+      return advance(state, { ...state.answers, [card.id]: action.answer }, skipped);
     }
     case 'SKIP': {
       if (state.status !== 'asking') return state;
@@ -82,23 +107,30 @@ export function checkReducer(state: CheckState, action: CheckAction): CheckState
       if (!card) return state;
       const rest = { ...state.answers };
       delete rest[card.id];
-      return advance(state, rest);
+      return advance(state, rest, { ...state.skipped, [card.id]: true });
     }
     case 'BACK':
-      if (state.status !== 'asking' && state.status !== 'error' && state.status !== 'freetext') {
-        return state;
+      // Aus der Bearbeitung zurück zur Übersicht, von der Übersicht zurück zum Freitext (#146).
+      if (state.status === 'asking' && state.returnToReview) {
+        return { ...state, status: 'review', returnToReview: false };
       }
+      if (state.status === 'review') return { ...state, status: 'freetext' };
+      if (state.status === 'error') return { ...state, status: 'review' };
+      if (state.status !== 'asking' && state.status !== 'freetext') return state;
       return {
         ...state,
         status: 'asking',
         index:
-          state.status === 'freetext'
-            ? Math.max(0, cardsOf(state).length - 1)
-            : Math.max(0, state.index - (state.status === 'error' ? 0 : 1)),
+          state.status === 'freetext' ? Math.max(0, cardsOf(state).length - 1) : Math.max(0, state.index - 1),
       };
+    case 'EDIT':
+      if (state.status !== 'review' || !cardsOf(state)[action.index]) return state;
+      return { ...state, status: 'asking', index: action.index, returnToReview: true };
+    case 'SUBMIT':
+      return state.status === 'review' ? { ...state, status: 'submitting' } : state;
     case 'FREETEXT':
       if (state.status !== 'freetext') return state;
-      return { ...state, status: 'submitting', freeText: action.freeText };
+      return { ...state, status: 'review', freeText: action.freeText };
     case 'RETRY':
       return state.status === 'error' ? { ...state, status: 'submitting' } : state;
     case 'RESULT':

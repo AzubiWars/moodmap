@@ -131,6 +131,8 @@ export function useCheckFlow({
       attempt.current += 1;
       dispatch({ type: 'RETRY' });
     },
+    edit: (index: number) => dispatch({ type: 'EDIT', index }),
+    submit: () => dispatch({ type: 'SUBMIT' }),
     finish: (freeText: string | null) => dispatch({ type: 'FREETEXT', freeText }),
   };
 }

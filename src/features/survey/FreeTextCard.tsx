@@ -4,11 +4,13 @@ import { MAX_FREE_TEXT_LENGTH } from '@/lib/freeText';
 interface FreeTextCardProps {
   /** Rohtext wird erst nach der Umfrage-Abgabe serverseitig moderiert; `null` = übersprungen. */
   onDone: (text: string | null) => void;
+  /** Bereits eingegebener Text, wenn man aus der Übersicht zurückkommt. */
+  initial?: string | null;
 }
 
 /** Optionale Freitext-Karte am Ende des Mood-Checks (ADR-016). */
-export function FreeTextCard({ onDone }: FreeTextCardProps) {
-  const [text, setText] = useState('');
+export function FreeTextCard({ onDone, initial }: FreeTextCardProps) {
+  const [text, setText] = useState(initial ?? '');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -59,7 +61,7 @@ export function FreeTextCard({ onDone }: FreeTextCardProps) {
             disabled={!text.trim()}
             className="min-h-12 rounded-2xl bg-primary font-semibold text-primary-fg disabled:opacity-50"
           >
-            Absenden
+            Weiter
           </button>
           <button
             type="button"

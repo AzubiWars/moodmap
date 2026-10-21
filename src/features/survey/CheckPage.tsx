@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MoodScaleInput, type MoodValue } from '@/components/MoodScaleInput';
+import { ANSWER_LABELS } from '@/components/moodScaleLabels';
+import { MOOD_LEVELS } from '@/lib/colors';
 import { getDataSource } from '@/data';
 import { getTopic } from '@/data/topics';
 import { getDeviceToken } from '@/lib/device';
@@ -131,7 +133,20 @@ function CheckFlow({
     return <QueuedMessage droppedFreeText={!!state.freeText} />;
   }
   if (state.status === 'freetext' && !isTeacher) {
-    return <FreeTextCard onDone={flow.finish} />;
+    return <FreeTextCard onDone={flow.finish} initial={state.freeText} />;
+  }
+  if (state.status === 'review') {
+    return (
+      <ReviewCard
+        cards={flow.cards}
+        answers={state.answers}
+        freeText={isTeacher ? null : state.freeText}
+        isTeacher={isTeacher}
+        onEdit={flow.edit}
+        onBack={flow.back}
+        onSubmit={flow.submit}
+      />
+    );
   }
   if (state.status === 'submitting' || state.status === 'done') {
     return (
@@ -153,10 +168,11 @@ function CheckFlow({
       position={state.index}
       total={state.core.length}
       isDeep={state.index >= state.core.length}
-      initial={state.answers[card.id]}
+      initial={state.skipped[card.id] ? null : state.answers[card.id]}
       onAnswer={flow.answer}
       onSkip={flow.skip}
-      onBack={state.index > 0 ? flow.back : undefined}
+      onBack={state.index > 0 || state.returnToReview ? flow.back : undefined}
+      backToReview={state.returnToReview}
     />
   );
   if (!withdrawn || state.index > 0) return question;
@@ -195,15 +211,122 @@ function QueuedMessage({ droppedFreeText }: { droppedFreeText: boolean }) {
   );
 }
 
+const MAX_FREE_TEXT_PREVIEW = 80;
+
+function describeAnswer(question: Question, answer: number | string[] | undefined): string {
+  if (answer === undefined) return '🤷 keine Angabe';
+  if (typeof answer === 'number') {
+    const level = MOOD_LEVELS.find((l) => l.level === answer);
+    return `${level?.face ?? ''} ${ANSWER_LABELS[answer - 1] ?? answer}`.trim();
+  }
+  return answer.map((v) => question.options?.find((o) => o.value === v)?.label ?? v).join(', ');
+}
+
+interface ReviewCardProps {
+  cards: Question[];
+  answers: Record<string, number | string[]>;
+  freeText: string | null;
+  isTeacher: boolean;
+  onEdit: (index: number) => void;
+  onBack: () => void;
+  onSubmit: () => void;
+}
+
+/** Übersicht vor dem Absenden (#146): Auswahl prüfen, einzelne Antworten ändern, dann abschicken. */
+function ReviewCard({ cards, answers, freeText, isTeacher, onEdit, onBack, onSubmit }: ReviewCardProps) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => heading.current?.focus(), []);
+  const preview =
+    freeText && freeText.length > MAX_FREE_TEXT_PREVIEW
+      ? `${freeText.slice(0, MAX_FREE_TEXT_PREVIEW).trimEnd()} …`
+      : freeText;
+  return (
+    <section className="mx-auto flex min-h-[calc(100dvh-8.5rem)] max-w-md flex-col gap-4 px-4 py-4">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Zurück"
+          className="flex size-11 shrink-0 items-center justify-center rounded-full ring-1 ring-border"
+        >
+          <span aria-hidden>←</span>
+        </button>
+        <div>
+          <h1 ref={heading} tabIndex={-1} className="text-xl font-bold outline-none">
+            Alles klar?
+          </h1>
+          <p className="text-sm text-muted">
+            {isTeacher
+              ? 'Tippen Sie auf eine Antwort, um sie zu ändern.'
+              : 'Tippe auf eine Antwort, um sie zu ändern.'}
+          </p>
+        </div>
+      </div>
+
+      <ul className="card divide-y divide-border p-0">
+        {cards.map((q, i) => {
+          const topic = getTopic(q.topicSlug);
+          const text = describeAnswer(q, answers[q.id]);
+          return (
+            <li key={q.id}>
+              <button
+                type="button"
+                onClick={() => onEdit(i)}
+                aria-label={`${q.text} – ${text}. Antwort ändern`}
+                className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left"
+              >
+                <span className="text-2xl" aria-hidden>
+                  {topic?.icon}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-xs text-muted">{topic?.title}</span>
+                  <span className="block text-sm font-semibold">{text}</span>
+                </span>
+                <span className="text-sm text-muted" aria-hidden>
+                  ändern
+                </span>
+              </button>
+            </li>
+          );
+        })}
+        {preview && (
+          <li className="px-4 py-3">
+            <span className="block text-xs text-muted">Dein Freitext</span>
+            <span className="block text-sm">{preview}</span>
+          </li>
+        )}
+      </ul>
+
+      <div className="mt-auto space-y-3 pb-2">
+        <p className="text-sm text-muted">
+          {isTeacher
+            ? 'Nach dem Absenden können Sie nichts mehr ändern: Ihre Antworten werden anonym gezählt und sind niemandem zuzuordnen.'
+            : 'Nach dem Absenden kannst du nichts mehr ändern: Deine Antworten werden anonym gezählt und niemand kann sie dir zuordnen.'}
+        </p>
+        <button
+          type="button"
+          onClick={onSubmit}
+          className="min-h-14 w-full rounded-2xl bg-primary text-lg font-semibold text-primary-fg"
+        >
+          Jetzt anonym absenden
+        </button>
+      </div>
+    </section>
+  );
+}
+
 interface QuestionCardProps {
   question: Question;
   position: number;
   total: number;
   isDeep: boolean;
-  initial?: number | string[];
+  /** `null` = übersprungen („keine Angabe"), `undefined` = noch nicht beantwortet */
+  initial?: number | string[] | null;
   onAnswer: (answer: number | string[]) => void;
   onSkip: () => void;
   onBack?: () => void;
+  /** Aus der Übersicht geöffnet: Zurück führt wieder dorthin. */
+  backToReview?: boolean;
 }
 
 function QuestionCard({
@@ -215,12 +338,13 @@ function QuestionCard({
   onAnswer,
   onSkip,
   onBack,
+  backToReview,
 }: QuestionCardProps) {
   const heading = useRef<HTMLHeadingElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const topic = getTopic(question.topicSlug);
   const [scale, setScale] = useState<MoodValue | undefined>(
-    typeof initial === 'number' ? (initial as MoodValue) : undefined,
+    typeof initial === 'number' ? (initial as MoodValue) : initial === null ? null : undefined,
   );
   const [picked, setPicked] = useState<string[]>(Array.isArray(initial) ? initial : []);
   const [help, setHelp] = useState<number | null>(null);
@@ -257,7 +381,7 @@ function QuestionCard({
           <button
             type="button"
             onClick={onBack}
-            aria-label="Zurück zur vorigen Frage"
+            aria-label={backToReview ? 'Zurück zur Übersicht' : 'Zurück zur vorigen Frage'}
             className="flex size-11 shrink-0 items-center justify-center rounded-full ring-1 ring-border"
           >
             <span aria-hidden>←</span>
@@ -357,6 +481,15 @@ function QuestionCard({
           </div>
         ) : (
           <MoodScaleInput value={scale} onChange={onScale} label={question.text} />
+        )}
+        {backToReview && help === null && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-3 min-h-11 w-full rounded-2xl text-sm font-medium text-muted underline"
+          >
+            Fertig? Zurück zur Übersicht
+          </button>
         )}
       </div>
     </section>
