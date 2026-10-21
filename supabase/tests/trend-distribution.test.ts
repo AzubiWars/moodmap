@@ -57,6 +57,7 @@ const sqlDistribution = (questionId: string, scope: unknown) =>
 
 describe('get_trend', () => {
   const SCOPES: Partial<AggregateQuery>[] = [
+    { level: 'nrw' },
     { level: 'regbez' },
     { level: 'kreis' },
     { level: 'school', parentId: '05111' },

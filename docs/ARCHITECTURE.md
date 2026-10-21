@@ -226,7 +226,7 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
   - `topicDeltaSincePublished` = Themen-Score der Region in allen Wellen ab dem Veröffentlichungstag minus die letzte davor beendete Welle. Der Tag zählt als UTC-Mitternacht wie `Date.parse`.
 - `publish_policy_answer(input jsonb)` → `PolicyAnswer`. **Nur für eingeloggte Konten mit `app_metadata.moodmap_role` = `ministerium` | `bezreg`** (setzt nur ein Admin, nie der Nutzer selbst). `authorRole` muss dazu passen. So kann niemand im Namen des Ministeriums antworten. Der Mock hat diese Prüfung nicht.
 - `rate_policy_answer(answer_id, value, device_token)` → `{ ok }`: eine Bewertung pro Gerät und Antwort (neue ersetzt alte). Gespeichert wird nur `sha256(token:policy:answerId)`.
-- `aggregate_rows` kennt intern die Ebene `nrw` (Gesamtwert für NRW-weite Antworten). Die öffentlichen Funktionen lehnen sie ab.
+- Ebene `nrw` (seit #147 Teil von `AggregateQuery`): genau eine Zeile `{ id: 'nrw' }` über alle Antworten, `parentId` wird ignoriert. Gilt für `get_aggregates`, `get_trend` und `get_tension_index` und wird auch intern für NRW-weite Politik-Antworten genutzt (#158).
 
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
