@@ -103,6 +103,7 @@ export interface DataSource {
   // Pitch-Beamer (#116)
   getPitchAggregate(): Promise<PitchAggregate>;
   getFreetextClusters(scope: Scope): Promise<FreetextCluster[]>;
+  resetPitchTest(pin: string): Promise<{ ok: boolean }>;
 
   // „Politik antwortet"
   getPolicyAnswers(filter: { regionIds?: string[]; topics?: string[] }): Promise<PolicyAnswer[]>;
@@ -166,6 +167,8 @@ Der Mock ist standardmäßig registriert (#9). Beim ersten Datenzugriff lädt `m
 Aggregate werden direkt aus Antworten berechnet, nach sämtlichen Filtern und mit unterschiedlichen `responseId` für K_MIN (nie unter 10). Ohne `waveIds` gilt die zeitlich aktive Welle; für mehrere gewählte Wellen vergleicht Delta mit gleich vielen Wellen unmittelbar vor der frühesten Auswahl. Leere Schulform-/Stufenlisten bedeuten keinen entsprechenden Filter; eine explizit leere Wellenliste liefert keine Antworten. `DistributionOption.count` ist `number | null`: `null` wird als „< 3“ dargestellt, genaue kleine Häufigkeiten verlassen den Mock nicht. Themen- und Resonanzwerte bleiben unter K_MIN `null`.
 
 Der Pitch-Beamer (#116) nutzt `getPitchAggregate()` (isolierter Teststandort, K_MIN auf `scoredN`) und `getFreetextClusters(scope)` (nur aktuelle Welle, `concern` ausgeschlossen, K_MIN je Cluster). Beide Werte sind nie Teil der NRW-Aggregate. Im Mock ist der Teststandort `PITCH` vorhanden, startet ohne Seed-Antworten und füllt sich nur durch lokale Test-Abgaben; Freitext-Cluster bleiben dort leer.
+
+`PitchAggregate.school.joinCode` enthält seit #199 den tatsächlich konfigurierten Teilnahme-Code für den QR-Link. `resetPitchTest(pin)` ruft im Supabase-Modus ausschließlich die Edge Function `pitch-reset` auf; die PIN wird nicht gespeichert oder in Events weitergereicht. Im Mock ist der Reset eine lokale Proben-Funktion ohne echte PIN-Authentifizierung: nur Pitch-Teilnahmen samt Sperren werden entfernt, NRW-Daten bleiben erhalten. Ohne aktive Pitch-Welle meldet der Live-Adapter einen verständlichen Fehler. Gateway-Konfiguration siehe #195 und Function-README.
 
 `subscribeToNewResponses()` meldet lokal und über BroadcastChannel ausschließlich `{ schoolId }`, keine Antworten oder Gerätekennungen. Andere Tabs lesen anschließend denselben lokalen Speicher neu. Das funktioniert innerhalb desselben Browserprofils und derselben Origin; für verschiedene Handys bleibt Supabase erforderlich. Der Browser-Mock enthält synthetische Daten und stellt keine echte Authentifizierungsgrenze dar.
 

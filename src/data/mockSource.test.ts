@@ -102,6 +102,14 @@ describe('MockDataSource', () => {
       score: null,
     });
     expect(await mock.getFreetextClusters({ level: 'school', id: 'pitch-test' })).toEqual([]);
+    localStorage.setItem('unrelated', 'keep');
+    expect(await mock.resetPitchTest('')).toEqual({ ok: true });
+    expect(await mock.getPitchAggregate()).toMatchObject({ n: 0, scoredN: 0, school: { joinCode: 'PITCH' } });
+    expect(await mock.getAggregates(query)).toEqual([expect.objectContaining({ n: 11 })]);
+    expect(await mock.submitResponse(input())).toEqual({ ok: false, reason: 'already_submitted' });
+    expect(await mock.submitResponse(input({ schoolId: 'pitch-test' }))).toEqual({ ok: true });
+    expect(await source(data).getPitchAggregate()).toMatchObject({ n: 1 });
+    expect(localStorage.getItem('unrelated')).toBe('keep');
   });
 
   it('restores submitted votes after reload without persisting the raw device token', async () => {

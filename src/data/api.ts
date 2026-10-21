@@ -56,6 +56,8 @@ export interface DataSource {
   // Pitch-Beamer (#116)
   getPitchAggregate(): Promise<PitchAggregate>;
   getFreetextClusters(scope: Scope): Promise<FreetextCluster[]>;
+  /** Live: PIN-protected Edge Function; mock: only this browser's Pitch round, without real auth. */
+  resetPitchTest(pin: string): Promise<{ ok: boolean }>;
 
   // „Politik antwortet"
   getPolicyAnswers(filter: PolicyAnswerFilter): Promise<PolicyAnswer[]>;

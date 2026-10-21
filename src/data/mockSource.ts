@@ -301,6 +301,7 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
           lat: school.lat,
           lon: school.lon,
           isTest: true,
+          joinCode: school.joinCode,
         },
         waveId,
         n: responses.length,
@@ -314,6 +315,37 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
     // Der Mock speichert keine Freitext-Cluster; die Beamer-Ansicht zeigt dort den Leerzustand.
     async getFreetextClusters() {
       return [];
+    },
+    async resetPitchTest() {
+      try {
+        const data = await base();
+        const target = data.schools.find((school) => school.id === 'pitch-test' && school.isTest);
+        if (!target) return { ok: false };
+        // The mock is a local rehearsal, not an authorization boundary; PIN auth belongs to the Edge Function.
+        const ids = new Set(
+          data.responses.filter((response) => response.schoolId === target.id).map((response) => response.id),
+        );
+        basePromise = Promise.resolve({
+          ...data,
+          responses: data.responses.filter((response) => !ids.has(response.id)),
+          answers: data.answers.filter((answer) => !ids.has(answer.responseId)),
+        });
+        for (const [key, entry] of storage.entries<StoredSubmission>('response')) {
+          if (entry?.response?.schoolId === target.id && !storage.remove('response', key))
+            return { ok: false };
+        }
+        const event = { schoolId: target.id };
+        notify(event);
+        startChannel();
+        try {
+          channel?.postMessage({ type: 'response', ...event });
+        } catch {
+          /* Polling remains available. */
+        }
+        return { ok: true };
+      } catch {
+        return { ok: false };
+      }
     },
     ...createMockPolicyApi({ snapshot, storage, now, kMin }),
     subscribeToNewResponses(callback) {
