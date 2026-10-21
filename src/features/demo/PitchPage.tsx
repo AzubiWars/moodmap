@@ -70,7 +70,8 @@ export function PitchPage() {
               to="/demo"
               className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-medium hover:bg-subtle"
             >
-              <span className="lg:hidden">Demo</span><span className="hidden lg:inline">Zur Demo</span>
+              <span className="lg:hidden">Demo</span>
+              <span className="hidden lg:inline">Zur Demo</span>
             </Link>
           </div>
         </div>
