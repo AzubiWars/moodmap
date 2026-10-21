@@ -2,11 +2,30 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { TOPICS } from '@/data/topics';
 import { demoScores } from './demoScores';
-import { breadcrumb, clickTarget, drillParams, levelCaption, resolveDrill } from './drilldown';
-import { featureBounds, GEO_URLS, loadRegions, NRW_BOUNDS, type RegionCollection, withScores } from './geo';
+import type { School } from '@/types';
+import {
+  breadcrumb,
+  clickTarget,
+  type DrillState,
+  type DrillTarget,
+  drillParams,
+  levelCaption,
+  resolveDrill,
+  schoolTarget,
+} from './drilldown';
+import {
+  type Bounds,
+  featureBounds,
+  GEO_URLS,
+  loadRegions,
+  NRW_BOUNDS,
+  type RegionCollection,
+  withScores,
+} from './geo';
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
 import { MoodMap } from './MoodMap';
+import { loadSchools, schoolsToGeoJSON } from './schools';
 import { TopicFilter } from './TopicFilter';
 import type { FilterTopic } from './topicSearch';
 
@@ -32,6 +51,26 @@ function scoreRegions(regions: RegionCollection, topic: string, focusRegbezId: s
       properties: { ...f.properties, dim: f.properties.regbez_id !== focusRegbezId },
     })),
   };
+}
+
+/** Schulen erscheinen ab Regierungsbezirk; im Kreis nur die des Kreises (#18). */
+function visibleSchools(drill: DrillState, schools: readonly School[], kreise: RegionCollection | undefined) {
+  if (drill.kreis) return schools.filter((s) => s.kreisId === drill.kreis!.properties.id);
+  if (!drill.regbez || !kreise) return [];
+  const regbezId = drill.regbez.properties.id;
+  const kreisIds = new Set(
+    kreise.features.filter((f) => f.properties.regbez_id === regbezId).map((f) => f.properties.id),
+  );
+  return schools.filter((s) => kreisIds.has(s.kreisId));
+}
+
+/** Ausschnitt um eine Schule (~ Zoom 14, Nachbarschaft bleibt erkennbar). */
+function schoolBounds(school: School): Bounds {
+  const d = 0.012;
+  return [
+    [school.lon - d * 1.6, school.lat - d],
+    [school.lon + d * 1.6, school.lat + d],
+  ];
 }
 
 export function MapPage() {
@@ -63,7 +102,14 @@ export function MapPage() {
     retry: false,
   });
 
-  const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data);
+  const schoolsQuery = useQuery({
+    queryKey: ['schools'],
+    queryFn: () => loadSchools(),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+  const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
   const focusRegbezId = drill.regbez?.properties.id ?? null;
 
   // Landesansicht: Regierungsbezirke (Fallback: Kreise, falls die RegBez-Datei fehlt).
@@ -73,10 +119,23 @@ export function MapPage() {
   // TODO(#9): demoScores durch DataSource.getAggregates({ level, topic }) ersetzen (#68)
   const scored = shown ? scoreRegions(shown, topic.slug, focusRegbezId) : null;
 
-  const focusFeature = drill.kreis ?? drill.regbez;
-  const focusBounds = (focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS;
+  const schoolsShown = schoolsQuery.data ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data) : [];
+  const schoolPoints = schoolsShown.length
+    ? schoolsToGeoJSON(
+        schoolsShown,
+        demoScores(
+          schoolsShown.map((s) => s.id),
+          topic.slug,
+        ),
+      )
+    : null;
 
-  function navigate(target: { regbez?: string; kreis?: string }) {
+  const focusFeature = drill.kreis ?? drill.regbez;
+  const focusBounds = drill.school
+    ? schoolBounds(drill.school)
+    : ((focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
+
+  function navigate(target: DrillTarget) {
     setSearchParams((previous) => drillParams(previous, target), { preventScrollReset: true });
   }
 
@@ -84,6 +143,12 @@ export function MapPage() {
     const feature = id ? shown?.features.find((f) => f.properties.id === id) : undefined;
     if (!feature || feature.properties.id === drill.kreis?.properties.id) return;
     navigate(clickTarget(drill, feature));
+  }
+
+  function selectSchool(id: string) {
+    const school = schoolsShown.find((s) => s.id === id);
+    if (!school || school.id === drill.school?.id) return;
+    navigate(schoolTarget(drill, school));
   }
 
   return (
@@ -95,7 +160,12 @@ export function MapPage() {
           regions={scored}
           selectedId={drill.kreis?.properties.id ?? null}
           focusBounds={focusBounds}
+          muted={drill.level === 'kreis' || drill.level === 'school'}
           onSelect={selectRegion}
+          schools={schoolPoints}
+          clusterSchools={drill.level === 'regbez'}
+          selectedSchoolId={drill.school?.id ?? null}
+          onSelectSchool={selectSchool}
         />
 
         <div className="pointer-events-none absolute top-0 right-12 left-0 p-3">
