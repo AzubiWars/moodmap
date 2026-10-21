@@ -19,6 +19,7 @@ async function backend(
     textFails?: boolean;
     resetFails?: boolean;
     leakNrw?: boolean;
+    publicKey?: string;
   } = {},
 ) {
   let tokens = new Set<string>();
@@ -34,7 +35,10 @@ async function backend(
       res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(value));
     };
-    if (req.headers.apikey !== key || req.headers.authorization !== `Bearer ${key}`) return reply({}, 401);
+    const expectedKey = options.publicKey ?? key;
+    const expectedBearer = expectedKey.startsWith('sb_publishable_') ? undefined : `Bearer ${expectedKey}`;
+    if (req.headers.apikey !== expectedKey || req.headers.authorization !== expectedBearer)
+      return reply({}, 401);
     if (path.endsWith('/get_school_by_code'))
       return reply({ id: 'pitch-test', isTest: options.isTest ?? true });
     if (path.endsWith('/get_pitch_aggregate'))
@@ -128,6 +132,26 @@ describe('synthetic Pitch load runner', () => {
       apikey: key,
       Authorization: `Bearer ${key}`,
     });
+  });
+
+  it('uses publishable authentication through real local HTTP for REST, moderation and reset', async () => {
+    const publicKey = 'sb_publishable_local_test';
+    const test = await backend({ publicKey });
+    const report = await runPitchLoadTest({
+      url: test.url,
+      anonKey: publicKey,
+      count: 10,
+      durationMs: 0,
+      resetAfter: true,
+      resetPin: pin,
+    });
+    expect(report.passed).toBe(true);
+    expect(report.metrics.submitResponse.requests).toBe(10);
+    expect(report.metrics.moderation.requests).toBe(3);
+    expect(report.checks.resetVerified).toBe(true);
+    expect(report.checks.resubmissionVerified).toBe(true);
+    expect(test.count()).toBe(0);
+    expect(JSON.stringify(report)).not.toContain(publicKey);
   });
 
   it('reports HTTP errors and skips moderation for failed submissions without a retry', async () => {

@@ -4,7 +4,7 @@ import { LoadTestError, runPitchLoadTest } from './lib/pitch-loadtest.ts';
 const args = process.argv.slice(2);
 if (args.includes('--help')) {
   console.log(
-    'Usage: npm run pitch:loadtest -- --synthetic-pitch [--reset-after]\n200 synthetic participants / 120 s, 60 moderation calls. Requires MOODMAP_LOADTEST_URL, MOODMAP_LOADTEST_ANON_KEY (anon JWT), and MOODMAP_LOADTEST_RESET_PIN for --reset-after. See docs/PITCH_LOADTEST.md.',
+    'Usage: npm run pitch:loadtest -- --synthetic-pitch [--reset-after]\n200 synthetic participants / 120 s, 60 moderation calls. Requires MOODMAP_LOADTEST_URL, MOODMAP_LOADTEST_ANON_KEY (publishable key or anon JWT), and MOODMAP_LOADTEST_RESET_PIN for --reset-after. See docs/PITCH_LOADTEST.md.',
   );
 } else if (
   !args.includes('--synthetic-pitch') ||
