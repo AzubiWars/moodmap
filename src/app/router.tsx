@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { ComponentGallery } from '@/features/demo/ComponentGallery';
 import { DemoPage } from '@/features/demo/DemoPage';
 import { LandingPage } from '@/features/info/LandingPage';
 import { NotFoundPage } from '@/features/info/NotFoundPage';
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/privacy', element: <PrivacyPage /> },
       { path: '/demo', element: <DemoPage /> },
+      { path: '/demo/components', element: <ComponentGallery /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
