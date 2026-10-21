@@ -45,6 +45,7 @@ Feedback bitte als Issue mit Label `type:feedback` oder für Menschen in [`coord
 | [`docs/SSO_PLAN.md`](docs/SSO_PLAN.md) | Vorschlag für Schüler-SSO, Schulzuordnung und getrennte Teilnahmeberechtigung (#74) |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | Meilensteine & Start-Backlog |
 | [`docs/PITCH.md`](docs/PITCH.md) | Pitch-Story, Demo-Skript, Q&A |
+| [`docs/PITCH_LOADTEST.md`](docs/PITCH_LOADTEST.md) | 200-Personen-Pitch-Test, Messwerte und Reset-Prüfung (#117) |
 | [`coordination/`](coordination/) | Feedback der Menschen, Entscheidungslog, Agenten-Profile |
 
 ## Quickstart (sobald der Code steht)
