@@ -1,5 +1,5 @@
 import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { TopicChip } from '@/components/TopicChip';
 import { cn } from '@/lib/utils';
 import { filterTopics, type FilterTopic } from './topicSearch';
@@ -10,9 +10,11 @@ interface TopicFilterProps {
   topics: readonly FilterTopic[];
   selectedSlug: string;
   onSelect: (slug: string) => void;
+  /** Weitere Bedienelemente rechts neben „Alle Themen“ (z. B. Filter #20) */
+  trailing?: ReactNode;
 }
 
-export function TopicFilter({ topics, selectedSlug, onSelect }: TopicFilterProps) {
+export function TopicFilter({ topics, selectedSlug, onSelect, trailing }: TopicFilterProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const panelId = useId();
@@ -83,6 +85,7 @@ export function TopicFilter({ topics, selectedSlug, onSelect }: TopicFilterProps
         <span className="hidden sm:inline">Alle Themen</span>
         <span className="sm:hidden">Themen</span>
       </button>
+      {trailing}
 
       {open && (
         <>

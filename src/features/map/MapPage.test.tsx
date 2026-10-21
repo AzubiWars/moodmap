@@ -57,6 +57,7 @@ vi.mock('@/data', () => ({
         drivers: ['voice', 'safety'],
       }));
     },
+    getCurrentWave: async () => ({ id: '2026-W43', startsAt: '2026-10-19', endsAt: '2026-10-26' }),
     subscribeToNewResponses: (callback: () => void) => {
       liveCallback = callback;
       return () => {
@@ -516,5 +517,47 @@ describe('demo vs. live labelling (#160)', () => {
     const panel = await screen.findByRole('complementary', { name: 'Details: Reg.-Bez. Köln' });
     expect(await within(panel).findByText('Demo-Daten')).toBeInTheDocument();
     expect(screen.getByText(/kalibrierte Demo-Daten/)).toBeInTheDocument();
+  });
+});
+
+describe('more filters (#20)', () => {
+  it('applies school form, grade and period to the queries and keeps them in the URL', async () => {
+    const router = openMap('/map?topic=ai');
+    fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
+    const dialog = screen.getByRole('dialog', { name: 'Filter' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Gymnasium' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&form=gymnasium'));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Klasse 8–10' }));
+    fireEvent.click(within(dialog).getByRole('radio', { name: 'Letzte 4 Wochen' }));
+    await waitFor(() =>
+      expect(router.state.location.search).toBe('?topic=ai&form=gymnasium&grade=8-10&period=month'),
+    );
+    await waitFor(() =>
+      expect(aggregateCalls).toContainEqual(
+        expect.objectContaining({
+          level: 'regbez',
+          schoolForm: ['gymnasium'],
+          gradeBand: ['8-10'],
+          waveIds: ['2026-W40', '2026-W41', '2026-W42', '2026-W43'],
+        }),
+      ),
+    );
+    expect(screen.getByRole('button', { name: 'Filter (3 aktiv)' })).toBeInTheDocument();
+    expect(screen.getByText(/gefiltert/)).toBeInTheDocument();
+
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Zurücksetzen' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai'));
+  });
+
+  it('hides school markers of other school forms', async () => {
+    openMap('/map?regbez=053&form=realschule');
+    // Beide Testschulen sind Gymnasien
+    await screen.findByRole('complementary');
+    expect(screen.queryAllByRole('button', { name: /^Schule / })).toHaveLength(0);
+  });
+
+  it('offers the filter also in modes without topic bar', () => {
+    openMap('/map?mode=radar');
+    expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
   });
 });

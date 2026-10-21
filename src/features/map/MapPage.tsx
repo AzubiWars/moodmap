@@ -23,6 +23,8 @@ import {
   withScores,
 } from './geo';
 import { DetailPanel } from './DetailPanel';
+import { FilterMenu } from './FilterMenu';
+import { activeFilterCount, filterParams, type MapFilters, parseFilters, periodWaveIds } from './filters';
 import { LiveToggle } from './LiveToggle';
 import { LIVE_POLL_MS, useLivePulses } from './live';
 import { MapModeSwitch } from './MapModeSwitch';
@@ -40,7 +42,9 @@ import {
   type MapTopic,
   type ScoreMap,
   toScoreMap,
+  type AggregateFilters,
   useAggregates,
+  useCurrentWave,
   useLiveAggregates,
   useTension,
 } from './useAggregates';
@@ -106,17 +110,20 @@ function visibleSchools(
   schools: readonly School[],
   kreise: RegionCollection | undefined,
   city: string | null,
+  forms: readonly string[],
 ) {
   const inCity = city ? schools.filter((s) => s.city === city) : schools;
+  // Schulform-Filter (#20) blendet auch die Marker anderer Schulformen aus.
+  const inForm = (s: School) => forms.length === 0 || forms.includes(s.schoolForm);
   // Eine Stadt kann über Kreisgrenzen hinaus Schulen haben (z. B. Stadtteile) – dann alle zeigen.
-  if (city) return inCity;
-  if (drill.kreis) return inCity.filter((s) => s.kreisId === drill.kreis!.properties.id);
+  if (city) return inCity.filter(inForm);
+  if (drill.kreis) return inCity.filter((s) => s.kreisId === drill.kreis!.properties.id && inForm(s));
   if (!drill.regbez || !kreise) return [];
   const regbezId = drill.regbez.properties.id;
   const kreisIds = new Set(
     kreise.features.filter((f) => f.properties.regbez_id === regbezId).map((f) => f.properties.id),
   );
-  return inCity.filter((s) => kreisIds.has(s.kreisId));
+  return inCity.filter((s) => kreisIds.has(s.kreisId) && inForm(s));
 }
 
 /** Ausschnitt um eine Schule (~ Zoom 14, Nachbarschaft bleibt erkennbar). */
@@ -204,21 +211,38 @@ export function MapPage() {
   useLiveAggregates();
   const live = searchParams.get('live') === '1';
   const poll = live ? LIVE_POLL_MS : false;
-  const regionAggregates = useAggregates(regionLevel, topicSlug, { refetchInterval: poll });
+  // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
+  const filters = parseFilters(searchParams);
+  const currentWave = useCurrentWave();
+  const aggFilters: AggregateFilters = {
+    schoolForm: filters.schoolForm,
+    gradeBand: filters.gradeBand,
+    waveIds: periodWaveIds(filters.period, currentWave.data?.id),
+  };
+  const regionAggregates = useAggregates(regionLevel, topicSlug, {
+    refetchInterval: poll,
+    filters: aggFilters,
+  });
   const schoolAggregates = useAggregates('school', topicSlug, {
     parentId: drill.kreis?.properties.id,
     enabled: drill.level !== 'nrw',
     refetchInterval: poll,
+    filters: aggFilters,
   });
   // Live (#24): alle Schulen beobachten, damit neue Stimmen auch in der Landesansicht pulsieren
   const liveSchoolAggregates = useAggregates('school', 'all', { enabled: live, refetchInterval: poll });
   const { pulsing, added } = useLivePulses(liveSchoolAggregates.data, live, 'all');
 
-  const regionTension = useTension(regionLevel, { enabled: radar, refetchInterval: poll });
+  const regionTension = useTension(regionLevel, {
+    enabled: radar,
+    refetchInterval: poll,
+    filters: aggFilters,
+  });
   const schoolTension = useTension('school', {
     parentId: drill.kreis?.properties.id,
     enabled: radar && ministry && drill.level !== 'nrw',
     refetchInterval: poll,
+    filters: aggFilters,
   });
 
   const allSchools = schoolsQuery.data ?? [];
@@ -231,7 +255,7 @@ export function MapPage() {
 
   const schoolsShown =
     schoolsQuery.data && (!radar || ministry)
-      ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data, city)
+      ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data, city, filters.schoolForm)
       : [];
   const schoolScores = toScoreMap(schoolAggregates.data);
   const schoolPoints = schoolsShown.length
@@ -250,6 +274,10 @@ export function MapPage() {
     const school = schoolsQuery.data?.find((s) => s.id === id);
     return school ? [{ id, lon: school.lon, lat: school.lat }] : [];
   });
+
+  function setFilters(next: MapFilters) {
+    setSearchParams((previous) => filterParams(previous, next), { preventScrollReset: true });
+  }
 
   function setMode(next: MapMode) {
     setSearchParams(
@@ -315,8 +343,17 @@ export function MapPage() {
   return (
     <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] flex-col md:h-[calc(100dvh-5.1rem)]">
       {/* Der Spannungs-Index nutzt feste Themen (TENSION_WEIGHTS) – Themenfilter nur im Stimmungsmodus */}
-      {modeUsesTopic(mode) && (
-        <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />
+      {modeUsesTopic(mode) ? (
+        <TopicFilter
+          topics={MAP_TOPICS}
+          selectedSlug={topic.slug}
+          onSelect={selectTopic}
+          trailing={<FilterMenu filters={filters} onChange={setFilters} />}
+        />
+      ) : (
+        <div className="flex shrink-0 justify-end border-b border-border bg-surface px-3 py-2">
+          <FilterMenu filters={filters} onChange={setFilters} />
+        </div>
       )}
 
       <div className="relative min-h-0 flex-1">
@@ -384,6 +421,7 @@ export function MapPage() {
               {MODE_CAPTION[mode] ?? `${topic.icon} ${topic.title}`} ·{' '}
               {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
               {city && ` · Stadt ${city}`}
+              {activeFilterCount(filters) > 0 && ' · gefiltert'}
             </p>
           </div>
         </div>
@@ -408,6 +446,7 @@ export function MapPage() {
           key={drill.school?.id ?? drill.kreis?.properties.id ?? drill.regbez?.properties.id}
           drill={drill}
           mode={mode}
+          filters={aggFilters}
         />
 
         {kreiseQuery.isError && (
