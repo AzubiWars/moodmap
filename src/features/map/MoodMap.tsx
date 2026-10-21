@@ -1,19 +1,22 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { StyleSpecification } from 'maplibre-gl';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import MapGL, { Layer, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import { MOOD_FILL_EXPRESSION, NO_DATA, scoreToLevel } from '@/lib/colors';
-import { featureBounds, NRW_BOUNDS, type RegionProperties } from './geo';
+import { type Bounds, NRW_BOUNDS, type RegionProperties } from './geo';
 import { maplibre } from './maplibreSetup';
 
-type ScoredProperties = RegionProperties & { score: number; n: number };
+/** `dim` = liegt außerhalb des fokussierten Regierungsbezirks (Drill-down #17) */
+type ScoredProperties = RegionProperties & { score: number; n: number; dim?: boolean };
 
 interface MoodMapProps {
   regions: FeatureCollection<Geometry, ScoredProperties> | null;
   selectedId?: string | null;
   onSelect?: (id: string | null) => void;
+  /** Kartenausschnitt der aktuellen Drill-down-Ebene; Änderungen lösen eine Kamerafahrt aus. */
+  focusBounds?: Bounds;
 }
 
 const BASEMAP_URL = 'https://tiles.openfreemap.org/styles/positron';
@@ -39,18 +42,20 @@ const BUILDING_HEIGHT = ['coalesce', ['get', 'render_height'], 8] as unknown as 
 const BUILDING_BASE = ['coalesce', ['get', 'render_min_height'], 0] as unknown as number;
 
 /** Bei hohem Zoom zurückhaltender, damit Gebäude/Schulgelände sichtbar werden. */
+/** Deckkraft je Zoom (#85: Flächen treten für 3D-Gebäude zurück) und abgeblendet außerhalb des Drill-downs (#17). */
+const dimmed = (normal: number, dim: number) => ['case', ['==', ['get', 'dim'], true], dim, normal];
 const REGION_FILL_OPACITY = [
   'interpolate',
   ['linear'],
   ['zoom'],
   5,
-  0.78,
+  dimmed(0.78, 0.22),
   12,
-  0.78,
+  dimmed(0.78, 0.22),
   15,
-  0.32,
+  dimmed(0.32, 0.1),
   17,
-  0.12,
+  dimmed(0.12, 0.05),
 ] as unknown as number;
 
 /** Deutschland-Maske: alles außerhalb Deutschlands ausblenden (#90). */
@@ -71,10 +76,27 @@ interface HoverInfo {
   props: ScoredProperties;
 }
 
-export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
+/** Platz für Info-Box (oben) und Legende (unten), damit die fokussierte Fläche nicht verdeckt wird */
+const FOCUS_PADDING = { top: 120, bottom: 72, left: 24, right: 56 };
+const MOBILE_FOCUS_PADDING = { top: 128, bottom: 80, left: 16, right: 16 };
+
+export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUNDS }: MoodMapProps) {
   const mapRef = useRef<MapRef>(null);
   const [mapStyle, setMapStyle] = useState<string | StyleSpecification>(BASEMAP_URL);
   const [hover, setHover] = useState<HoverInfo | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // Kamera folgt der Ebene – auch bei Browser-Zurück und geteilten Links.
+  const boundsKey = focusBounds.flat().join(',');
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!loaded || !map) return;
+    // Mobile: Info-Box mit Breadcrumb ist zweizeilig, unten liegt der Quellenvermerk.
+    const padding = map.getContainer().clientWidth < 480 ? MOBILE_FOCUS_PADDING : FOCUS_PADDING;
+    map.fitBounds(focusBounds, { padding, duration: 800 });
+    // boundsKey statt focusBounds: das Array ist bei jedem Render neu
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, boundsKey]);
 
   const selectedFilter = useMemo(
     () => ['==', ['get', 'id'], selectedId ?? ''] as ['==', ['get', string], string],
@@ -92,11 +114,9 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
       onSelect?.(null);
       return;
     }
-    const id = (f.properties as ScoredProperties).id;
-    onSelect?.(id);
-    const full = regions?.features.find((r) => r.properties.id === id);
-    const bounds = full && featureBounds(full);
-    if (bounds) mapRef.current?.fitBounds(bounds, { padding: 48, duration: 800 });
+    // Tooltip schließen: nach der Kamerafahrt stünde er sonst an fremder Stelle
+    setHover(null);
+    onSelect?.((f.properties as ScoredProperties).id);
   }
 
   /** Auf schmalen Screens startet MapLibre die Attribution aufgeklappt – mit BKG-Text verdeckt sie die Legende. */
@@ -113,7 +133,10 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
       mapLib={maplibre}
       initialViewState={{ bounds: NRW_BOUNDS, fitBoundsOptions: { padding: 24 } }}
       mapStyle={mapStyle}
-      onLoad={collapseAttribution}
+      onLoad={() => {
+        collapseAttribution();
+        setLoaded(true);
+      }}
       onError={() => setMapStyle((s) => (s === BASEMAP_URL ? BLANK_STYLE : s))}
       onZoomEnd={(event) => {
         // Ab Schulebene leicht kippen, damit die 3D-Gebäude sichtbar sind.
@@ -188,7 +211,8 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
           closeButton={false}
           closeOnClick={false}
           offset={12}
-          className="pointer-events-none"
+          // MapLibre setzt pointer-events:auto auf .maplibregl-popup-content – sonst schluckt der Tooltip Klicks
+          className="pointer-events-none [&_*]:pointer-events-none"
         >
           <div className="text-sm">
             <div className="font-semibold">{hover.props.name}</div>

@@ -67,3 +67,15 @@ Format:
 - **Kontext:** Ein einziger Merger wird bei mehreren parallelen Agenten zum Flaschenhals.
 - **Entscheidung:** Jeder Agent darf PRs mergen, wenn die CI grün ist und ein anderer Agent ✅ LGTM gegeben hat. Der Lead bleibt Haupt-Merger und Reviewer und löst Merge-Konflikte.
 - **Konsequenzen:** `AGENTS.md` §5.5 angepasst. Stack-Versionen aus ADR-008 gelten weiter.
+
+## ADR-010 · PGlite für SQL-Tests; schwere Generator-Tools nur on demand
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (Lead, #76)
+- **Kontext:** ADR-003 verlangt identische Score-Logik in TS und SQL – ohne Docker/Supabase-Projekt war SQL nicht testbar. Gleichzeitig blähen Werkzeuge mit nativen Abhängigkeiten (mapshaper → better-sqlite3, PWA-Icon-Generator → sharp) jedes `npm ci` in CI und auf Vercel auf.
+- **Entscheidung:** (1) `@electric-sql/pglite` als devDependency für SQL-Tests der Migrationen (#22), mit gemeinsamen Fixtures für TS und SQL. (2) Generator-Tools, deren Ausgabe committet wird, sind **keine** Dependencies, sondern werden on demand mit gepinnter Version geladen (`npm run geo:build`, `npm run pwa:icons`).
+- **Konsequenzen:** SQL-Tests laufen in Vitest/CI (Ziel < 60 s). Generierte Dateien (GeoJSON, Schulen, Icons) bleiben im Repo, ihre Reproduzierbarkeit sichern Tests bzw. Skripte.
+
+## ADR-011 · 3D-Gebäude bei hohem Zoom und Deutschland-Maske
+- **Datum:** 2026-10-21 · **Status:** akzeptiert (von den Menschen ausdrücklich gewollt, #85/#98, PR #89)
+- **Kontext:** Auf Schulebene war die Karte zu grob (`maxZoom` 14). Die Menschen wollen Schulgelände detailliert sehen, außerdem soll der Blick auf NRW bleiben.
+- **Entscheidung:** `maxZoom` 18, ab Zoom 15 **3D-Gebäude** aus dem vorhandenen OpenFreeMap-Source (`fill-extrusion`, keine neue Dependency, kein Key), automatischer Pitch 45°. Die Mood-Flächen blenden mit dem Zoom aus und kombinieren das mit dem Abblenden aus dem Drill-down (#17) in **einer** `fill-opacity`-Expression (`zoom` steht in MapLibre auf oberster Ebene). Außerhalb Deutschlands legt sich eine Maske aus Natural Earth (Public Domain) über die Karte.
+- **Konsequenzen:** Der `BLANK_STYLE`-Fallback zeigt keine Gebäude. Das ist okay, die Mood-Flächen bleiben die Hauptinformation. Auf schwachen Handys 3D im Auge behalten. Schul-Marker (#18) müssen bei Pitch sichtbar bleiben (über den Gebäuden rendern).

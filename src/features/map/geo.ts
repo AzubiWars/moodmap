@@ -5,6 +5,7 @@ export interface RegionProperties {
   id: string;
   name: string;
   regbez_id?: string;
+  type?: 'kreis' | 'kreisfreie_stadt';
 }
 
 export type RegionFeature = Feature<Geometry, RegionProperties>;
