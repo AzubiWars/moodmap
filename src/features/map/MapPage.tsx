@@ -427,6 +427,8 @@ export function MapPage() {
           clusterSchools={drill.level === 'regbez'}
           selectedSchoolId={drill.school?.id ?? null}
           onSelectSchool={selectSchool}
+          is3d={is3d}
+          onPitchChange={setIs3d}
           // Auf NRW-Ebene keine grauen Verzeichnis-Cluster; erst ab Regierungsbezirk/Kreis.
           directorySchools={drill.level === 'nrw' && !directoryFocus ? null : directoryPoints}
           pulses={pulses}
