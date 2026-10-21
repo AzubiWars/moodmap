@@ -1,14 +1,47 @@
 @import 'tailwindcss';
 
-/* Design-Tokens – Quelle: docs/DESIGN.md §2. Ausbau in #10. */
+/* Design-Tokens – Quelle: docs/DESIGN.md §2/§3. */
 @theme {
+  /* Mood-Skala – identisch zu MOOD_LEVELS in src/lib/colors.ts, in allen Themes gleich */
   --color-mood-1: #c2263c;
   --color-mood-2: #f07b4f;
   --color-mood-3: #f6d365;
   --color-mood-4: #7fc4de;
   --color-mood-5: #2b78b8;
   --color-mood-none: #b8bcc6;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Semantische Tokens (Light). Komponenten nutzen nur diese statt fester slate-*-Farben,
+   * damit der Dark Mode (#35) sie unter `.dark` einfach umdefinieren kann.
+   */
+  --color-surface: #f8fafc; /* Seitenhintergrund */
+  --color-surface-tint: #eaf3fa; /* oberes Ende des Hintergrund-Verlaufs */
+  --color-fg: #0f172a; /* Haupttext */
+  --color-muted: #64748b; /* Nebentext, ≥ 4.5:1 auf card und surface */
+  --color-card: #ffffff; /* Karten, Header, Bottom-Nav */
+  --color-subtle: #f1f5f9; /* Hover, Skelett-Flächen */
+  --color-border: #e2e8f0; /* Rahmen, Balken-Hintergrund */
+  --color-primary: #0f172a; /* ausgewählt / aktiv (Chips, Nav, Banner) */
+  --color-primary-fg: #ffffff; /* Text auf primary */
+  --color-accent: #2b78b8; /* Links, aktive Bottom-Nav – = mood-5 */
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.18);
+
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Karten-Look: große Rundung, weicher Schatten */
+@utility card {
+  border-radius: var(--radius-2xl);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* „zu wenige Daten“ (unter K_MIN): grau + Schraffur, damit es nicht nur über Farbe erkennbar ist */
+@utility no-data {
+  background-color: var(--color-mood-none);
+  background-image: repeating-linear-gradient(135deg, transparent 0 6px, rgb(255 255 255 / 0.45) 6px 9px);
 }
 
 :root {
@@ -22,5 +55,9 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  background-color: var(--color-surface);
+  background-image: linear-gradient(to bottom, var(--color-surface-tint), var(--color-surface) 28rem);
+  background-repeat: no-repeat;
+  color: var(--color-fg);
+  @apply antialiased;
 }
