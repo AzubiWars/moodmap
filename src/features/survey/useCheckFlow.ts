@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useReducer, useRef } from 'react';
 import { getDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
+import { saveFreeText, type FreeTextModeration } from '@/lib/freeText';
 import type { GradeBand, Question } from '@/types';
 import { buildAnswers, cardsOf, checkReducer, initialState, type CardAnswer } from './checkFlow';
 
@@ -66,7 +67,10 @@ export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }:
       .then((result) => {
         if (!mounted.current) return;
         if (result.ok || result.reason === 'already_submitted') markSubmitted(waveId);
-        if (result.ok) void queryClient.invalidateQueries();
+        if (result.ok) {
+          if (state.freeText) saveFreeText(state.freeText);
+          void queryClient.invalidateQueries();
+        }
         dispatch({
           type: 'RESULT',
           result: result.ok ? 'ok' : result.reason === 'already_submitted' ? 'already' : 'error',
@@ -88,5 +92,6 @@ export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }:
       attempt.current += 1;
       dispatch({ type: 'RETRY' });
     },
+    finish: (freeText: FreeTextModeration | null) => dispatch({ type: 'FREETEXT', freeText }),
   };
 }

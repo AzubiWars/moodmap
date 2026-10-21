@@ -60,5 +60,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    // PGlite-Seed-Tests brauchen unter voller Parallelität mehr als 10 s.
+    hookTimeout: 30_000,
   },
 });

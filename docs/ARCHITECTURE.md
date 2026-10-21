@@ -365,6 +365,7 @@ Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR
 4. **Gespeichert wird nur** `allowed`, `cleaned`, `topics`, `cluster`, `concern`, Schule, Welle und Tag. Der Rohtext wird **nie** gespeichert oder geloggt.
 5. **Robustheit:** Timeout 5 s. Fällt OpenRouter aus oder fehlt der Key, wird **nur der Freitext verworfen** (`allowed:false`); die Umfrage wird trotzdem gespeichert. Im Mock-Modus gibt es einen lokalen Fallback (Wortliste + Themen-Keywords) in der Survey-UI.
 6. Bei `concern:true` zeigt der Client sofort Hilfsangebote (`PRIVACY.md` §5), keine Weiterleitung.
+7. Der Client nutzt die Function automatisch, sobald `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` gesetzt sind – auch bei `VITE_DATA_MODE=mock`. Ohne diese Env (reiner Dev/Mock) greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords.
 
 **Secret setzen (niemals committen):**
 
