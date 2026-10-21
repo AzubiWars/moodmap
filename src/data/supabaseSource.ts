@@ -87,7 +87,7 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
       channel = undefined;
     }
   };
-  async function request(path: string, init: RequestInit = {}): Promise<Response> {
+  async function request(path: string, init: RequestInit = {}, prefix = 'rest/v1'): Promise<Response> {
     const token = options.accessToken?.();
     const headers = new Headers(init.headers);
     headers.set('apikey', options.anonKey);
@@ -97,7 +97,7 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
     }
     headers.set('Content-Type', 'application/json');
     try {
-      const response = await fetcher(`${base}/rest/v1/${path}`, {
+      const response = await fetcher(`${base}/${prefix}/${path}`, {
         ...init,
         headers,
         signal: AbortSignal.timeout(10_000),
@@ -201,6 +201,7 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
     getTensionIndex: (query) => rpc('get_tension_index', { query }),
     async getPitchAggregate() {
       const data = await rpc<PitchAggregate>('get_pitch_aggregate', {});
+      if (!data?.school || !data.waveId) throw new Error('Keine aktive Pitch-Runde verfügbar.');
       const masked = data.scoredN < minimum;
       return {
         ...data,
@@ -211,6 +212,23 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
       };
     },
     getFreetextClusters: (scope) => rpc<FreetextCluster[]>('get_freetext_clusters', { scope }),
+    async resetPitchTest(pin) {
+      if (typeof pin !== 'string' || pin.length < 8 || pin.length > 200) return { ok: false };
+      try {
+        const response = await request(
+          'pitch-reset',
+          { method: 'POST', body: JSON.stringify({ pin }) },
+          'functions/v1',
+        );
+        const result: unknown = await response.json();
+        if (!result || typeof result !== 'object' || !('ok' in result) || result.ok !== true)
+          return { ok: false };
+        announce('pitch-test');
+        return { ok: true };
+      } catch {
+        return { ok: false };
+      }
+    },
     async getPolicyAnswers(filter) {
       return (await rpc<PolicyAnswer[]>('get_policy_answers', { filter })).map((answer) => ({
         ...answer,

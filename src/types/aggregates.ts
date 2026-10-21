@@ -72,7 +72,7 @@ export interface Distribution {
 
 /** Öffentliche Pitch-Auswertung für die Beamer-Ansicht (#116); nie Teil der NRW-Aggregate. */
 export interface PitchAggregate {
-  school: Pick<School, 'id' | 'name' | 'city' | 'lat' | 'lon' | 'isTest'>;
+  school: Pick<School, 'id' | 'name' | 'city' | 'lat' | 'lon' | 'isTest' | 'joinCode'>;
   waveId: WaveId;
   /** Teilnahmen insgesamt (auch ohne gewertete Antworten). */
   n: number;

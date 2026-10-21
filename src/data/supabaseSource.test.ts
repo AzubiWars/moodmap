@@ -34,6 +34,46 @@ afterEach(() => {
 });
 
 describe('SupabaseDataSource', () => {
+  it('resets the fixed Pitch target through the Edge Function without persisting the PIN', async () => {
+    const { source, fetcher } = setup(() => json({ ok: true }));
+    const changed = vi.fn();
+    const stop = source.subscribeToNewResponses(changed);
+    expect(await source.resetPitchTest('synthetic-admin-pin')).toEqual({ ok: true });
+    const [target, init] = fetcher.mock.calls[0]!;
+    expect(String(target)).toBe(`${url}/functions/v1/pitch-reset`);
+    expect(init?.method).toBe('POST');
+    expect(JSON.parse(String(init?.body))).toEqual({ pin: 'synthetic-admin-pin' });
+    expect(new Headers(init?.headers).get('apikey')).toBe('public-anon-key');
+    expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer public-anon-key');
+    expect(changed).toHaveBeenCalledExactlyOnceWith({ schoolId: 'pitch-test' });
+    stop();
+  });
+
+  it('supports publishable headers for reset and returns generic failures', async () => {
+    const fetcher = vi.fn<typeof fetch>(async () => json({ error: 'private database error' }, 401));
+    const source = createSupabaseSource({
+      url,
+      anonKey: 'sb_publishable_public',
+      fetcher,
+      channelFactory: null,
+    });
+    const changed = vi.fn();
+    const stop = source.subscribeToNewResponses(changed);
+    expect(await source.resetPitchTest('short')).toEqual({ ok: false });
+    expect(fetcher).not.toHaveBeenCalled();
+    expect(await source.resetPitchTest('synthetic-admin-pin')).toEqual({ ok: false });
+    expect(new Headers(fetcher.mock.calls[0]![1]?.headers).has('Authorization')).toBe(false);
+    expect(changed).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it.each([null, { school: {}, waveId: null }])(
+    'reports a missing Pitch round without a TypeError (%j)',
+    async (data) => {
+      const { source } = setup(() => json(data));
+      await expect(source.getPitchAggregate()).rejects.toThrow('Keine aktive Pitch-Runde verfügbar.');
+    },
+  );
   it('registers the configured live source while keeping an independent mock default', async () => {
     vi.stubEnv('VITE_DATA_MODE', 'supabase');
     vi.stubEnv('VITE_SUPABASE_URL', url);

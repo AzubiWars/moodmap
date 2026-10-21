@@ -52,6 +52,26 @@ interface PitchRow {
 const pitch = async () => (await rpc('public.get_pitch_aggregate()')) as PitchRow;
 
 describe('isolated pitch site', () => {
+  it('exposes the configured participation code through the isolated Pitch aggregate', async () => {
+    await rpc(
+      "public.configure_pitch_site('Teststandort', 'Berlin', 52.52, 13.405, 'CUSTOM42')",
+      [],
+      'service_role',
+    );
+    try {
+      expect(await pitch()).toMatchObject({
+        school: { id: 'pitch-test', isTest: true, joinCode: 'CUSTOM42' },
+      });
+      expect(await rpc("public.get_school_by_code('CUSTOM42')")).toMatchObject({ id: 'pitch-test' });
+      expect(await rpc("public.get_school_by_code('PITCH')")).toBeNull();
+    } finally {
+      await rpc(
+        "public.configure_pitch_site('Pitch-Test (synthetisch)', 'Teststandort · Berlin', 52.52, 13.405, 'PITCH')",
+        [],
+        'service_role',
+      );
+    }
+  });
   it('resolves the pitch QR but hides its master data from normal REST reads', async () => {
     expect(await rpc("public.get_school_by_code('PITCH')")).toMatchObject({
       id: 'pitch-test',
