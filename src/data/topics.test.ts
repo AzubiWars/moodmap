@@ -73,6 +73,8 @@ describe('topics catalog', () => {
         expect(option.value).toMatch(/^[a-z0-9_]+$/);
         expect(option.label.length).toBeGreaterThan(0);
       }
+      const values = (question.options ?? []).map((option) => option.value);
+      expect(new Set(values).size, `${question.id} option values`).toBe(values.length);
     }
 
     expect(QUESTIONS_BY_ID['ai.deep']?.multiple).toBe(true);
