@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { AggregateQuery, AggregateRow } from '@/types';
+import { useRoleStore } from '@/store/role';
 import { MapPage } from './MapPage';
 import type { School } from '@/types';
 import type { Bounds, RegionCollection } from './geo';
@@ -35,6 +36,22 @@ vi.mock('@/data', () => ({
         n: 50 + (extraVotes.get(id) ?? 0),
         score: fakeScore(id, query.topic),
         delta: null,
+      }));
+    },
+    getTensionIndex: async (query: AggregateQuery) => {
+      aggregateCalls.push({ ...query, topic: 'tension' as AggregateQuery['topic'] });
+      const ids =
+        query.level === 'regbez'
+          ? ['051', '053']
+          : query.level === 'kreis'
+            ? ['05111', '05315']
+            : ['900001', '900002'];
+      return ids.map((id) => ({
+        id,
+        index: id.endsWith('3') || id.endsWith('5') || id === '900002' ? 64 : 30,
+        level: id.endsWith('3') || id.endsWith('5') || id === '900002' ? 'talk' : 'stable',
+        trend: 4,
+        drivers: ['voice', 'safety'],
       }));
     },
     subscribeToNewResponses: (callback: () => void) => {
@@ -374,5 +391,55 @@ describe('live mode (#24)', () => {
     act(() => liveCallback?.());
     await waitFor(() => expect(screen.getByTestId('map-pulses')).toHaveTextContent('900002'));
     expect(screen.getByText('+2 neue Stimmen')).toBeInTheDocument();
+  });
+});
+
+describe('early-warning radar mode (#42)', () => {
+  const mapData = () => JSON.parse(screen.getByTestId('map-data').textContent!) as RegionCollection;
+  const tensionOf = (id: string) =>
+    (mapData().features.find((f) => f.properties.id === id)?.properties as { tension?: string } | undefined)
+      ?.tension;
+
+  afterEach(() => {
+    useRoleStore.setState({ role: 'student' });
+  });
+
+  it('switches to radar via ?mode=radar, hides the topic filter and colors regions by tension level', async () => {
+    const router = openMap('/map?topic=ai');
+    fireEvent.click(screen.getByRole('radio', { name: 'Frühwarn-Radar' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&mode=radar'));
+    expect(screen.queryByRole('button', { name: 'KI im Schulalltag' })).not.toBeInTheDocument();
+    await waitFor(() => expect(tensionOf('053')).toBe('talk'));
+    expect(tensionOf('051')).toBe('stable');
+    expect(screen.getByRole('group', { name: 'Legende Frühwarn-Radar' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Stimmung' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai'));
+  });
+
+  it('shows index, drivers and the publish-answer link in the panel', async () => {
+    openMap('/map?mode=radar&regbez=053&kreis=05315');
+    const panel = await screen.findByRole('complementary', { name: 'Details: Stadt Köln' });
+    const radar = await within(panel).findByRole('region', { name: 'Frühwarn-Radar' });
+    expect(within(radar).getByText('64 · Gespräch suchen')).toBeInTheDocument();
+    expect(within(radar).getByText('Dialogrunde mit den Schülervertretungen anbieten')).toBeInTheDocument();
+    expect(within(radar).getByRole('link', { name: /Antwort veröffentlichen/ })).toHaveAttribute(
+      'href',
+      '/dashboard?publish=1&scope=kreis&region=05315&topic=voice',
+    );
+  });
+
+  it('shows school markers in radar mode only for the ministry', async () => {
+    const schoolButtons = () => screen.queryAllByRole('button', { name: /^Schule / });
+    openMap('/map?mode=radar&regbez=053&kreis=05315');
+    await screen.findByRole('complementary');
+    expect(schoolButtons()).toHaveLength(0);
+  });
+
+  it('shows tension per school for the ministry', async () => {
+    useRoleStore.setState({ role: 'ministry' });
+    openMap('/map?mode=radar&regbez=053&kreis=05315&school=900002');
+    const panel = await screen.findByRole('complementary', { name: 'Details: Schule 900002' });
+    expect(await within(panel).findByText('64 · Gespräch suchen')).toBeInTheDocument();
   });
 });
