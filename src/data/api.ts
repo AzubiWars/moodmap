@@ -1,7 +1,9 @@
 import type {
   AggregateQuery,
   AggregateRow,
+  DeleteResult,
   Distribution,
+  OwnResponseInput,
   PolicyAnswer,
   PolicyAnswerFilter,
   PolicyAnswerInput,
@@ -38,6 +40,8 @@ export interface DataSource {
   // Umfrage
   getCurrentWave(): Promise<Wave>;
   submitResponse(input: ResponseInput): Promise<SubmitResult>;
+  /** Zieht die eigene Abgabe der aktuellen Welle zurück; danach ist eine neue Teilnahme möglich (#161). */
+  deleteOwnResponse(input: OwnResponseInput): Promise<DeleteResult>;
 
   // Aggregate (immer bereits k-anonymisiert)
   getAggregates(query: AggregateQuery): Promise<AggregateRow[]>;

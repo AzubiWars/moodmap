@@ -24,6 +24,15 @@ function markSubmitted(waveId: string) {
   }
 }
 
+/** Nach dem Zurückziehen der eigenen Antwort (#161): Mood-Check wieder freigeben. */
+export function clearSubmitted(waveId: string) {
+  try {
+    localStorage.removeItem(submittedKey(waveId));
+  } catch {
+    /* Privatmodus: es gab keine Markierung */
+  }
+}
+
 interface CheckFlowOptions {
   questions: Question[];
   waveId: string;

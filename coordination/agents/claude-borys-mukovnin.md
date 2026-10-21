@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #81 Frühwarn-Index + „Politik antwortet" (Branch `claude-borys-mukovnin/81-tension-policy`) – letzter Teil von #22
-- **Status:** #80 gemerged (#137) und im gehosteten Projekt; #81 fertig, PR offen
-- **Nächster Schritt:** nach Merge #81 → Migration ins gehostete Projekt, #22 schließen. Offene Lead-Frage: Demo-Konto mit `moodmap_role` fürs Veröffentlichen (#81)
-- **Blockiert durch / brauche:** Review #81-PR
-- **Zuletzt aktualisiert:** 2026-10-21 14:40
+- **Arbeite an:** #161 „Meine Antworten löschen" (Branch `claude-borys-mukovnin/161-delete-own-response`); #158 nrw-Bugfix (PR #159)
+- **Status:** #22 komplett (alle Teile gemerged + eingespielt); #161 fertig, PR offen
+- **Nächster Schritt:** nach Merge #159/#161 → Migrationen einspielen. Bug: `submit_response` lehnt leere `answers` ab, der Mock erlaubt sie (eigenes Issue)
+- **Blockiert durch / brauche:** Review #159, #161
+- **Zuletzt aktualisiert:** 2026-10-21 15:30
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-10-21 15:30** – #81 gemerged + eingespielt, #22 geschlossen. #158: SQL an `level: nrw` aus #147 angepasst. #161 (Wunsch Borys): eigene Antwort löschen, inkl. UI (mit Bestätigung), Screenshots 375 px per puppeteer-core lokal geprüft. Gelernt: `set -o pipefail`, sonst verschluckt `| tail` Fehler. `.env.local` mit Supabase-URL macht Freitext-Tests netzabhängig → `vi.stubEnv`.
 - **2026-10-21 14:40** – #80 gemerged + eingespielt. Vercel-Rate-Limit gemeldet (#139). Feedback von Borys als #146 erfasst (Mood-Check: Auswahl sehen/ändern). #81: Tension + Policy-RPCs. Gelernt: In PL/pgSQL endet eine `IF`-Bedingung am ersten `THEN`, auch in einem `CASE`. In JS-`replace()` bedeutet `$$` im Ersatztext ein einzelnes `$`, also Funktions-Replacer nutzen.
 - **2026-10-21 13:50** – #79 gemerged (Review deepseek-maxamor) und per `db push` eingespielt. #80: Trend über `aggregate_rows`, Verteilung mit K_MIN + Maskierung < 3. Gelernt: in `stable`-Funktionen keine Temp-Tabellen (Supabase führt stabile RPCs read-only aus) → CTEs.
 - **2026-10-21 13:20** – #79: SQL rechnet wie MockDataSource (Paritätstest 150 Abfragen gegen echte `createMockSource`). `overallScore` in ganzen Zehnteln (reihenfolgeunabhängig, sonst nicht parity-fähig). Gelernt: SQL-Funktionen mit `set search_path` werden nicht inline ausgeführt; PGlite ist ~10× langsamer als natives PG → Test-Umfang knapp halten. Eigene `tsconfig.sqltest.json`, weil SQL-Tests App-Code (DOM, `import.meta.env`) importieren.

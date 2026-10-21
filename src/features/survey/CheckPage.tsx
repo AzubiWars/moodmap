@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MoodScaleInput, type MoodValue } from '@/components/MoodScaleInput';
 import { getDataSource } from '@/data';
 import { getTopic } from '@/data/topics';
@@ -11,6 +11,7 @@ import type { Question } from '@/types';
 import { FreeTextCard } from './FreeTextCard';
 import { selectQuestions } from './selectQuestions';
 import { useCheckFlow } from './useCheckFlow';
+import { WithdrawResponse, type WithdrawnState } from './WithdrawResponse';
 
 const ADVANCE_DELAY_MS = 250;
 
@@ -29,6 +30,7 @@ function Message({ title, children }: { title: string; children: React.ReactNode
 }
 
 export function CheckPage() {
+  const location = useLocation();
   const schoolId = useParticipantStore((s) => s.schoolId);
   const wave = useQuery({ queryKey: ['wave', 'current'], queryFn: () => getDataSource().getCurrentWave() });
 
@@ -54,10 +56,20 @@ export function CheckPage() {
   if (!wave.data) {
     return <div className="mx-auto h-64 max-w-md animate-pulse px-4 py-8" aria-busy="true" />;
   }
-  return <CheckFlow schoolId={schoolId} waveId={wave.data.id} />;
+  // Neuer Schlüssel nach dem Zurückziehen (#161): der Flow startet frisch statt „schon mitgemacht“.
+  const withdrawn = (location.state as WithdrawnState | null)?.withdrawn;
+  return <CheckFlow key={location.key} schoolId={schoolId} waveId={wave.data.id} withdrawn={withdrawn} />;
 }
 
-function CheckFlow({ schoolId, waveId }: { schoolId: string; waveId: string }) {
+function CheckFlow({
+  schoolId,
+  waveId,
+  withdrawn,
+}: {
+  schoolId: string;
+  waveId: string;
+  withdrawn?: WithdrawnState['withdrawn'];
+}) {
   const navigate = useNavigate();
   const gradeBand = useParticipantStore((s) => s.gradeBand);
   const isTest = useParticipantStore((s) => s.isTest);
@@ -79,6 +91,7 @@ function CheckFlow({ schoolId, waveId }: { schoolId: string; waveId: string }) {
         <Link to="/map" className={linkButton}>
           Karte ansehen
         </Link>
+        <WithdrawResponse waveId={waveId} />
       </Message>
     );
   }
@@ -117,7 +130,7 @@ function CheckFlow({ schoolId, waveId }: { schoolId: string; waveId: string }) {
   const card = flow.card;
   if (!card) return null;
 
-  return (
+  const question = (
     <QuestionCard
       key={card.id}
       question={card}
@@ -129,6 +142,17 @@ function CheckFlow({ schoolId, waveId }: { schoolId: string; waveId: string }) {
       onSkip={flow.skip}
       onBack={state.index > 0 ? flow.back : undefined}
     />
+  );
+  if (!withdrawn || state.index > 0) return question;
+  return (
+    <>
+      <p role="status" className="mx-auto max-w-md px-4 pt-6 text-center text-sm text-muted">
+        {withdrawn === 'deleted'
+          ? 'Deine Antworten wurden gelöscht. Du kannst jetzt neu mitmachen.'
+          : 'Es waren keine Antworten mehr gespeichert. Du kannst neu mitmachen.'}
+      </p>
+      {question}
+    </>
   );
 }
 

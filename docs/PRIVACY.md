@@ -24,6 +24,7 @@
 | Maßnahme | Prototyp | Echtbetrieb |
 |---|---|---|
 | Zufälliges Geräte-Token in localStorage, serverseitig nur als `hash(token + wave_id)` gespeichert → 1 Antwort pro Gerät & Welle | ✅ | ✅ |
+| **Eigene Antwort löschen** („Meine Antworten löschen", #161): dasselbe Gerät kann seine Abgabe der aktuellen Welle zurückziehen und neu teilnehmen. Gefunden wird sie nur über den Token-Hash. Ohne das Token (anderes Gerät, gelöschte Browserdaten) ist sie bewusst nicht mehr zuzuordnen | ✅ | ✅ |
 | Schul-Join-Code (QR in der Schule ausgehängt / von Lehrkraft gezeigt), nicht erratbar | ✅ (Demo-Code) | ✅, rotierend pro Welle |
 | Rate-Limit pro Schule (Ausreißer-Erkennung: plötzliche Spitzen) | – | ✅ |
 | Plausibilitätsprüfung (z. B. alle Fragen in < 5 s „durchgeklickt" → gewichtet abwerten) | P2 | ✅ |

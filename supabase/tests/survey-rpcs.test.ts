@@ -3,7 +3,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { createHash } from 'node:crypto';
 import { beforeAll, describe, expect, it } from 'vitest';
-import type { ResponseInput, SubmitResult } from '../../src/types/index.ts';
+import type { DeleteResult, ResponseInput, SubmitResult } from '../../src/types/index.ts';
 import { asRole, createTestDb, CURRENT_WAVE, insertFixtures, PREVIOUS_WAVE, type DbRole } from './harness.ts';
 
 let db: PGlite;
@@ -129,6 +129,71 @@ describe('submit_response', () => {
     await expect(asRole(db, 'anon', () => db.query('select * from public.responses'))).rejects.toThrow(
       /permission denied/,
     );
+  });
+});
+
+describe('delete_own_response (#161)', () => {
+  const withdraw = (input: unknown, role: DbRole = 'anon') =>
+    rpc<DeleteResult>('public.delete_own_response($1::jsonb)', [JSON.stringify(input)], role);
+  const hashOf = (token: string, wave = CURRENT_WAVE) =>
+    createHash('sha256').update(`${token}:${wave}`).digest('hex');
+  const rowsFor = async (token: string) =>
+    Number(
+      (
+        await db.query<{ n: number }>(
+          `select count(*)::int as n from public.responses r join public.answers a on a.response_id = r.id
+           where r.device_hash = $1`,
+          [hashOf(token)],
+        )
+      ).rows[0]!.n,
+    );
+
+  it.each<DbRole>(['anon', 'authenticated'])(
+    'lets %s withdraw its own response and take part again',
+    async (role) => {
+      const input = validInput();
+      await submit(input, role);
+      expect(await rowsFor(input.deviceToken)).toBe(3);
+
+      await expect(withdraw({ waveId: CURRENT_WAVE, deviceToken: input.deviceToken }, role)).resolves.toEqual(
+        { ok: true },
+      );
+      expect(await rowsFor(input.deviceToken)).toBe(0); // response and its answers are gone
+
+      await expect(withdraw({ waveId: CURRENT_WAVE, deviceToken: input.deviceToken }, role)).resolves.toEqual(
+        {
+          ok: false,
+          reason: 'not_found',
+        },
+      );
+      await expect(submit(input, role)).resolves.toEqual({ ok: true });
+    },
+  );
+
+  it("never touches another device's response", async () => {
+    const mine = validInput();
+    const other = validInput();
+    await submit(mine);
+    await submit(other);
+    const before = await countRows('responses');
+    await expect(withdraw({ waveId: CURRENT_WAVE, deviceToken: newToken() })).resolves.toEqual({
+      ok: false,
+      reason: 'not_found',
+    });
+    await expect(withdraw({ waveId: CURRENT_WAVE, deviceToken: mine.deviceToken })).resolves.toEqual({
+      ok: true,
+    });
+    expect(await countRows('responses')).toBe(before - 1);
+    expect(await rowsFor(other.deviceToken)).toBe(3);
+  });
+
+  it.each([
+    ['not an object', '"x"', /must be an object/],
+    ['a past wave', { waveId: PREVIOUS_WAVE, deviceToken: 'device-token-00000001' }, /not the current wave/],
+    ['a missing wave', { deviceToken: 'device-token-00000001' }, /not the current wave/],
+    ['a short token', { waveId: CURRENT_WAVE, deviceToken: 'abc' }, /invalid device token/],
+  ])('rejects %s', async (_, input, message) => {
+    await expect(withdraw(typeof input === 'string' ? JSON.parse(input) : input)).rejects.toThrow(message);
   });
 });
 
