@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  build: {
+    // maplibre-gl ist allein ~1,1 MB und wird nur auf /map lazy geladen
+    chunkSizeWarningLimit: 1200,
+  },
   test: {
     environment: 'jsdom',
     globals: true,
