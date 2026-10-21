@@ -32,9 +32,8 @@ const LEVELS = [1, 2, 3, 4, 5] as const;
 
 /**
  * Fasst Zeilen zusammen. n und Verteilungen addieren sich exakt (jede Teilnahme gehört zu genau einer Zeile);
- * Score und Δ sind nach n gewichtet.
- * NÄHERUNG für NRW: Die API kennt noch kein `level: 'nrw'` (#140). Danach die NRW-Zeile direkt nutzen;
- * für Schulformen bleibt die Summe über die Regierungsbezirke richtig.
+ * Score und Δ sind nach n gewichtet. Bei einer einzelnen Zeile (`level: 'nrw'`) werden die Werte
+ * unverändert übernommen.
  */
 export function combineRows(rows: readonly AggregateRow[], kMin: number): Combined {
   const n = rows.reduce((sum, row) => sum + row.n, 0);

@@ -30,7 +30,7 @@ const DIST: Record<string, MoodDistribution | null> = {
 
 function row(id: string, query: AggregateQuery): AggregateRow {
   const gym = query.schoolForm?.[0] === 'gymnasium';
-  if (query.topic === 'all') return { id, n: id === '051' ? 60 : 40, score: 50, delta: -2 };
+  if (query.topic === 'all') return { id, n: id === 'nrw' ? 100 : 50, score: 50, delta: -2 };
   if (query.topic === 'food') return { id, n: 2, score: null, delta: null, distribution: null };
   return {
     id,
@@ -48,7 +48,7 @@ const fake = {
     if (query.level === 'school')
       return [1, 2, 3].map((i) => ({ id: `s${i}`, n: i === 3 ? 0 : 5, score: null, delta: null }));
     if (query.schoolForm && !['gymnasium', 'realschule'].includes(query.schoolForm[0]!)) return [];
-    return ['051', '053'].map((id) => row(id, query));
+    return (query.level === 'nrw' ? ['nrw'] : ['051', '053']).map((id) => row(id, query));
   },
   subscribeToNewResponses: () => () => {},
 } as unknown as DataSource;
@@ -70,14 +70,14 @@ describe('DashboardPage – Lagebild NRW', () => {
   it('zeigt KPIs, Brennpunkte und Prozentwerte als Text', async () => {
     renderPage();
     expect(await screen.findByText('Teilnahmen')).toBeInTheDocument();
-    expect(screen.getByText('100')).toBeInTheDocument(); // 60 + 40 Teilnahmen
+    expect(screen.getByText('100')).toBeInTheDocument(); // Teilnahmen aus der NRW-Zeile
     expect(screen.getByText('2')).toBeInTheDocument(); // Schulen mit n > 0
 
     const hotspots = screen.getByRole('region', { name: /Brennpunkt-Themen/ });
     const links = within(hotspots).getAllByRole('link');
     expect(links[0]).toHaveAttribute('href', '/map?topic=ai');
     expect(within(links[0]!).getByText('58 % unzufrieden')).toBeInTheDocument();
-    expect(within(links[0]!).getByText('· 200 Stimmen')).toBeInTheDocument();
+    expect(within(links[0]!).getByText('· 100 Stimmen')).toBeInTheDocument();
 
     const percent = screen.getByRole('region', { name: 'Themen in Prozent' });
     expect(

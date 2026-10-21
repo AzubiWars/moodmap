@@ -20,10 +20,11 @@ export interface Lagebild {
 /** Alle Kennzahlen für Gesamt-NRW in der aktuellen Welle. Testschulen filtert die DataSource (`is_test`). */
 export async function loadLagebild(source: DataSource, kMin: number): Promise<Lagebild> {
   const topics = [...(await source.getTopics())].sort((a, b) => a.sort - b.sort);
+  // `level: 'nrw'` liefert genau eine Zeile, direkt über alle Antworten aggregiert (#140).
   const [allRows, schoolRows, ...topicRows] = await Promise.all([
-    source.getAggregates({ level: 'regbez', topic: 'all' }),
+    source.getAggregates({ level: 'nrw', topic: 'all' }),
     source.getAggregates({ level: 'school', topic: 'all' }),
-    ...topics.map((topic) => source.getAggregates({ level: 'regbez', topic: topic.slug })),
+    ...topics.map((topic) => source.getAggregates({ level: 'nrw', topic: topic.slug })),
   ]);
   return {
     overall: combineRows(allRows, kMin),
@@ -45,7 +46,7 @@ export async function loadComparison(
 ): Promise<Comparison> {
   const [regbezRows, ...formRows] = await Promise.all([
     source.getAggregates({ level: 'regbez', topic }),
-    ...SCHOOL_FORMS.map((form) => source.getAggregates({ level: 'regbez', topic, schoolForm: [form] })),
+    ...SCHOOL_FORMS.map((form) => source.getAggregates({ level: 'nrw', topic, schoolForm: [form] })),
   ]);
   return {
     regbez: regbezComparison(regbezRows, kMin),
