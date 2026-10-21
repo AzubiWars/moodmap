@@ -18,7 +18,12 @@ import {
   TREND_FILL_EXPRESSION,
 } from './modes';
 import { TENSION_FILL_EXPRESSION, TENSION_INFO } from './radar';
-import type { SchoolCollection, SchoolPointProperties } from './schools';
+import type {
+  DirectoryPointProperties,
+  SchoolCollection,
+  SchoolDirectoryCollection,
+  SchoolPointProperties,
+} from './schools';
 
 /** `dim` = liegt außerhalb des fokussierten Regierungsbezirks (Drill-down #17) */
 type ScoredProperties = RegionProperties & { score: number; n: number; dim?: boolean };
@@ -35,6 +40,8 @@ interface MoodMapProps {
   muted?: boolean;
   /** Schul-Marker (#18) */
   schools?: SchoolCollection | null;
+  /** Offizielles NRW-Schulverzeichnis: alle Standorte als neutrale Hintergrund-Punkte. */
+  directorySchools?: SchoolDirectoryCollection | null;
   /** Clustern (Regierungsbezirk); im Kreis sind es wenige genug für Einzel-Marker */
   clusterSchools?: boolean;
   /** Kartenmodus (#42): im Frühwarn-Radar färben Flächen/Schulen nach Spannungs-Stufe (Property `tension`) */
@@ -62,6 +69,9 @@ const blankStyle = (dark: boolean): StyleSpecification => ({
 const FILL_LAYER_ID = 'regions-fill';
 const SCHOOL_LAYER_ID = 'schools-points';
 const CLUSTER_LAYER_ID = 'schools-clusters';
+const DIRECTORY_SOURCE_ID = 'school-directory';
+const DIRECTORY_LAYER_ID = 'school-directory-points';
+const DIRECTORY_CLUSTER_LAYER_ID = 'school-directory-clusters';
 
 /** Ø-Score eines Clusters: nur Schulen mit genug Antworten, gewichtet nach n (-1 = keine) */
 const CLUSTER_SCORE = [
@@ -198,6 +208,8 @@ type HoverInfo = { lng: number; lat: number } & (
   | { kind: 'region'; props: ScoredProperties }
   | { kind: 'school'; props: SchoolPointProperties }
   | { kind: 'cluster'; props: { point_count: number; weighted: number; scoredN: number } }
+  | { kind: 'directory'; props: DirectoryPointProperties }
+  | { kind: 'directory-cluster'; props: { point_count: number } }
 );
 
 /** Platz für Info-Box (oben) und Legende (unten), damit die fokussierte Fläche nicht verdeckt wird */
@@ -215,6 +227,7 @@ export function MoodMap({
   muted = false,
   detailOpen = false,
   schools,
+  directorySchools,
   clusterSchools = true,
   pulses = [],
   mode = 'mood',
@@ -275,6 +288,14 @@ export function MoodMap({
       });
     } else if (f.layer.id === SCHOOL_LAYER_ID) {
       setHover({ ...pos, kind: 'school', props: f.properties as SchoolPointProperties });
+    } else if (f.layer.id === DIRECTORY_CLUSTER_LAYER_ID) {
+      setHover({
+        ...pos,
+        kind: 'directory-cluster',
+        props: { point_count: (f.properties?.point_count as number) ?? 0 },
+      });
+    } else if (f.layer.id === DIRECTORY_LAYER_ID) {
+      setHover({ ...pos, kind: 'directory', props: f.properties as DirectoryPointProperties });
     } else {
       setHover({ ...pos, kind: 'region', props: f.properties as ScoredProperties });
     }
@@ -289,17 +310,27 @@ export function MoodMap({
     // Tooltip schließen: nach der Kamerafahrt stünde er sonst an fremder Stelle
     setHover(null);
     if (f.layer.id === CLUSTER_LAYER_ID) {
-      zoomIntoCluster(f.properties.cluster_id as number, e.lngLat);
+      zoomIntoCluster('schools', f.properties.cluster_id as number, e.lngLat);
+    } else if (f.layer.id === DIRECTORY_CLUSTER_LAYER_ID) {
+      zoomIntoCluster(DIRECTORY_SOURCE_ID, f.properties.cluster_id as number, e.lngLat);
     } else if (f.layer.id === SCHOOL_LAYER_ID) {
       onSelectSchool?.((f.properties as SchoolPointProperties).id);
+    } else if (f.layer.id === DIRECTORY_LAYER_ID) {
+      // Verzeichnis-Punkt: nur Info anzeigen; Stimmungsdaten gibt es hier bewusst nicht.
+      setHover({
+        lng: e.lngLat.lng,
+        lat: e.lngLat.lat,
+        kind: 'directory',
+        props: f.properties as DirectoryPointProperties,
+      });
     } else {
       onSelect?.((f.properties as ScoredProperties).id);
     }
   }
 
-  async function zoomIntoCluster(clusterId: number, center: { lng: number; lat: number }) {
+  async function zoomIntoCluster(sourceId: string, clusterId: number, center: { lng: number; lat: number }) {
     const map = mapRef.current;
-    const source = map?.getSource('schools') as GeoJSONSource | undefined;
+    const source = map?.getSource(sourceId) as GeoJSONSource | undefined;
     if (!map || !source) return;
     const zoom = await source.getClusterExpansionZoom(clusterId);
     map.easeTo({ center: [center.lng, center.lat], zoom, duration: 600 });
@@ -319,13 +350,13 @@ export function MoodMap({
       ? hover.props.scoredN > 0
         ? hover.props.weighted / hover.props.scoredN
         : null
-      : hover && hover.props.score >= 0
+      : hover && (hover.kind === 'school' || hover.kind === 'region') && hover.props.score >= 0
         ? hover.props.score
         : null;
   const hoverLevel = scoreToLevel(hoverScore);
   const radar = mode === 'radar';
   const modeProps =
-    mode !== 'mood' && hover && hover.kind !== 'cluster'
+    mode !== 'mood' && hover && (hover.kind === 'school' || hover.kind === 'region')
       ? (hover.props as { tension?: string; tindex?: number; tdelta?: number; rate?: number })
       : null;
   const hoverTension = radar ? modeProps : null;
@@ -357,7 +388,13 @@ export function MoodMap({
           mapRef.current?.easeTo({ pitch: targetPitch, duration: 400 });
         }
       }}
-      interactiveLayerIds={[FILL_LAYER_ID, SCHOOL_LAYER_ID, CLUSTER_LAYER_ID]}
+      interactiveLayerIds={[
+        FILL_LAYER_ID,
+        SCHOOL_LAYER_ID,
+        CLUSTER_LAYER_ID,
+        DIRECTORY_LAYER_ID,
+        DIRECTORY_CLUSTER_LAYER_ID,
+      ]}
       onMouseMove={handleMove}
       onMouseLeave={() => setHover(null)}
       onClick={handleClick}
@@ -491,6 +528,41 @@ export function MoodMap({
           />
         </Source>
       )}
+      {directorySchools && (
+        <Source
+          id={DIRECTORY_SOURCE_ID}
+          type="geojson"
+          data={directorySchools}
+          cluster
+          clusterMaxZoom={12}
+          clusterRadius={46}
+        >
+          <Layer
+            id={DIRECTORY_CLUSTER_LAYER_ID}
+            type="circle"
+            filter={['has', 'point_count']}
+            paint={{
+              'circle-color': '#94a3b8',
+              'circle-radius': ['step', ['get', 'point_count'], 10, 20, 14, 100, 18],
+              'circle-stroke-color': '#ffffff',
+              'circle-stroke-width': 1.5,
+              'circle-opacity': 0.82,
+            }}
+          />
+          <Layer
+            id={DIRECTORY_LAYER_ID}
+            type="circle"
+            filter={['!', ['has', 'point_count']]}
+            paint={{
+              'circle-color': dark ? '#cbd5e1' : '#64748b',
+              'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 2.5, 14, 3.5, 17, 5],
+              'circle-stroke-color': dark ? '#0f172a' : '#ffffff',
+              'circle-stroke-width': 1,
+              'circle-opacity': 0.72,
+            }}
+          />
+        </Source>
+      )}
       {schools && (
         <Source
           // Cluster-Optionen lassen sich nicht live ändern → Source beim Umschalten neu anlegen
@@ -586,50 +658,69 @@ export function MoodMap({
           className="pointer-events-none [&_*]:pointer-events-none"
         >
           <div className="text-sm">
-            <div className="font-semibold">
-              {hover.kind === 'cluster' ? `${hover.props.point_count} Schulen` : hover.props.name}
-            </div>
-            {hover.kind === 'school' && (
-              <div className="text-xs text-muted">
-                {hover.props.form} · {hover.props.city}
-              </div>
-            )}
-            {hover.kind === 'school' && pulses.some((p) => p.id === hover.props.id) && (
-              <div className="text-xs font-semibold text-mood-1">● Live-aktiv: neue Stimme</div>
-            )}
-            {mode === 'trend' && modeProps ? (
-              hasTrend(modeProps.tdelta) ? (
-                <div>{formatTrend(modeProps.tdelta!)}</div>
-              ) : (
-                <div className="text-muted">Trend: {NO_DATA.label}</div>
-              )
-            ) : mode === 'participation' && modeProps ? (
-              (modeProps.rate ?? -1) >= 0 ? (
-                <div>
-                  {formatRate(modeProps.rate!)} · n = {(hover!.props as { n: number }).n}
+            {hover.kind === 'directory' ? (
+              <>
+                <div className="font-semibold">{hover.props.name}</div>
+                <div className="text-xs text-muted">
+                  {hover.props.form} · {hover.props.city}
                 </div>
-              ) : (
-                <div className="text-muted">Beteiligung unbekannt</div>
-              )
-            ) : hoverTension ? (
-              hoverTension.tension && hoverTension.tension !== 'none' ? (
-                <div>
-                  Spannungs-Index {Math.round(hoverTension.tindex ?? 0)} ·{' '}
-                  {TENSION_INFO[hoverTension.tension as keyof typeof TENSION_INFO].label}
-                </div>
-              ) : (
-                <div className="text-muted">{NO_DATA.label}</div>
-              )
-            ) : hoverLevel && hoverScore != null ? (
-              <div>
-                {hoverLevel.weather} {hover.kind === 'cluster' && 'Ø '}
-                {Math.round(hoverScore)} · {hoverLevel.label}
-                {hover.kind !== 'cluster' && <> · n = {hover.props.n}</>}
-              </div>
+                <div className="text-xs text-muted">Schulverzeichnis NRW · Standort</div>
+              </>
+            ) : hover.kind === 'directory-cluster' ? (
+              <>
+                <div className="font-semibold">{hover.props.point_count} Schulstandorte</div>
+                <div className="text-xs text-muted">Schulverzeichnis NRW · Klicken zum Hineinzoomen</div>
+              </>
             ) : (
-              <div className="text-muted">{NO_DATA.label}</div>
+              <>
+                <div className="font-semibold">
+                  {hover.kind === 'cluster' ? `${hover.props.point_count} Schulen` : hover.props.name}
+                </div>
+                {hover.kind === 'school' && (
+                  <div className="text-xs text-muted">
+                    {hover.props.form} · {hover.props.city}
+                  </div>
+                )}
+                {hover.kind === 'school' && pulses.some((p) => p.id === hover.props.id) && (
+                  <div className="text-xs font-semibold text-mood-1">● Live-aktiv: neue Stimme</div>
+                )}
+                {mode === 'trend' && modeProps ? (
+                  hasTrend(modeProps.tdelta) ? (
+                    <div>{formatTrend(modeProps.tdelta!)}</div>
+                  ) : (
+                    <div className="text-muted">Trend: {NO_DATA.label}</div>
+                  )
+                ) : mode === 'participation' && modeProps ? (
+                  (modeProps.rate ?? -1) >= 0 ? (
+                    <div>
+                      {formatRate(modeProps.rate!)} · n = {(hover!.props as { n: number }).n}
+                    </div>
+                  ) : (
+                    <div className="text-muted">Beteiligung unbekannt</div>
+                  )
+                ) : hoverTension ? (
+                  hoverTension.tension && hoverTension.tension !== 'none' ? (
+                    <div>
+                      Spannungs-Index {Math.round(hoverTension.tindex ?? 0)} ·{' '}
+                      {TENSION_INFO[hoverTension.tension as keyof typeof TENSION_INFO].label}
+                    </div>
+                  ) : (
+                    <div className="text-muted">{NO_DATA.label}</div>
+                  )
+                ) : hoverLevel && hoverScore != null ? (
+                  <div>
+                    {hoverLevel.weather} {hover.kind === 'cluster' && 'Ø '}
+                    {Math.round(hoverScore)} · {hoverLevel.label}
+                    {hover.kind !== 'cluster' && <> · n = {hover.props.n}</>}
+                  </div>
+                ) : (
+                  <div className="text-muted">{NO_DATA.label}</div>
+                )}
+                {hover.kind === 'cluster' && (
+                  <div className="text-xs text-muted">Klicken zum Hineinzoomen</div>
+                )}
+              </>
             )}
-            {hover.kind === 'cluster' && <div className="text-xs text-muted">Klicken zum Hineinzoomen</div>}
           </div>
         </Popup>
       )}
