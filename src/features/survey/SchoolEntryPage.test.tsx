@@ -15,6 +15,7 @@ const school = { id: '123456', name: 'Testschule', city: 'Köln', joinCode: 'ABC
 function fakeSource(): DataSource {
   return {
     getSchoolByCode: async (code: string) => (code === 'ABC123' ? school : null),
+    getCurrentWave: async () => ({ id: '2026-W43', startsAt: '2026-10-19', endsAt: '2026-10-25' }),
   } as unknown as DataSource;
 }
 
@@ -52,7 +53,7 @@ describe('SchoolEntryPage', () => {
     expect(s.schoolCode).toBe('ABC123');
     expect(s.schoolName).toBe('Testschule');
     expect(s.gradeBand).toBe('oberstufe');
-    expect(screen.getByRole('heading', { name: 'Mood-Check' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Schule insgesamt/ })).toBeInTheDocument();
   });
 
   it('works without a grade band', async () => {
