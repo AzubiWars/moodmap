@@ -31,6 +31,9 @@ it('boots the real seed lazily and shares saved votes across all aggregate level
     const districts = await source.getAggregates({ level: 'kreis', topic: 'ai' });
     expect(districts).toHaveLength(53);
     expect(districts.every((row) => (row.n < 10 ? row.score === null : row.score !== null))).toBe(true);
+    const allSchools = await source.getAggregates({ level: 'school', topic: 'all' });
+    expect(allSchools).toHaveLength(schools.length);
+    expect(allSchools.every((row) => row.n >= 10 && row.score !== null)).toBe(true);
     expect(
       await source.submitResponse({
         schoolId: '900000',
