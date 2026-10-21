@@ -93,6 +93,27 @@ async function findResponseId(
   }
 }
 
+/** Distinguishes an idempotent retry of a stored text from a consumed-but-rejected attempt (#188). */
+async function hasStoredFreetext(
+  responseId: string,
+  deps: SubmitFreetextDeps,
+  fetchImpl: typeof fetch,
+): Promise<boolean> {
+  try {
+    const url = new URL(`${deps.supabaseUrl}/rest/v1/freetext_entries`);
+    url.searchParams.set('select', 'response_id');
+    url.searchParams.set('response_id', `eq.${responseId}`);
+    url.searchParams.set('limit', '1');
+    const response = await fetchImpl(url, { headers: restHeaders(deps.serviceRoleKey) });
+    if (!response.ok) return false;
+    const rows = (await response.json()) as unknown[];
+    return rows.length > 0;
+  } catch {
+    // A failed lookup must not turn a used attempt into a success message.
+    return false;
+  }
+}
+
 /** Atomic one-attempt allowance. Fail closed: a database failure must never spend an LLM call. */
 async function claimModeration(
   responseId: string,
@@ -173,7 +194,15 @@ export async function submitFreetext(
     return { status: 503, body: { ok: false, reason: 'unavailable' } };
   }
   if (claim === 'used') {
-    return { status: 200, body: { ok: true, stored: false, reason: 'already_submitted' } };
+    const stored = await hasStoredFreetext(responseId, deps, fetchImpl);
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        stored: false,
+        reason: stored ? 'already_submitted' : 'moderation_used',
+      },
+    };
   }
 
   const moderation = await moderateText({

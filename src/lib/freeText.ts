@@ -164,6 +164,16 @@ export async function submitFreeText(input: SubmitFreeTextInput): Promise<FreeTe
     }
 
     const already = data.stored !== true && data.reason === 'already_submitted';
+    if (data.stored !== true && data.reason === 'moderation_used') {
+      return {
+        allowed: false,
+        reason: 'Dein Hinweis wurde bereits geprüft und konnte nicht übernommen werden.',
+        cleaned: '',
+        topics: [],
+        cluster: '',
+        concern,
+      };
+    }
     if (data.stored !== true && !already) {
       return {
         allowed: false,
