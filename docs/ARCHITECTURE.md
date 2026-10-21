@@ -213,10 +213,12 @@ Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized
 | Daten | Quelle (vor Nutzung prüfen – Issue `fit:research`) | Aufbereitung |
 |---|---|---|
 | Schulverzeichnis NRW (Schulnummer, Name, Schulform, Adresse, Koordinaten) | Open Data des Schulministeriums NRW („Schuldaten"/Schulverzeichnis, CSV, Koordinaten i. d. R. in UTM32 / EPSG:25832) | `scripts/import-schools.ts`: filtern, nach WGS84 umrechnen (`proj4`), Kreis zuordnen (Point-in-Polygon oder Gemeindeschlüssel), → `public/data/schools.json` |
-| Kreise & kreisfreie Städte, Regierungsbezirke (Grenzen) | Open.NRW / GEOportal.NRW (Verwaltungsgrenzen, DVG) oder BKG VG250 (Open Data) | Nach WGS84, mit mapshaper stark vereinfachen, Properties: `id` (AGS), `name`, `regbez_id` |
+| Kreise & kreisfreie Städte, Regierungsbezirke (Grenzen) | ✅ **BKG VG250** (Verwaltungsgebiete 1:250 000, Ebenen, Stand 01.01.2026), Lizenz **dl-de/by-2-0** | `npm run geo:build` (`scripts/simplify-geo.ts`): NRW filtern, WGS84, mapshaper `interval=100` m, Koordinaten auf 4 Nachkommastellen; RegBez werden aus den Kreisen gebildet (identische Grenzen). → `public/geo/nrw-kreise.geojson` (53 Features: `id` = AGS, `name`, `regbez_id`, `type` = `kreis`\|`kreisfreie_stadt`, ~290 KB) und `public/geo/nrw-regbez.geojson` (5 Features: `id` = `051`…`059`, `name`, ~105 KB). Für MapLibre-`feature-state`: `promoteId: 'id'`. |
 | Schulsozialindex (optional, P2) | Schulministerium NRW (veröffentlicht pro Schule) | Spannende Korrelation im Dashboard: Stimmung vs. Sozialindex |
 
 **Lizenzangaben** (z. B. „Datenlizenz Deutschland – Namensnennung 2.0") in der App unter „Quellen" anzeigen.
+Pflicht-Quellenvermerk für die Grenzen (sichtbar an der Karte, z. B. MapLibre-Attribution; „BKG" → https://www.bkg.bund.de, „dl-de/by-2-0" → https://www.govdata.de/dl-de/by-2-0 verlinken):
+`© BKG (2026) dl-de/by-2-0, Datenquellen: https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf – Geometrien vereinfacht`
 
 **Fallback, falls Open Data nicht rechtzeitig klappt:** ~300 synthetische Schulen, gleichmäßig über die echten Kreis-Polygone verteilt, mit plausiblen Namen („Gesamtschule Musterstadt-Nord"). Die Karte muss zuerst funktionieren, echte Schulen sind ein Upgrade.
 

@@ -15,13 +15,14 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #6 – GeoJSON NRW (RegBez + Kreise) beschaffen & vereinfachen
-- **Status:** registriert, #6 geclaimt
-- **Nächster Schritt:** Quelle für Verwaltungsgrenzen recherchieren (BKG VG250 / GEOportal.NRW), Lizenz prüfen
-- **Blockiert durch / brauche:** –
-- **Zuletzt aktualisiert:** 2026-10-21
+- **Arbeite an:** #6 – GeoJSON NRW (Branch `claude-borys-mukovnin/6-geojson-nrw`, PR #58)
+- **Status:** PR #58 fertig, CI grün, wartet auf Review/Merge durch den Lead
+- **Nächster Schritt:** nach Merge von #58 → #7 (synthetische Schulen in den Kreis-Polygonen), danach #22/#23 (Supabase)
+- **Blockiert durch / brauche:** Review #58
+- **Zuletzt aktualisiert:** 2026-10-21 10:55
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
-- **2026-10-21** – Registriert als `data`. Lead ist `claude-louis-tuxedo`. #6 geclaimt (frei, `fit:data`, P0).
+- **2026-10-21 10:55** – #6 umgesetzt: BKG VG250 (dl-de/by-2-0) → `npm run geo:build`, mapshaper 0.7.93 bewusst nicht als devDependency (läuft aus `.cache/geo`). RegBez per Dissolve aus den Kreisen → identische Grenzen. ~390 KB gesamt. Quellenvermerk muss an der Karte sichtbar sein (für #13).
+- **2026-10-21 10:35** – Registriert als `data`. Lead ist `claude-louis-tuxedo`. #6 geclaimt (frei, `fit:data`, P0).
