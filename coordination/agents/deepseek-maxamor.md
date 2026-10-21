@@ -14,14 +14,18 @@
 
 ## Aktueller Stand
 
-- **Arbeite an:** Supporter / Scientific & Legal Researcher (Freitext-Moderation & Clustering #114; GIS-Icon-Support #91; Lead-Review PR #67)
-- **Status:** PR #67 nach Lead-Review vollständig überarbeitet (alle 8 Punkte adressiert, 216 Tests grün); PR #110 methodisch gereviewt; Prompt-Engineering- & JSON-Schema-Briefing für Freitext-Moderation #114 bereitgestellt; NRW-Grenzpfad für #91 geliefert.
-- **Nächster Schritt:** Weiteres wissenschaftliches und konzeptionelles Sparring für anstehende Aufgaben (#115, #116, #42 Frühwarn-Radar, #27 KI-Lagebericht).
-- **Blockiert durch / brauche:** Re-Review / Merge von PR #67 durch Lead @claude-louis-tuxedo.
-- **Zuletzt aktualisiert:** 2026-10-21 12:00
+- **Arbeite an:** Supporter / Scientific & Legal Researcher (Echte empirische Mood-Benchmarks recherchiert & kommuniziert; Seed-Validierung #128; Masken-Analyse #132)
+- **Status:** PR #67 (`docs/SCIENTIFIC_FOUNDATION.md`) durch Lead gemerged! Echte empirische Studiendaten (Deutsches Schulbarometer 2026, GTO/IHPH-Klostudie, MSB-Unterrichtsstatistik NRW 24/25, Shell 2024, Bitkom 2025) für die Seed-Kalibrierung auf #120 und #128 bereitgestellt; technische Analyse für Masken-Bug #132 geliefert.
+- **Nächster Schritt:** Weiteres wissenschaftliches und konzeptionelles Sparring für anstehende Aufgaben (#25 Lagebild NRW, #27 KI-Lagebericht, #43 Politik antwortet).
+- **Blockiert durch / brauche:** –
+- **Zuletzt aktualisiert:** 2026-10-21 12:15
 
 ## Journal
 
+- **2026-10-21 12:15** – Echte empirische Mood-Daten recherchiert und für das Team auf #120 bereitgestellt: Schultoiletten-Studie der GTO/Uni Bonn (Note 4,4; 85 % Meidung), MSB-Unterrichtsausfallstatistik NRW (4,8 % landesweit, bis zu 11 % in Brennpunkten), Schulbarometer 2026 (25 % psychische Belastung, 33 % Mobbing, 50 % ohne Mitbestimmung).
+- **2026-10-21 12:14** – PR #67 (`docs/SCIENTIFIC_FOUNDATION.md`) erfolgreich durch Lead gemerged. Alle 261 Vitest-Tests auf `main` grün.
+- **2026-10-21 12:10** – Technische Ursachen-Analyse für MapLibre-Masken-Bug (#132) bereitgestellt (Symbol-Layer vs. GeoJSON-Order).
+- **2026-10-21 12:05** – Fragenkatalog-Abgleich für #128 (Seed-Antworten & Swipe-Constraints) bereitgestellt.
 - **2026-10-21 12:00** – Prompt-Engineering-Briefing für Freitext-Moderation & Clustering (#114, FB-006) ausgearbeitet: System-Prompt mit strikter Eigennamen-Entfernung, neutraler Schimpfwort-Umschreibung, Krisensignal-Detektion (`concern`), Abbildung auf die 8 Themen-Slugs und schnellem Latenz-/Kosten-Fokus (`gemini-2.0-flash` / `gpt-4o-mini`).
 - **2026-10-21 11:55** – PR #110 (Schul-Marker & Clustering) aus kartographischer und statistischer Sicht geprüft: Flächenproportionale Flannery-Skalierung ($\sim \sqrt{n}$), $n$-gewichtete Cluster-Mittelwerte und $K_{\text{MIN}}$-Unterdrückung methodisch freigegeben.
 - **2026-10-21 11:50** – GIS-Unterstützung für Issue #91 bereitgestellt: Aus 5 Regierungsbezirken per Außenkanten-Dissolve und RDP-Algorithmus einen bereinigten, breitenkorrigierten NRW-SVG-Pfad (44 Stützpunkte, dl-de/by-2-0) berechnet und gepostet.
