@@ -5,6 +5,7 @@ import { getDataSource } from '@/data';
 import { K_MIN } from '@/lib/env';
 import { useRoleStore } from '@/store/role';
 import { GroupComparison } from './GroupComparison';
+import { AiReport } from './AiReport';
 import { Hotspots, KpiRow, TopicPercentList, TopicRanking } from './LagebildSections';
 import { loadLagebild } from './loadLagebild';
 
@@ -82,6 +83,7 @@ export function DashboardPage() {
         <>
           <KpiRow overall={query.data.overall} schools={query.data.schools} />
           <Hotspots topics={query.data.topics} />
+          <AiReport topics={query.data.topics} />
           <TopicPercentList topics={query.data.topics} />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <TopicRanking topics={query.data.topics} />

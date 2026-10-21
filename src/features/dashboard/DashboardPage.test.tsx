@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { clearDataSources, registerDataSource } from '@/data';
 import type { DataSource } from '@/data/api';
@@ -96,6 +96,13 @@ describe('DashboardPage – Lagebild NRW', () => {
       within(screen.getByRole('region', { name: /Brennpunkt/ })).queryByText('Mensa & Pausen'),
     ).toBeNull();
     expect(screen.queryByRole('option', { name: /Mensa/ })).toBeNull();
+  });
+
+  it('renders a labelled mock AI report', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Lagebericht erstellen' }));
+    expect(screen.getByText('KI-generiert · Demo')).toBeInTheDocument();
+    expect(screen.getByText(/Hier sollte zuerst ein Dialogformat/)).toBeInTheDocument();
   });
 
   it('vergleicht Schulformen für das Story-Thema Stress', async () => {
