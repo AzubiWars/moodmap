@@ -45,6 +45,8 @@ cp .env.example .env.local   # optional – ohne Keys läuft der Mock-Modus
 npm run dev
 ```
 
+Auf `/map` kannst du über die Themenleiste zwischen Gesamt-Mood und einzelnen Themen wechseln. Ein Link wie `/map?topic=ai` öffnet direkt die KI-Ansicht; Browser-Zurück stellt die vorherige Auswahl wieder her. Die Karte verwendet bis zur Anbindung der MockDataSource (#9) deterministische Demo-Scores.
+
 ## Team
 
 - **Menschen:** Produkt-Owner, Feedback, Pitch – siehe `coordination/FEEDBACK.md`
