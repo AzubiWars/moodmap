@@ -19,6 +19,7 @@ import {
   loadRegions,
   NRW_BOUNDS,
   type RegionCollection,
+  type RegionFeature,
   withScores,
 } from './geo';
 import { DetailPanel } from './DetailPanel';
@@ -29,6 +30,7 @@ import { type MapMode, parseMapMode, type TensionMap, toTensionMap } from './rad
 import { useRoleStore } from '@/store/role';
 import { MapBreadcrumb } from './MapBreadcrumb';
 import { MapLegend } from './MapLegend';
+import { MapSearch } from './MapSearch';
 import { MoodMap } from './MoodMap';
 import { loadSchools, type SchoolCollection, schoolsToGeoJSON } from './schools';
 import { TopicFilter } from './TopicFilter';
@@ -84,14 +86,22 @@ function withSchoolTension(points: SchoolCollection, tension: TensionMap | null)
 }
 
 /** Schulen erscheinen ab Regierungsbezirk; im Kreis nur die des Kreises (#18). */
-function visibleSchools(drill: DrillState, schools: readonly School[], kreise: RegionCollection | undefined) {
-  if (drill.kreis) return schools.filter((s) => s.kreisId === drill.kreis!.properties.id);
+function visibleSchools(
+  drill: DrillState,
+  schools: readonly School[],
+  kreise: RegionCollection | undefined,
+  city: string | null,
+) {
+  const inCity = city ? schools.filter((s) => s.city === city) : schools;
+  // Eine Stadt kann über Kreisgrenzen hinaus Schulen haben (z. B. Stadtteile) – dann alle zeigen.
+  if (city) return inCity;
+  if (drill.kreis) return inCity.filter((s) => s.kreisId === drill.kreis!.properties.id);
   if (!drill.regbez || !kreise) return [];
   const regbezId = drill.regbez.properties.id;
   const kreisIds = new Set(
     kreise.features.filter((f) => f.properties.regbez_id === regbezId).map((f) => f.properties.id),
   );
-  return schools.filter((s) => kreisIds.has(s.kreisId));
+  return inCity.filter((s) => kreisIds.has(s.kreisId));
 }
 
 /** Ausschnitt um eine Schule (~ Zoom 14, Nachbarschaft bleibt erkennbar). */
@@ -100,6 +110,18 @@ function schoolBounds(school: School): Bounds {
   return [
     [school.lon - d * 1.6, school.lat - d],
     [school.lon + d * 1.6, school.lat + d],
+  ];
+}
+
+/** Ausschnitt um alle Schulen einer Stadt, mit etwas Rand. */
+function cityBounds(schools: readonly School[]): Bounds | null {
+  if (schools.length === 0) return null;
+  const lons = schools.map((school) => school.lon);
+  const lats = schools.map((school) => school.lat);
+  const pad = 0.012;
+  return [
+    [Math.min(...lons) - pad, Math.min(...lats) - pad],
+    [Math.max(...lons) + pad, Math.max(...lats) + pad],
   ];
 }
 
@@ -146,6 +168,9 @@ export function MapPage() {
 
   const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
   const focusRegbezId = drill.regbez?.properties.id ?? null;
+  const city = searchParams.get('city');
+  const citySchools =
+    city && schoolsQuery.data ? schoolsQuery.data.filter((school) => school.city === city) : [];
 
   // Landesansicht: Regierungsbezirke (Fallback: Kreise, falls die RegBez-Datei fehlt).
   // Ab Regierungsbezirk: alle Kreise, die außerhalb des Bezirks werden abgeblendet.
@@ -184,7 +209,7 @@ export function MapPage() {
 
   const schoolsShown =
     schoolsQuery.data && (!radar || ministry)
-      ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data)
+      ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data, city)
       : [];
   const schoolPoints = schoolsShown.length
     ? withSchoolTension(
@@ -196,7 +221,7 @@ export function MapPage() {
   const focusFeature = drill.kreis ?? drill.regbez;
   const focusBounds = drill.school
     ? schoolBounds(drill.school)
-    : ((focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
+    : (cityBounds(citySchools) ?? (focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
 
   const pulses = pulsing.flatMap((id) => {
     const school = schoolsQuery.data?.find((s) => s.id === id);
@@ -243,6 +268,27 @@ export function MapPage() {
     navigate(schoolTarget(drill, school));
   }
 
+  /** Suchtreffer „Kreis“ oder „Regierungsbezirk“ direkt anspringen. */
+  function selectSearchRegion(feature: RegionFeature) {
+    const isKreis = feature.properties.type != null;
+    navigate({
+      regbez: isKreis ? feature.properties.regbez_id : feature.properties.id,
+      kreis: isKreis ? feature.properties.id : undefined,
+    });
+  }
+
+  /** Suchtreffer „Stadt“: auf den Kreis der ersten Schule springen und alle Schulen der Stadt zeigen. */
+  function selectCity(value: string) {
+    const first = schoolsQuery.data?.find((school) => school.city === value);
+    if (!first) return;
+    const kreis = kreiseQuery.data?.features.find((feature) => feature.properties.id === first.kreisId);
+    navigate({
+      regbez: kreis?.properties.regbez_id,
+      kreis: first.kreisId,
+      city: value,
+    });
+  }
+
   return (
     <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] flex-col md:h-[calc(100dvh-5.1rem)]">
       {/* Der Spannungs-Index nutzt feste Themen (TENSION_WEIGHTS) – Themenfilter nur im Stimmungsmodus */}
@@ -270,11 +316,49 @@ export function MapPage() {
               <h1 className="text-base font-bold">Moodmap NRW</h1>
               <LiveToggle live={live} added={added} onChange={setLive} />
             </div>
+            <MapSearch
+              schools={schoolsQuery.data}
+              kreise={kreiseQuery.data}
+              regbez={regbezQuery.data}
+              onSelectSchool={(school) => {
+                const kreis = kreiseQuery.data?.features.find(
+                  (feature) => feature.properties.id === school.kreisId,
+                );
+                navigate({
+                  regbez: kreis?.properties.regbez_id,
+                  kreis: school.kreisId,
+                  school: school.id,
+                });
+              }}
+              onSelectCity={selectCity}
+              onSelectRegion={selectSearchRegion}
+            />
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
             <MapModeSwitch mode={mode} onChange={setMode} />
+            {city && citySchools.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1 text-xs">
+                <span className="rounded-full bg-subtle px-2 py-0.5">
+                  Stadt {city} · {citySchools.length} {citySchools.length === 1 ? 'Schule' : 'Schulen'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate({
+                      regbez: drill.regbez?.properties.id,
+                      kreis: drill.kreis?.properties.id,
+                    })
+                  }
+                  aria-label="Stadtfilter entfernen"
+                  className="rounded-full px-1.5 py-0.5 text-muted hover:bg-subtle hover:text-fg"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <p className="text-xs text-fg" aria-live="polite">
               {radar ? '📡 Spannungs-Index aus 6 Themen' : `${topic.icon} ${topic.title}`} ·{' '}
               {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
+              {city && ` · Stadt ${city}`}
             </p>
           </div>
         </div>
