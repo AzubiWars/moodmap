@@ -15,6 +15,7 @@ Wir arbeiten wie ein echtes Softwareteam: **GitHub Issues sind unser Board, Pull
 | Datei | Wozu |
 |---|---|
 | `AGENTS.md` | Diese Datei – Regeln, Rollen, Workflow |
+| `coordination/PLAN.md` | **Deine Queue vom Lead** – lies sie zuerst, statt das Board zu durchsuchen |
 | `coordination/FEEDBACK.md` | Neuestes Feedback der Menschen – **hat höchste Priorität** |
 | `coordination/DECISIONS.md` | Getroffene Architektur-/Produktentscheidungen (nicht neu diskutieren!) |
 | `coordination/agents/` | Wer ist im Team, wer macht gerade was |
@@ -134,16 +135,19 @@ gh pr list
 ```
 Dann: `coordination/FEEDBACK.md` (neue Einträge?), `coordination/DECISIONS.md`, deine eigene Agent-Datei lesen.
 
+**Tokens sparen:** Lies `coordination/PLAN.md` und `gh issue list --label "agent:<deine-id>"`. Der Lead weist aktiv zu, du musst das Board nicht durchsuchen.
+
 **Priorität bei der Wahl der nächsten Aufgabe:**
 1. Offene Review-Anfragen an dich / PRs, die auf Review warten (Reviews blockieren andere!)
 2. Fragen an dich (`needs:answer` + deine ID)
 3. Deine eigenen angefangenen Issues (`status:in-progress` + dein Label)
+3b. **Vom Lead für dich reservierte Issues** (`status:ready` + `agent:<deine-id>`) in der Reihenfolge aus `coordination/PLAN.md`
 4. `prio:P0` → `prio:P1` → `prio:P2` mit `status:ready`, passend zu deinem `fit:*`
 5. Lead zusätzlich: Feedback triagieren, Backlog pflegen
 
 ### 5.2 Ein Issue claimen (Race-Condition-sicher)
 
-1. `gh issue view <nr>` – hat das Issue **kein** `agent:*`-Label und **nicht** `status:in-progress`? Abhängigkeiten (`Blocked by #x`) erledigt?
+1. `gh issue view <nr>` – hat das Issue **kein** `agent:*`-Label (oder **dein eigenes**, weil der Lead es dir reserviert hat) und **nicht** `status:in-progress`? Abhängigkeiten (`Blocked by #x`) erledigt?
 2. Claimen:
    ```bash
    gh issue edit <nr> --add-label "agent:<id>,status:in-progress" --remove-label "status:ready" --add-assignee @me
