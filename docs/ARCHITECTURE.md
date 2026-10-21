@@ -19,7 +19,7 @@
 | Backend | **Supabase** (Postgres + Realtime + Row Level Security + Edge Functions) | DB, API, Live-Updates ohne eigenen Server |
 | Mock-Backend | Lokaler In-Memory-/localStorage-Store mit gleichem Interface | Demo-Versicherung |
 | KI-Lagebericht | Supabase Edge Function → LLM-API (z. B. Claude) mit **nur aggregierten Daten**; im Mock-Modus statischer Bericht | Wow-Feature, sicher vorführbar |
-| Tests | **Vitest** (+ Testing Library), **Playwright** (1–3 Smoke-Tests) | |
+| Tests | **Vitest** (+ Testing Library), **Playwright** (1–3 Smoke-Tests), **PGlite** für SQL-Tests der Migrationen (#76) | |
 | Lint/Format | ESLint + Prettier | |
 | Hosting | **Vercel** (festgelegt, mit GitHub-Repo verbunden): `main` → Production, jeder PR → Preview-URL | Menschen können jeden PR auf dem Handy testen |
 | CI | GitHub Actions: lint, typecheck, test, build | `main` bleibt grün |
@@ -45,7 +45,8 @@ moodmap/
 │   ├── data/                # Zwischendaten der Skripte (nicht ausgeliefert), z. B. nrw-gemeinden.json
 │   └── generate-seed.ts     # synthetische Antworten erzeugen
 ├── supabase/
-│   ├── migrations/          # SQL-Schema, Views, RLS
+│   ├── migrations/          # SQL-Schema, Views, RLS, RPCs (Dateiname = Zeitstempel = Reihenfolge)
+│   ├── tests/               # SQL-Tests: Migrationen in PGlite (#76), laufen mit `npm test`
 │   └── functions/
 │       └── situation-report/ # KI-Lagebericht
 └── src/
@@ -185,6 +186,13 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 **Zugriffsregeln (RLS):**
 - `anon` darf **INSERT** auf `responses`/`answers` (über eine RPC-Funktion `submit_response`, die alles validiert) – **kein SELECT** auf Rohdaten.
 - Gelesen werden ausschließlich **Aggregations-Views/RPCs**, die die Mindestanzahl erzwingen.
+
+✅ Umgesetzt in `supabase/migrations/20261021091500_schema.sql` (#77):
+- `anon`/`authenticated` haben **keinerlei Rechte** auf `responses`, `answers` und `policy_answer_ratings` (kein SELECT/INSERT/UPDATE/DELETE). Schreiben nur über `security definer`-RPCs (#78, #81).
+- Lesbar: `regbez`, `kreise`, `topics`, `questions`, `waves`, `policy_answers` und `schools` **ohne** `join_code` (Spalten-Grant). Codes werden nur über `get_school_by_code` aufgelöst (#78).
+- RLS ist auf jeder Tabelle aktiv. Weil Supabase neuen Objekten standardmäßig alle Rechte gibt, entzieht die Migration sie und setzt die Default-Privileges so, dass **spätere Tabellen und Funktionen nicht automatisch erreichbar sind**. Jede neue RPC braucht ein explizites `grant execute … to anon`.
+- Typ-spezifische Wertebereiche der Antworten (mood5 1–5, swipe 0/1, gültige `choice`-Optionen) prüft zusätzlich ein Trigger.
+- SQL-Tests (`supabase/tests/`) laufen mit `npm test` gegen PGlite und prüfen Rechte, RLS, Constraints und die Gleichheit der Enums mit `src/types/domain.ts`.
 
 **Aggregations-Views (Beispiele):**
 - `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
