@@ -32,11 +32,18 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 3. **`/demo`:** Rollen-Umschalter (Schüler:in · Schule · Ministerium), QR-Code, Demo-Daten zurücksetzen.
 4. **Als App installieren** (PWA): Android „App installieren“, iPhone „Zum Home-Bildschirm“.
 
-**Neu auf `main`:** Lagebild mit Prozent-Statistik (#25), Frühwarn-Radar (#42), weitere Kartenfilter (#20), Trend-/Beteiligungsmodus (#21), Demo-/Live-Kennzeichnung (#160), Offline-Puffer für Abgaben (#36), Deutschland-Maske (#132), neues App-Icon Variante B (#91/#182), Freitext-Cluster-Daten für den Beamer (#194). **In Arbeit:** Beamer-Live-Ansicht (#116), Lasttest (#117), „Politik antwortet“ (#43), Zeitachse (#34). Der Supabase-Live-Modus ist im Code fertig (#23), braucht aber noch Function-Deployments und Vercel-Env (#118).
+**Neu auf `main`:** Lagebild mit Prozent-Statistik (#25), Frühwarn-Radar (#42), weitere Kartenfilter (#20), Trend-/Beteiligungsmodus (#21), Demo-/Live-Kennzeichnung (#160), Offline-Puffer für Abgaben (#36), Deutschland-Maske (#132), neues App-Icon Variante B (#91/#182), Freitext-Cluster-Daten für den Beamer (#194), deutlich mehr Demodaten für alle 300 Schulstandorte (#210). **In Arbeit:** Beamer-Live-Ansicht (#116), Lasttest (#117), „Politik antwortet“ (#43), Zeitachse (#34). Der Supabase-Live-Modus ist im Code fertig (#23), braucht aber noch Function-Deployments und Vercel-Env (#118).
 
 ---
 
 ## Feedback-Einträge
+
+### FB-008 · Mehr Demodaten für alle Standorte
+- **Von:** Louis · **Datum/Zeit:** 2026-10-21 14:30
+- **Gerät/Ansicht:** /map
+- **Feedback:** „Wir brauchen mehr Demodaten für alle Standorte, es gibt aktuell zu wenig Daten überall.“
+- **Wichtigkeit:** 🔥
+- **Status:** 🟢 erledigt (#210/#212). Alle 300 Demo-Schulen haben in allen 10 Wellen ≥ K_MIN; die aktuelle Welle hat 24–36 Antworten pro Schule, ältere 12–18. Die 5.327 echten Verzeichnis-Standorte bleiben bewusst neutral (ADR-012/013); #109 kann daraus zusätzliche anonymisierte Demo-Standorte machen.
 
 ### FB-007 · Karte: nur Deutschland zeigen
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 13:15
