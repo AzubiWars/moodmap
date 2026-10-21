@@ -286,6 +286,24 @@ export function MoodMap({
     mapRef.current?.easeTo({ pitch: is3d ? 50 : 0, duration: 500 });
   }, [is3d, loaded]);
 
+  // Native MapLibre-Events sind robuster als der React-Event-Wrapper: ab Zoom 14
+  // automatisch 3D, darunter den Button mit der tatsächlichen Kameraneigung synchronisieren.
+  useEffect(() => {
+    if (!loaded) return;
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    const sync = () => {
+      if (map.getZoom() >= 14) onPitchChange?.(true);
+      else onPitchChange?.(map.getPitch() > 10);
+    };
+    map.on('zoomend', sync);
+    map.on('moveend', sync);
+    return () => {
+      map.off('zoomend', sync);
+      map.off('moveend', sync);
+    };
+  }, [loaded, onPitchChange]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!loaded || !map) return;
@@ -416,11 +434,6 @@ export function MoodMap({
       mapStyle={mapStyle}
       onLoad={() => setLoaded(true)}
       onStyleData={() => setMapReady(true)}
-      onMoveEnd={(event) => {
-        // Ab Gebäude-Zoom automatisch 3D; darunter normal mit der manuellen Kippung synchronisieren.
-        if (event.viewState.zoom >= 14) onPitchChange?.(true);
-        else onPitchChange?.(event.viewState.pitch > 10);
-      }}
       interactiveLayerIds={[
         FILL_LAYER_ID,
         SCHOOL_LAYER_ID,
