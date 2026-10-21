@@ -308,6 +308,26 @@ VITE_K_MIN=10
 # LLM_API_KEY=
 ```
 
+## 10a. Supabase: lokal & gehostet (#93)
+
+Die Supabase-CLI ist auf **`supabase@2.120.0`** gepinnt und läuft per `npx` (`npm run supabase -- <befehl>`). Sie ist bewusst keine devDependency, weil sie ein großes Binary lädt, das CI und Vercel nicht brauchen.
+
+| Befehl | Wirkung |
+|---|---|
+| `npm run db:start` | Lokale Instanz starten (braucht **Docker**). Spielt alle Migrationen + `supabase/seed.sql` ein. Studio: http://127.0.0.1:54323 |
+| `npm run db:reset` | Lokale DB neu aufsetzen (Migrationen + Seed), z. B. nach neuen Migrationen |
+| `npm run db:stop` | Lokale Instanz stoppen |
+| `npm run supabase -- status` | Lokale URL + anon key für `.env.local` |
+| `npm run db:seed:build` | `supabase/seed.sql` aus den Quellen neu erzeugen (Regierungsbezirke/Kreise aus `public/geo`, Schulen aus `public/data/schools.json`, Themen/Fragen aus `src/data/topics.ts`, Wellen `2026-W34`…`2027-W30`). Ein Test prüft, dass die Datei aktuell ist. |
+
+**Neue Migration anlegen:** Datei `supabase/migrations/<YYYYMMDDHHMMSS>_<name>.sql` (Zeitstempel = Reihenfolge). Neue Funktionen sind **nicht** automatisch öffentlich (#77): `grant execute on function … to anon, authenticated` explizit setzen. SQL-Tests in `supabase/tests/` laufen mit `npm test` in PGlite, ohne Docker.
+
+**Gehostetes Projekt:**
+- Region `eu-central-1` (Frankfurt). Das Konto gehört den Menschen.
+- Migrationen spielt nur ein, wer vom Lead/den Menschen dazu bestimmt ist, und nur **gemergte** Migrationen von `main`: `npm run supabase -- link --project-ref <ref>`, dann `npm run supabase -- db push --include-seed`. Das DB-Passwort steht in `SUPABASE_DB_PASSWORD` (nur `.env.local`).
+- Keys: URL + anon/publishable Key sind für das Frontend gedacht, werden aber trotzdem **nicht** committet oder in Issues gepostet (AGENTS.md §9). Die Menschen geben sie weiter und setzen sie in Vercel (ADR-004). Den `service_role`-Key bekommen nur Seed-Skripte (#23), nie das Frontend.
+- `VITE_DATA_MODE` bleibt in Vercel `mock`, bis die SupabaseDataSource (#23) gemergt ist.
+
 ## 11. Geplante Schüler-Anmeldung (Vorschlag, #74)
 
 Die Menschen wünschen eine Anbindung an ein bestehendes Schüler-SSO. [SSO_PLAN.md](SSO_PLAN.md) beschreibt Anschlusswege, Schul-/Rollenprüfung, die Trennung von Identität und Antworten sowie die offenen Anbieter- und Datenschutzfragen. Anbieterwahl und Umsetzung sind noch nicht freigegeben; das bestehende Datenmodell, das `DataSource`-Interface und der Mock-Modus werden durch diesen Plan nicht geändert.
