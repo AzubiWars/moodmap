@@ -13,6 +13,8 @@ export interface MapSearchResult {
   detail: string;
   /** Nur bei `kind === 'school'`. */
   school?: School;
+  /** Treffer aus dem offiziellen NRW-Schulverzeichnis (ohne Stimmungswerte). */
+  directory?: boolean;
   /** Nur bei `kind === 'kreis'` oder `kind === 'regbez'`. */
   region?: RegionFeature;
   /** Nur bei `kind === 'city'`. */
@@ -21,6 +23,7 @@ export interface MapSearchResult {
 
 export interface MapSearchInput {
   schools?: readonly School[];
+  directorySchools?: readonly School[];
   kreise?: RegionCollection;
   regbez?: RegionCollection;
 }
@@ -90,8 +93,28 @@ export function searchMap(query: string, input: MapSearchInput, limit = 12): Map
       school,
     }))
     .sort(byRankAndLabel(normalizedQuery))
-    .slice(0, 8);
+    .slice(0, 4);
   results.push(...schoolResults);
+
+  // 1b. Offizielles NRW-Schulverzeichnis: alle 5.327 Standorte durchsuchbar.
+  const directoryResults = (input.directorySchools ?? [])
+    .filter((school) =>
+      matches(
+        `${school.name} ${school.city} ${school.id} ${SCHOOL_FORM_LABELS[school.schoolForm]}`,
+        queryWords,
+      ),
+    )
+    .map<MapSearchResult>((school) => ({
+      key: `directory:${school.id}`,
+      kind: 'school',
+      label: school.name,
+      detail: `${SCHOOL_FORM_LABELS[school.schoolForm]} · ${school.city} · Schulverzeichnis`,
+      school,
+      directory: true,
+    }))
+    .sort(byRankAndLabel(normalizedQuery))
+    .slice(0, 8);
+  results.push(...directoryResults);
 
   // 2. Städte aus den Schulstandorten. Kreisfreie Städte kommen bereits als Kreis-Treffer.
   const independentCities = new Set(
