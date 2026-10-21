@@ -1,4 +1,4 @@
-import type { DataLevel, GradeBand, Role, SchoolForm, TopicSlug, WaveId } from './domain';
+import type { DataLevel, GradeBand, Role, School, SchoolForm, TopicSlug, WaveId } from './domain';
 
 export interface AggregateQuery {
   /** `nrw` liefert genau eine Zeile `{ id: 'nrw' }`, direkt über alle Antworten aggregiert (Lead-Entscheidung #19/#140). */
@@ -68,4 +68,16 @@ export interface Distribution {
   questionId: string;
   n: number;
   options: DistributionOption[];
+}
+
+/** Öffentliche Pitch-Auswertung für die Beamer-Ansicht (#116); nie Teil der NRW-Aggregate. */
+export interface PitchAggregate {
+  school: Pick<School, 'id' | 'name' | 'city' | 'lat' | 'lon' | 'isTest'>;
+  waveId: WaveId;
+  /** Teilnahmen insgesamt (auch ohne gewertete Antworten). */
+  n: number;
+  /** Teilnahmen mit mindestens einer gewerteten Antwort; K_MIN gilt hierfür. */
+  scoredN: number;
+  score: number | null;
+  topicScores: Record<TopicSlug, number | null>;
 }

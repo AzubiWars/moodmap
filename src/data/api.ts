@@ -3,7 +3,9 @@ import type {
   AggregateRow,
   DeleteResult,
   Distribution,
+  FreetextCluster,
   OwnResponseInput,
+  PitchAggregate,
   PolicyAnswer,
   PolicyAnswerFilter,
   PolicyAnswerInput,
@@ -50,6 +52,10 @@ export interface DataSource {
 
   // Frühwarn-Radar
   getTensionIndex(query: AggregateQuery): Promise<TensionRow[]>;
+
+  // Pitch-Beamer (#116)
+  getPitchAggregate(): Promise<PitchAggregate>;
+  getFreetextClusters(scope: Scope): Promise<FreetextCluster[]>;
 
   // „Politik antwortet"
   getPolicyAnswers(filter: PolicyAnswerFilter): Promise<PolicyAnswer[]>;

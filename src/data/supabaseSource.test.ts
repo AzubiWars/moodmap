@@ -151,6 +151,62 @@ describe('SupabaseDataSource', () => {
     ]);
   });
 
+  it('loads the pitch aggregate and freetext clusters through their RPCs', async () => {
+    const pitch = {
+      school: {
+        id: 'pitch-test',
+        name: 'Pitch-Test',
+        city: 'Berlin',
+        lat: 52.52,
+        lon: 13.405,
+        isTest: true,
+      },
+      waveId: '2026-W43',
+      n: 12,
+      scoredN: 12,
+      score: 61,
+      topicScores: { stress: 60 },
+    };
+    const clusters = [
+      { cluster: 'Toiletten', count: 12, topics: ['building'], examples: ['Die Toiletten sind kaputt.'] },
+    ];
+    const { source, fetcher } = setup((path) =>
+      json(path.endsWith('get_pitch_aggregate') ? pitch : clusters),
+    );
+    expect(await source.getPitchAggregate()).toEqual(pitch);
+    expect(await source.getFreetextClusters({ level: 'school', id: 'pitch-test' })).toEqual(clusters);
+    expect(fetcher.mock.calls.map(([target]) => new URL(String(target)).pathname).slice(-2)).toEqual([
+      '/rest/v1/rpc/get_pitch_aggregate',
+      '/rest/v1/rpc/get_freetext_clusters',
+    ]);
+  });
+
+  it('masks the pitch aggregate below K_MIN as a second guard', async () => {
+    const { source } = setup(() =>
+      json({
+        school: {
+          id: 'pitch-test',
+          name: 'Pitch-Test',
+          city: 'Berlin',
+          lat: 52.52,
+          lon: 13.405,
+          isTest: true,
+        },
+        waveId: '2026-W43',
+        n: 9,
+        scoredN: 9,
+        score: 61,
+        topicScores: { stress: 60 },
+      }),
+    );
+    expect(await source.getPitchAggregate()).toMatchObject({
+      n: 9,
+      scoredN: 9,
+      score: null,
+      topicScores: { stress: null },
+    });
+  });
+
   it('masks scores below K_MIN and small choice counts as a second guard', async () => {
     const { source } = setup((path) => {
       if (path.endsWith('get_choice_distribution'))
