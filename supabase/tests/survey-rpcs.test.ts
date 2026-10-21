@@ -80,6 +80,15 @@ describe('submit_response', () => {
     ).resolves.toEqual({ ok: true });
   });
 
+  it('accepts a run where every question was skipped, like the mock (#214)', async () => {
+    const input = validInput({ answers: [] });
+    const [responses, answers] = [await countRows('responses'), await countRows('answers')];
+    await expect(submit(input)).resolves.toEqual({ ok: true });
+    expect(await countRows('responses')).toBe(responses + 1); // takes part (double-participation guard) …
+    expect(await countRows('answers')).toBe(answers); // … but contributes no answer to any score
+    await expect(submit(input)).resolves.toEqual({ ok: false, reason: 'already_submitted' });
+  });
+
   it.each([
     ['not an object', '"hello"', /must be an object/],
     ['unknown school', validInput({ schoolId: '999999' }), /unknown school/],
@@ -89,7 +98,16 @@ describe('submit_response', () => {
     ['invalid grade band', { ...validInput(), gradeBand: 'uni' }, /check constraint/],
     ['missing device token', { ...validInput(), deviceToken: undefined }, /invalid device token/],
     ['short device token', validInput({ deviceToken: 'abc' }), /invalid device token/],
-    ['no answers', validInput({ answers: [] }), /non-empty array/],
+    [
+      'answers not an array',
+      { ...validInput(), answers: { questionId: 'stress.core', value: 3 } },
+      /at most 100/,
+    ],
+    [
+      'more than 100 answers',
+      validInput({ answers: Array.from({ length: 101 }, (_, i) => ({ questionId: `q${i}`, value: 3 })) }),
+      /at most 100/,
+    ],
     [
       'duplicate question',
       validInput({
