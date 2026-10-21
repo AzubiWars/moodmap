@@ -259,6 +259,12 @@ export function MoodMap({
   /** = Seitenhintergrund (--color-surface), damit die Karte außerhalb Deutschlands in die Seite übergeht */
   const maskColor = dark ? '#0f172a' : '#f8fafc';
   const mapRef = useRef<MapRef>(null);
+  const mapApiRef = useRef<{
+    on: (event: string, callback: () => void) => void;
+    off: (event: string, callback: () => void) => void;
+    getZoom: () => number;
+    getPitch: () => number;
+  } | null>(null);
   const [basemapFailed, setBasemapFailed] = useState(false);
   const mapStyle = useMemo(
     () => (basemapFailed ? fallbackStyle(dark) : BASEMAP_URLS[theme]),
@@ -290,7 +296,7 @@ export function MoodMap({
   // automatisch 3D, darunter den Button mit der tatsächlichen Kameraneigung synchronisieren.
   useEffect(() => {
     if (!loaded) return;
-    const map = mapRef.current?.getMap();
+    const map = mapApiRef.current;
     if (!map) return;
     const sync = () => {
       if (map.getZoom() >= 14) onPitchChange?.(true);
@@ -432,7 +438,10 @@ export function MoodMap({
       mapLib={maplibre}
       initialViewState={{ bounds: NRW_BOUNDS, fitBoundsOptions: { padding: 24 } }}
       mapStyle={mapStyle}
-      onLoad={() => setLoaded(true)}
+      onLoad={(event) => {
+        mapApiRef.current = event.target as unknown as typeof mapApiRef.current;
+        setLoaded(true);
+      }}
       onStyleData={() => setMapReady(true)}
       interactiveLayerIds={[
         FILL_LAYER_ID,
