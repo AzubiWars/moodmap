@@ -241,6 +241,7 @@ export function MapPage() {
   const requestedWave = searchParams.get('wave');
   const selectedWave = schoolYearWaves.find((w) => w === requestedWave);
   const [playing, setPlaying] = useState(false);
+  const [directoryFocus, setDirectoryFocus] = useState<School | null>(null);
   const aggFilters: AggregateFilters = {
     schoolForm: filters.schoolForm,
     gradeBand: filters.gradeBand,
@@ -294,9 +295,11 @@ export function MapPage() {
   const directoryPoints = directoryQuery.data ? directoryToGeoJSON(directoryQuery.data) : null;
 
   const focusFeature = drill.kreis ?? drill.regbez;
-  const focusBounds = drill.school
-    ? schoolBounds(drill.school)
-    : (cityBounds(citySchools) ?? (focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
+  const focusBounds = directoryFocus
+    ? schoolBounds(directoryFocus)
+    : drill.school
+      ? schoolBounds(drill.school)
+      : (cityBounds(citySchools) ?? (focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
 
   const pulses = pulsing.flatMap((id) => {
     const school = schoolsQuery.data?.find((s) => s.id === id);
@@ -359,17 +362,20 @@ export function MapPage() {
   function selectRegion(id: string | null) {
     const feature = id ? shown?.features.find((f) => f.properties.id === id) : undefined;
     if (!feature || feature.properties.id === drill.kreis?.properties.id) return;
+    setDirectoryFocus(null);
     navigate(clickTarget(drill, feature));
   }
 
   function selectSchool(id: string) {
     const school = schoolsShown.find((s) => s.id === id);
     if (!school || school.id === drill.school?.id) return;
+    setDirectoryFocus(null);
     navigate(schoolTarget(drill, school));
   }
 
   /** Suchtreffer „Kreis“ oder „Regierungsbezirk“ direkt anspringen. */
   function selectSearchRegion(feature: RegionFeature) {
+    setDirectoryFocus(null);
     const isKreis = feature.properties.type != null;
     navigate({
       regbez: isKreis ? feature.properties.regbez_id : feature.properties.id,
@@ -379,6 +385,7 @@ export function MapPage() {
 
   /** Suchtreffer „Stadt“: auf den Kreis der ersten Schule springen und alle Schulen der Stadt zeigen. */
   function selectCity(value: string) {
+    setDirectoryFocus(null);
     const first = schoolsQuery.data?.find((school) => school.city === value);
     if (!first) return;
     const kreis = kreiseQuery.data?.features.find((feature) => feature.properties.id === first.kreisId);
@@ -430,6 +437,7 @@ export function MapPage() {
             </div>
             <MapSearch
               schools={schoolsQuery.data}
+              directorySchools={directoryQuery.data}
               kreise={kreiseQuery.data}
               regbez={regbezQuery.data}
               onSelectSchool={(school) => {
@@ -442,6 +450,7 @@ export function MapPage() {
                   school: school.id,
                 });
               }}
+              onSelectDirectorySchool={(school) => setDirectoryFocus(school)}
               onSelectCity={selectCity}
               onSelectRegion={selectSearchRegion}
             />

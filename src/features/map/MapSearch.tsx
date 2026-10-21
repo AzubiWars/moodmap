@@ -6,9 +6,11 @@ import { MIN_SEARCH_LENGTH, type MapSearchResult, searchMap } from './searchCata
 
 interface MapSearchProps {
   schools?: readonly School[];
+  directorySchools?: readonly School[];
   kreise?: RegionCollection;
   regbez?: RegionCollection;
   onSelectSchool: (school: School) => void;
+  onSelectDirectorySchool?: (school: School) => void;
   onSelectCity: (city: string) => void;
   onSelectRegion: (region: RegionFeature) => void;
 }
@@ -25,9 +27,11 @@ const GROUP_ORDER: MapSearchResult['kind'][] = ['school', 'city', 'kreis', 'regb
 /** Schnellsuche für Schulen, Städte und Regionen direkt auf der Karte. */
 export function MapSearch({
   schools,
+  directorySchools,
   kreise,
   regbez,
   onSelectSchool,
+  onSelectDirectorySchool,
   onSelectCity,
   onSelectRegion,
 }: MapSearchProps) {
@@ -38,8 +42,8 @@ export function MapSearch({
   const listId = useId();
 
   const results = useMemo(
-    () => searchMap(query, { schools, kreise, regbez }),
-    [query, schools, kreise, regbez],
+    () => searchMap(query, { schools, directorySchools, kreise, regbez }),
+    [query, schools, directorySchools, kreise, regbez],
   );
   const tooShort = query.trim().length > 0 && query.trim().length < MIN_SEARCH_LENGTH;
   const showResults = open && query.trim().length >= MIN_SEARCH_LENGTH;
@@ -53,7 +57,8 @@ export function MapSearch({
   }, []);
 
   function choose(result: MapSearchResult) {
-    if (result.school) onSelectSchool(result.school);
+    if (result.directory && result.school) onSelectDirectorySchool?.(result.school);
+    else if (result.school) onSelectSchool(result.school);
     else if (result.city) onSelectCity(result.city);
     else if (result.region) onSelectRegion(result.region);
     setQuery('');
