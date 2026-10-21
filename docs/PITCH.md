@@ -66,7 +66,7 @@
 | Anzahl Lehrkräfte in NRW | **214.290** hauptamtliche und hauptberufliche Lehrkräfte (SJ 2025/26) | [Q3] | ☑ 21.10.2026 |
 | Aktuelle Studie zu Schülerwohlbefinden / Stress | **25 %** psychisch belastet; **16 %** geringes schulisches Wohlbefinden; **30 %** der 11–17-Jährigen mind. monatlich gemobbt | [Q4] | ☑ 21.10.2026 |
 | KI-Nutzung durch Schüler:innen | **65 %** der 14–19-Jährigen haben KI genutzt; **23 %** lassen Hausaufgaben von KI erledigen; **44 %** für ein Verbot bei Hausaufgaben | [Q5] | ☑ 21.10.2026 |
-| **Frankreich-Ereignis** (was, wann, Bezug zu Schule/Jugend) | **offen** – Recherche läuft in #44 | – | ☐ |
+| **Frankreich-Ereignis** (was, wann, Bezug zu Schule/Jugend) | 27.6.2023: Nahel Merzouk (17) in Nanterre erschossen; Unruhen in 500+ Städten/Gemeinden; Analysen nennen Segregation und Bildungsungleichheit als strukturellen Hintergrund | [Q8] | ☑ 21.10.2026 |
 | Vertrauen junger Menschen in Politik / Gefühl, gehört zu werden | **75 %** hohes Vertrauen in Demokratie, Parteien deutlich weniger (Shell 2024, n = 2.509); **50 %** können Unterrichtsinhalte gar nicht mitbestimmen (Schulbarometer 25/26) | [Q6], [Q4] | ☑ 21.10.2026 |
 | Bestehende Beteiligungsformate in NRW | SV nach **§ 74 Schulgesetz NRW**; **LSV NRW** auf Landesebene | [Q7] | ☑ 21.10.2026 |
 
@@ -78,6 +78,7 @@
 - **[Q4]** Robert Bosch Stiftung / Deutsches Schulportal: „Deutsches Schulbarometer Schüler:innen 25/26“, 18.3.2026 – 25 % psychisch belastet, 16 % geringes schulisches Wohlbefinden, 30 % mind. monatlich gemobbt, 50 % ohne Mitbestimmung bei Unterrichtsinhalten; n = 1.507 (8–17 J.). <https://deutsches-schulportal.de/bildungswesen/deutsches-schulbarometer-schuelerbefragung-2026-die-wichtigsten-ergebnisse>
 - **[Q5]** Bitkom: „Digitale Schule 2025“, November 2025 – 65 % KI-Nutzung, 23 % Hausaufgaben durch KI, 44 % für Verbot; n = 502 (14–19 J.). <https://www.bitkom.org/Bitkom/Publikationen/Digitale-Schule-2025> · DOI: [10.64022/2025-digitale-schule](https://doi.org/10.64022/2025-digitale-schule)
 - **[Q6]** BMFSFJ: „19. Shell Jugendstudie veröffentlicht“, 15.10.2024 – 75 % hohes Vertrauen in Demokratie, Parteien deutlich weniger; n = 2.509 (12–25 J.). <https://www.bmbfsfj.bund.de/bmbfsfj/aktuelles/alle-meldungen/19-shell-jugendstudie-veroeffentlicht--246246>
+- **[Q8]** The Guardian (2.7.2023): „The Observer view on the riots in France: a grim tale of …“ <https://www.theguardian.com/commentisfree/2023/jul/02/observer-view-riots-france-nahel-merzouk>; Le Gall & Oberti: „The Structural Roots of the 2023 French Riots: Segregation …“ <https://sciencespo.hal.science/hal-05596755/file/WP187-Guillaume-Le-Gall%20et%20Oberti.pdf>
 - **[Q7]** Ministerium für Schule und Bildung NRW: „Schülervertretung“ – SV nach § 74 Schulgesetz NRW, LSV NRW auf Landesebene. <https://www.schulministerium.nrw/schuelervertretung>
 
 ## 5. Folien-Inhalte (Stichpunkte)

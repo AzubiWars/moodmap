@@ -15,7 +15,7 @@ Moodmap ist nicht nur ein Messinstrument für das Ministerium, sondern eine **Br
 
 **Leitgedanke:** Eskalationen – Gewalt an Schulen, Wut auf „die da oben", Proteste, die kippen – entstehen selten aus dem Nichts. Ihnen gehen oft lange Phasen voraus, in denen Frust, Unsicherheit und das Gefühl, nicht gehört zu werden, wachsen. Genau das macht Moodmap **früh sichtbar** und gibt ihm einen **konstruktiven Kanal**.
 
-*(Konkretes Frankreich-Beispiel: `<PLATZHALTER – Ereignis, Zeitraum, Quelle>` – wird in Issue MM-44 recherchiert und belegt. Bis dahin im Pitch nur allgemein formulieren.)*
+**Belegtes Beispiel:** Am 27. Juni 2023 wurde der 17-jährige Nahel Merzouk in Nanterre bei einer Polizeikontrolle erschossen. In den folgenden Tagen kam es in mehr als 500 Städten und Gemeinden Frankreichs zu Ausschreitungen. Analysen nennen als strukturellen Hintergrund unter anderem Segregation und Bildungsungleichheit in den Banlieues – kein Rechtfertigungsgrund für Gewalt, sondern ein Warnsignal für aufgestaute Frustration (The Guardian, 2.7.2023; Le Gall & Oberti, Sciences-Po-Arbeitspapier zu den strukturellen Wurzeln der Unruhen).
 
 Drei Bausteine:
 
