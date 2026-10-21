@@ -9,7 +9,8 @@ import { useRoleStore } from '@/store/role';
 import type { AggregateRow, TensionRow } from '@/types';
 import { type GapAnalysis, gapAnalysis, nrwReference, type TopicGap } from './detailStats';
 import { type DrillState, kreisLabel, regbezLabel } from './drilldown';
-import { type MapMode, publishAnswerHref, suggestionsFor, TENSION_INFO } from './radar';
+import type { MapMode } from './modes';
+import { publishAnswerHref, suggestionsFor, TENSION_INFO } from './radar';
 import { SCHOOL_FORM_LABELS } from './schools';
 import { useAggregates, useTension } from './useAggregates';
 

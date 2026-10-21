@@ -35,7 +35,8 @@ vi.mock('@/data', () => ({
         id,
         n: 50 + (extraVotes.get(id) ?? 0),
         score: fakeScore(id, query.topic),
-        delta: null,
+        // Trend (#21): 053 verschlechtert sich, 051 ohne Vorwoche
+        delta: id === '053' ? -6 : null,
       }));
     },
     getTensionIndex: async (query: AggregateQuery) => {
@@ -415,6 +416,9 @@ describe('live mode (#24)', () => {
       expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', topic: 'all' })),
     );
     expect(screen.getByTestId('map-pulses')).toBeEmptyDOMElement();
+    // Erst die Basis (n = 50) ankommen lassen – sonst sieht der Diff nur den Endstand
+    await waitFor(() => expect(screen.getByTestId('map-data')).toHaveTextContent('"score"'));
+    await act(async () => {});
 
     extraVotes.set('900002', 2);
     act(() => liveCallback?.());
@@ -470,5 +474,30 @@ describe('early-warning radar mode (#42)', () => {
     openMap('/map?mode=radar&regbez=053&kreis=05315&school=900002');
     const panel = await screen.findByRole('complementary', { name: 'Details: Schule 900002' });
     expect(await within(panel).findByText('64 · Gespräch suchen')).toBeInTheDocument();
+  });
+});
+
+describe('trend and participation modes (#21)', () => {
+  const props = (id: string) =>
+    (JSON.parse(screen.getByTestId('map-data').textContent!) as RegionCollection).features.find(
+      (f) => f.properties.id === id,
+    )?.properties as unknown as { tdelta: number; rate: number };
+
+  it('keeps the topic filter for trend and passes the delta to the map', async () => {
+    const router = openMap('/map?topic=ai');
+    fireEvent.click(screen.getByRole('radio', { name: 'Trend' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&mode=trend'));
+    expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toBeInTheDocument();
+    await waitFor(() => expect(props('053').tdelta).toBe(-6));
+    expect(props('051').tdelta).toBe(-999);
+    expect(screen.getByRole('group', { name: 'Legende Trend zur Vorwoche' })).toBeInTheDocument();
+  });
+
+  it('computes participation from votes and student counts and hides the topic filter', async () => {
+    openMap('/map?mode=participation&regbez=053');
+    expect(screen.queryByRole('button', { name: 'KI im Schulalltag' })).not.toBeInTheDocument();
+    // Kreis 05315: 50 Stimmen bei einer Schule mit 500 Schüler:innen → 10 %
+    await waitFor(() => expect(props('05315').rate).toBe(10));
+    expect(screen.getByRole('group', { name: 'Legende Beteiligung diese Woche' })).toBeInTheDocument();
   });
 });

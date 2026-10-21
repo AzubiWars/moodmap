@@ -1,10 +1,5 @@
-import {
-  parseMapMode,
-  publishAnswerHref,
-  suggestionsFor,
-  TENSION_FILL_EXPRESSION,
-  TENSION_INFO,
-} from './radar';
+import { parseMapMode } from './modes';
+import { publishAnswerHref, suggestionsFor, TENSION_FILL_EXPRESSION, TENSION_INFO } from './radar';
 
 describe('radar helpers (#42)', () => {
   it('parses the map mode with mood as safe default', () => {
