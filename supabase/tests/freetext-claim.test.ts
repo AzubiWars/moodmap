@@ -2,7 +2,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { createHash } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asRole, createTestDb, CURRENT_WAVE, insertFixtures } from './harness.ts';
+import { asRole, createTestDb, CURRENT_WAVE, PREVIOUS_WAVE, insertFixtures } from './harness.ts';
 
 let db: PGlite;
 let counter = 0;
@@ -76,6 +76,19 @@ describe('atomic moderation allowance', () => {
       ]),
     );
     expect(await claim(response.id)).toBe(false);
+  });
+
+  it('does not reserve a moderation attempt for a previous wave', async () => {
+    const response = await register();
+    await db.query('update public.responses set wave_id = $1 where id = $2', [PREVIOUS_WAVE, response.id]);
+    expect(await claim(response.id)).toBe(false);
+    expect(
+      (
+        await db.query('select 1 from public.freetext_moderation_claims where response_id = $1', [
+          response.id,
+        ])
+      ).rows,
+    ).toEqual([]);
   });
 
   it('cascades pitch reset and own withdrawal without removing other reservations', async () => {

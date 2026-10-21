@@ -17,6 +17,10 @@ supabase secrets set APP_URL=https://moodmap-cyan.vercel.app
 
 ## Deploy
 
+Zuerst die Migration `20261021180000_freetext_moderation_claim.sql` aus dem gemergten
+`main` anwenden, danach die Function deployen. Fehlt der RPC, antwortet die Function mit
+`503 unavailable`, ohne OpenRouter aufzurufen.
+
 ```bash
 supabase functions deploy submit-freetext
 ```
@@ -71,7 +75,7 @@ Abgelehnt oder Moderation nicht verfügbar (die Umfrage bleibt gespeichert):
 }
 ```
 
-Bereits ein Freitext vorhanden (kein zweiter LLM-Aufruf):
+Moderationsversuch bereits verbraucht, auch ohne gespeicherten Freitext (kein zweiter LLM-Aufruf):
 
 ```json
 { "ok": true, "stored": false, "reason": "already_submitted" }
@@ -82,7 +86,18 @@ Bereits ein Freitext vorhanden (kein zweiter LLM-Aufruf):
 - Max. **280 Zeichen** (`PRODUCT_SPEC` §3.13).
 - **Rohtext wird nie gespeichert oder geloggt**; gespeichert wird nur `cleaned` + `topics` + `cluster`
   + `concern` in `freetext_entries` (ohne Rohtext-Spalte).
-- Ein Eintrag pro Teilnahme; erneute Aufrufe kosten keinen LLM-Aufruf.
+- Genau **ein Moderationsversuch pro Teilnahme**: Vor OpenRouter reserviert
+  `claim_freetext_moderation` atomar die `response_id`. Nur `service_role` darf den RPC aufrufen;
+  die private Tabelle `freetext_moderation_claims` enthält ausschließlich diese ID, keinen Text
+  und keinen Zeitstempel. Parallele Aufrufe erhalten nur eine Berechtigung.
+- Auch Ablehnung, Timeout, fehlender Key oder fehlgeschlagene Speicherung verbrauchen den
+  Versuch; es gibt keinen automatischen Retry. Wiederholungen erhalten `already_submitted`.
+  Bei Fehlern der Reservierung: `503 unavailable`, kein LLM-Aufruf. Bereits gespeicherte
+  Freitexte werden bei der Migration als verbraucht übernommen.
+- Pitch-Reset und eigene Rücknahme löschen die zugehörige Reservierung per FK-Cascade.
+  Nach neuer Teilnahme gibt es eine neue Berechtigung; normale NRW-Reservierungen bleiben
+  beim Pitch-Reset erhalten. Das ist ein Limit pro Teilnahme, kein globales Budget-Limit;
+  zusätzlich das OpenRouter-Kontolimit aus `PRIVACY` §6a setzen.
 - Timeout **5 s**; bei Fehler/fehlendem Key wird nur der Freitext verworfen (`stored:false`),
   die Umfrage läuft weiter.
 - `concern: true` → Client zeigt sofort Hilfsangebote (`PRIVACY` §5), keine Weiterleitung.

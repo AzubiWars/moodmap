@@ -201,6 +201,19 @@ describe('submitFreetext', () => {
     },
   );
 
+  it('spends no LLM call when the reservation request throws', async () => {
+    const { fetchImpl: rest, calls } = backend();
+    const fetchImpl = vi.fn<typeof fetch>(async (url, init) => {
+      if (String(url).includes('/rpc/claim_freetext_moderation')) throw new Error('network failure');
+      return rest(url, init);
+    });
+    expect(await submitFreetext(input, deps(fetchImpl))).toEqual({
+      status: 503,
+      body: { ok: false, reason: 'unavailable' },
+    });
+    expect(calls.some((call) => call.url.includes('openrouter.ai'))).toBe(false);
+  });
+
   it('stores nothing when moderation rejects the text', async () => {
     const { fetchImpl, calls } = backend({
       moderation: {
@@ -262,13 +275,15 @@ describe('submitFreetext', () => {
   });
 
   it('does not fail the survey when storing fails', async () => {
-    const { fetchImpl } = backend({ recordStatus: 500 });
+    const { fetchImpl, calls } = backend({ recordStatus: 500 });
     const result = await submitFreetext(input, deps(fetchImpl));
 
     expect(result).toEqual({
       status: 200,
       body: { ok: true, stored: false, reason: 'storage_failed', concern: false },
     });
+    expect((await submitFreetext(input, deps(fetchImpl))).body.reason).toBe('already_submitted');
+    expect(calls.filter((call) => call.url.includes('openrouter.ai'))).toHaveLength(1);
   });
 
   it('returns already_submitted when the RPC enforces the one-entry rule', async () => {
