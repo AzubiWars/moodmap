@@ -230,6 +230,19 @@ describe('SupabaseDataSource', () => {
     await expect(broken.getSchools()).rejects.toThrow(/Live-Daten/);
   });
 
+  it('withdraws only through the token-bound RPC and maps missing/failed deletions', async () => {
+    let result = json({ ok: true });
+    const { source, fetcher } = setup(() => result.clone());
+    const own = { waveId: input.waveId, deviceToken: input.deviceToken };
+    expect(await source.deleteOwnResponse(own)).toEqual({ ok: true });
+    expect(String(fetcher.mock.calls[0]![0])).toBe(`${url}/rest/v1/rpc/delete_own_response`);
+    expect(JSON.parse(String(fetcher.mock.calls[0]![1]?.body))).toEqual({ input: own });
+    result = json({ ok: false, reason: 'not_found' });
+    expect(await source.deleteOwnResponse(own)).toEqual({ ok: false, reason: 'not_found' });
+    result = json({ message: 'private detail' }, 500);
+    expect(await source.deleteOwnResponse(own)).toEqual({ ok: false, reason: 'error' });
+  });
+
   it('sends publisher JWTs separately from publishable API keys and rates with the local device token', async () => {
     const fetcher = vi.fn<typeof fetch>(async () => json({ ok: true }));
     const source = createSupabaseSource({

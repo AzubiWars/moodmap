@@ -55,9 +55,9 @@ cp .env.example .env.local   # optional – ohne Keys läuft der Mock-Modus
 npm run dev
 ```
 
-Auf `/map` kannst du über die Themenleiste zwischen Gesamt-Mood und einzelnen Themen wechseln. Ein Link wie `/map?topic=ai` öffnet direkt die KI-Ansicht; Browser-Zurück stellt die vorherige Auswahl wieder her. Die Karte verwendet bis zur Anbindung der MockDataSource (#9) deterministische Demo-Scores.
+Auf `/map` kannst du über die Themenleiste zwischen Gesamt-Mood und einzelnen Themen wechseln. Ein Link wie `/map?topic=ai` öffnet direkt die KI-Ansicht; Browser-Zurück stellt die vorherige Auswahl wieder her. Die Karte zeigt Aggregate aus der gewählten Datenquelle, im Mock-Modus aus deterministischen Demo-Antworten.
 
-Der gemeinsame Mock-Datenlayer ist über `getDataSource()` verfügbar: Er lädt die synthetischen Schulen, erzeugt den Seed einmal im Browser und speichert neue Teilnahmen lokal. `DEMO42` gehört zur synthetischen Schule `900000`. Karte und Umfrage werden in den jeweiligen UI-Tickets angebunden (#68, #11/#12); unterschiedliche Geräte benötigen später Supabase für gemeinsame Live-Daten.
+Der gemeinsame Datenlayer ist über `getDataSource()` verfügbar. Im Mock-Modus lädt er synthetische Schulen, erzeugt den Seed einmal im Browser und speichert neue Teilnahmen lokal. `DEMO42` gehört zur synthetischen Schule `900000`. Für gemeinsame Daten auf verschiedenen Geräten wählt `VITE_DATA_MODE=supabase` mit URL und öffentlichem Key die Supabase-Datenquelle. Einrichtung und der getrennte synthetische SQL-Import stehen in [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 
 ## Team
 

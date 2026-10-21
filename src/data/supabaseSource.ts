@@ -164,6 +164,15 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
         return { ok: false, reason: 'error' };
       }
     },
+    async deleteOwnResponse(input) {
+      try {
+        const result = await rpc<{ ok: boolean; reason?: string }>('delete_own_response', { input });
+        if (result.ok === true) return { ok: true };
+        return { ok: false, reason: result.reason === 'not_found' ? 'not_found' : 'error' };
+      } catch {
+        return { ok: false, reason: 'error' };
+      }
+    },
     getAggregates: async (query) => protect(await rpc<AggregateRow[]>('get_aggregates', { query })),
     getTrend: async (query) => protect(await rpc<TrendPoint[]>('get_trend', { query })),
     async getChoiceDistribution(questionId, scope) {
