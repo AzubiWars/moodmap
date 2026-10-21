@@ -33,24 +33,18 @@ const row = (
 });
 
 describe('nrwReference', () => {
-  it('weights regbez rows by n and skips suppressed values', () => {
-    const ref = nrwReference([
-      row('051', 300, 60, { stress: 40, ai: null }),
-      row('053', 100, 40, { stress: 80, ai: 50 }),
-    ]);
-    expect(ref.score).toBe(55);
-    expect(ref.n).toBe(400);
-    expect(ref.topicScores.stress).toBe(50);
-    expect(ref.topicScores.ai).toBe(50);
+  it('takes the single NRW row from getAggregates({ level: "nrw" })', () => {
+    const ref = nrwReference([row('nrw', 400, 55, { stress: 50, ai: null })]);
+    expect(ref).toEqual({ score: 55, topicScores: { stress: 50, ai: null } });
   });
 
   it('returns null without data', () => {
-    expect(nrwReference(undefined)).toEqual({ score: null, n: 0, topicScores: {} });
+    expect(nrwReference(undefined)).toEqual({ score: null, topicScores: {} });
   });
 });
 
 describe('gapAnalysis', () => {
-  const nrw = nrwReference([row('051', 100, 55, { overall: 50, stress: 50, ai: 40, digital: 50, food: 50 })]);
+  const nrw = nrwReference([row('nrw', 100, 55, { overall: 50, stress: 50, ai: 40, digital: 50, food: 50 })]);
 
   it('ranks weaknesses by the larger deficit (delta to NRW or distance below 40)', () => {
     const gaps = gapAnalysis(TOPICS, { overall: 20, stress: 45, ai: 35, digital: 70, food: null }, nrw);
@@ -63,7 +57,7 @@ describe('gapAnalysis', () => {
     const gaps = gapAnalysis(
       TOPICS,
       { stress: 48, ai: 30, digital: 50 },
-      nrwReference([row('051', 1, 50, { stress: 50, ai: 31, digital: 50 })]),
+      nrwReference([row('nrw', 1, 50, { stress: 50, ai: 31, digital: 50 })]),
     );
     expect(gaps.weaknesses.map((g) => g.slug)).toEqual(['ai', 'stress']);
   });

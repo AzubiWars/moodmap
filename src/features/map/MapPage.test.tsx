@@ -21,11 +21,13 @@ vi.mock('@/data', () => ({
     getAggregates: async (query: AggregateQuery): Promise<AggregateRow[]> => {
       aggregateCalls.push(query);
       const ids =
-        query.level === 'regbez'
-          ? ['051', '053']
-          : query.level === 'kreis'
-            ? ['05111', '05315']
-            : ['900001', '900002'];
+        query.level === 'nrw'
+          ? ['nrw']
+          : query.level === 'regbez'
+            ? ['051', '053']
+            : query.level === 'kreis'
+              ? ['05111', '05315']
+              : ['900001', '900002'];
       return ids.map((id) => ({ id, n: 50, score: fakeScore(id, query.topic), delta: null }));
     },
     subscribeToNewResponses: (callback: () => void) => {
