@@ -12,15 +12,17 @@ import { type DrillState, kreisLabel, regbezLabel } from './drilldown';
 import type { MapMode } from './modes';
 import { publishAnswerHref, suggestionsFor, TENSION_INFO } from './radar';
 import { SCHOOL_FORM_LABELS } from './schools';
-import { useAggregates, useTension } from './useAggregates';
+import { type AggregateFilters, useAggregates, useTension } from './useAggregates';
 
 interface DetailPanelProps {
   drill: DrillState;
   mode?: MapMode;
+  /** Gleiche Filter wie die Karte (#20) – auch für den NRW-Vergleich */
+  filters?: AggregateFilters;
 }
 
 /** Detail-Panel für Regierungsbezirk, Kreis oder Schule (#19, FB-005): Gesamt-Mood, Baustellen & Stärken vs. NRW, alle Themen. */
-export function DetailPanel({ drill, mode = 'mood' }: DetailPanelProps) {
+export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps) {
   const [expanded, setExpanded] = useState(false);
   const detailsId = useId();
 
@@ -29,8 +31,9 @@ export function DetailPanel({ drill, mode = 'mood' }: DetailPanelProps) {
   const unitQuery = useAggregates(level, 'all', {
     parentId: level === 'school' ? drill.kreis?.properties.id : undefined,
     enabled: drill.level !== 'nrw',
+    filters,
   });
-  const nrwQuery = useAggregates('nrw', 'all', { enabled: drill.level !== 'nrw' });
+  const nrwQuery = useAggregates('nrw', 'all', { enabled: drill.level !== 'nrw', filters });
   const radar = mode === 'radar';
   const ministry = useRoleStore((state) => state.role) === 'ministry';
   // Spannungs-Index pro Schule nur für das Ministerium (Spec §3.10)
@@ -38,6 +41,7 @@ export function DetailPanel({ drill, mode = 'mood' }: DetailPanelProps) {
   const tensionQuery = useTension(level, {
     parentId: level === 'school' ? drill.kreis?.properties.id : undefined,
     enabled: radar && tensionAllowed && drill.level !== 'nrw',
+    filters,
   });
 
   if (drill.level === 'nrw' || !unitId) return null;
