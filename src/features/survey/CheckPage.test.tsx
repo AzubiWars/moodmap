@@ -46,6 +46,9 @@ async function answerScale(text: string, label: string) {
 describe('CheckPage', () => {
   beforeEach(() => {
     localStorage.clear();
+    // Lokale Moderation erzwingen: mit Supabase-Werten in .env.local (#93) ginge der Freitext ans Netz.
+    vi.stubEnv('VITE_SUPABASE_URL', '');
+    vi.stubEnv('VITE_SUPABASE_ANON_KEY', '');
     useParticipantStore.setState({
       schoolId: '900000',
       schoolCode: 'DEMO42',
@@ -57,6 +60,7 @@ describe('CheckPage', () => {
   afterEach(() => {
     clearDataSources();
     vi.useRealTimers();
+    vi.unstubAllEnvs();
   });
 
   it('submits the full run with the right payload; "weiß nicht" sends no answer', async () => {

@@ -1,9 +1,13 @@
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { getDataSource } from '@/data';
 import { loadFreeText } from '@/lib/freeText';
+import { WithdrawResponse } from './WithdrawResponse';
 
 /** Platzhalter bis #29 („Deine Schule vs. NRW" + Teilen). */
 export function DonePage() {
   const freeText = loadFreeText();
+  const wave = useQuery({ queryKey: ['wave', 'current'], queryFn: () => getDataSource().getCurrentWave() });
 
   return (
     <section className="mx-auto max-w-md space-y-4 px-4 py-8">
@@ -20,6 +24,12 @@ export function DonePage() {
           Zur Karte
         </Link>
       </div>
+
+      {wave.data && (
+        <div className="card p-5">
+          <WithdrawResponse waveId={wave.data.id} />
+        </div>
+      )}
 
       {freeText &&
         (freeText.allowed ? (

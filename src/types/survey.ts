@@ -22,3 +22,12 @@ export interface ResponseInput {
 }
 
 export type SubmitResult = { ok: true } | { ok: false; reason: 'already_submitted' | 'error' };
+
+/** Eigene Abgabe zurückziehen (#161): dasselbe Gerät, nur die aktuelle Welle. */
+export interface OwnResponseInput {
+  waveId: WaveId;
+  /** Dasselbe anonyme Token wie bei der Abgabe; nur darüber ist die eigene Antwort auffindbar. */
+  deviceToken: string;
+}
+
+export type DeleteResult = { ok: true } | { ok: false; reason: 'not_found' | 'error' };

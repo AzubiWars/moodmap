@@ -1,4 +1,4 @@
-import type { AggregateQuery, AnswerInput, ResponseInput, SubmitResult, Wave } from '@/types';
+import type { AggregateQuery, AnswerInput, DeleteResult, ResponseInput, SubmitResult, Wave } from '@/types';
 import { isGradeBand, isRole } from '@/types';
 import { hashDeviceToken } from '@/lib/device';
 import { K_MIN } from '@/lib/env';
@@ -200,6 +200,39 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
         return typeof navigator !== 'undefined' && navigator.locks
           ? await navigator.locks.request(`${MOCK_CHANNEL}:${key}`, commit)
           : commit();
+      } catch {
+        return { ok: false, reason: 'error' };
+      }
+    },
+    async deleteOwnResponse(input) {
+      try {
+        const data = await base();
+        if (
+          !input ||
+          typeof input.deviceToken !== 'string' ||
+          !input.deviceToken.trim() ||
+          input.deviceToken.length > 200 ||
+          input.waveId !== currentWave(data).id
+        )
+          return { ok: false, reason: 'error' };
+        // Derselbe Schlüssel wie bei der Abgabe: nur dieses Gerät findet seine Antwort.
+        const key = await hashDeviceToken(input.deviceToken, input.waveId);
+        const remove = (): DeleteResult => {
+          const stored = storage.entries<StoredSubmission>('response').find(([id]) => id === key)?.[1];
+          if (!stored || !storage.remove('response', key)) return { ok: false, reason: 'not_found' };
+          const event = { schoolId: stored.response.schoolId };
+          notify(event);
+          startChannel();
+          try {
+            channel?.postMessage({ type: 'response', ...event });
+          } catch {
+            /* Lokales Löschen bleibt erfolgreich. */
+          }
+          return { ok: true };
+        };
+        return typeof navigator !== 'undefined' && navigator.locks
+          ? await navigator.locks.request(`${MOCK_CHANNEL}:${key}`, remove)
+          : remove();
       } catch {
         return { ok: false, reason: 'error' };
       }

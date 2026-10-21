@@ -45,5 +45,19 @@ export function createMockStorage(storage: Storage | null) {
         memory.set(key, json);
       }
     },
+    /** Entfernt einen Eintrag aus Storage und Speicher-Fallback; `true`, wenn es ihn gab. */
+    remove(kind: string, id: string): boolean {
+      const key = `${MOCK_STORAGE_PREFIX}${kind}:${id}`;
+      let existed = memory.delete(key);
+      try {
+        if (storage && storage.getItem(key) !== null) {
+          storage.removeItem(key);
+          existed = true;
+        }
+      } catch {
+        /* Safari-Privatmodus: nur der Speicher-Fallback zählt. */
+      }
+      return existed;
+    },
   };
 }

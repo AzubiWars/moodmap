@@ -90,6 +90,7 @@ export interface DataSource {
   // Umfrage
   getCurrentWave(): Promise<Wave>;
   submitResponse(input: ResponseInput): Promise<{ ok: true } | { ok: false; reason: 'already_submitted' | 'error' }>;
+  deleteOwnResponse(input: { waveId: string; deviceToken: string }): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'error' }>; // #161
 
   // Aggregate (immer bereits k-anonymisiert!)
   getAggregates(query: AggregateQuery): Promise<AggregateRow[]>;
@@ -207,6 +208,7 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 ✅ Umfrage-RPCs in `supabase/migrations/20261021094500_survey_rpcs.sql` (#78). Alle sind `security definer` und liefern camelCase-JSON wie `src/types`:
 - `submit_response(input jsonb)` → `SubmitResult`. Prüft Schule, **aktuelle** Welle, Rolle, Gerät-Token (16–200 Zeichen), Frage-IDs (keine Duplikate, Zielgruppe passt zur Rolle) und Werte je Fragetyp. Speichert `device_hash = sha256(deviceToken + ':' + waveId)`, nie das Token. Doppelte Teilnahme → `{ ok: false, reason: 'already_submitted' }` (atomar per `on conflict`). Ungültige Eingaben lösen einen Fehler aus und speichern nichts; die Supabase-DataSource (#23) macht daraus `reason: 'error'`.
 - `get_school_by_code(code text)` → `School | null`, Groß-/Kleinschreibung und Leerzeichen egal. Einziger Weg zum `joinCode`.
+- `delete_own_response(input jsonb)` → `DeleteResult` (#161, `supabase/migrations/20261021161000_delete_own_response.sql`): löscht die Antwort mit `device_hash = sha256(deviceToken + ':' + waveId)` in der **aktuellen** Welle, Antworten per Cascade. `not_found`, wenn es (nicht mehr) eine gibt. Danach ist eine neue Teilnahme möglich. Nur wer das Zufalls-Token des Geräts hat, findet seine Antwort.
 - `get_current_wave()` → `Wave | null`: die Welle, die `now()` enthält. Bei Lücken im Wellenkalender die zuletzt begonnene, damit die Live-Demo nie an einer fehlenden Welle scheitert. `submit_response` nutzt dieselbe Definition.
 
 ✅ Aggregation in `supabase/migrations/20261021120000_aggregates.sql` (#79):

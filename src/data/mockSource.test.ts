@@ -123,6 +123,43 @@ describe('MockDataSource', () => {
     expect(await mock.submitResponse(input({ waveId: '2026-W44' }))).toEqual({ ok: true });
   });
 
+  it('lets a device withdraw its own response and take part again (#161)', async () => {
+    const mock = source();
+    const own = { waveId: '2026-W43', deviceToken: 'random-demo-token' };
+    const events: string[] = [];
+    mock.subscribeToNewResponses((event) => events.push(event.schoolId));
+    expect(await mock.submitResponse(input())).toEqual({ ok: true });
+    expect((await mock.getAggregates(query))[0]?.n).toBe(10);
+
+    expect(await mock.deleteOwnResponse(own)).toEqual({ ok: true });
+    expect((await mock.getAggregates(query))[0]).toMatchObject({ n: 9, score: null });
+    expect(events).toEqual(['900000', '900000']); // submit + delete refresh the live map
+    expect(await mock.deleteOwnResponse(own)).toEqual({ ok: false, reason: 'not_found' });
+
+    expect(await mock.submitResponse(input({ answers: [{ questionId: 'ai.core', value: 1 }] }))).toEqual({
+      ok: true,
+    });
+    expect((await source().getAggregates(query))[0]).toMatchObject({ n: 10, score: 45 }); // persisted
+  });
+
+  it('only withdraws the response of this device in the current wave', async () => {
+    const mock = source();
+    expect(await mock.submitResponse(input())).toEqual({ ok: true });
+    expect(await mock.deleteOwnResponse({ waveId: '2026-W43', deviceToken: 'someone-else' })).toEqual({
+      ok: false,
+      reason: 'not_found',
+    });
+    expect(await mock.deleteOwnResponse({ waveId: '2026-W42', deviceToken: 'random-demo-token' })).toEqual({
+      ok: false,
+      reason: 'error',
+    });
+    expect(await mock.deleteOwnResponse({ waveId: '2026-W43', deviceToken: '' })).toEqual({
+      ok: false,
+      reason: 'error',
+    });
+    expect((await mock.getAggregates(query))[0]?.n).toBe(10);
+  });
+
   it.each([
     { schoolId: 'unknown' },
     { waveId: '2026-W42' },
