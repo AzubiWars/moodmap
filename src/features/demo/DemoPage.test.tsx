@@ -1,8 +1,17 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { DemoPage } from './DemoPage';
 import { demoSchoolUrl, resetDemoData } from './demoData';
+
+vi.mock('@/data', () => ({
+  getDataSource: () => ({
+    getPitchAggregate: async () => {
+      throw new Error('unconfigured');
+    },
+  }),
+}));
 
 describe('DemoPage', () => {
   beforeEach(() => localStorage.clear());
@@ -11,7 +20,9 @@ describe('DemoPage', () => {
     expect(demoSchoolUrl('https://x.test')).toBe('https://x.test/s/DEMO42');
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <DemoPage />
+        <MemoryRouter>
+          <DemoPage />
+        </MemoryRouter>
       </QueryClientProvider>,
     );
     expect(screen.getByText(/^https?:\/\/.*\/s\/DEMO42$/)).toBeTruthy();

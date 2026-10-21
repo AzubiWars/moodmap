@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { useDemoStore } from '@/store/demo';
 import { demoSchoolUrl, resetDemoData } from './demoData';
+import { PitchEntry } from './PitchEntry';
 
 export function DemoPage() {
   const queryClient = useQueryClient();
@@ -30,6 +31,7 @@ export function DemoPage() {
   return (
     <section className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <h1 className="text-2xl font-bold">Demo-Steuerung</h1>
+      <PitchEntry />
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-card">
         <h2 className="text-lg font-semibold">Ansicht</h2>
