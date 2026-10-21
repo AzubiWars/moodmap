@@ -6,7 +6,7 @@ import MapGL, { Layer, Marker, NavigationControl, Popup, Source } from 'react-ma
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from '@/lib/colors';
 import { useTheme } from '@/lib/theme';
-import { type Bounds, NRW_BOUNDS, type RegionProperties } from './geo';
+import { type Bounds, GERMANY_MAX_BOUNDS, NRW_BOUNDS, type RegionProperties } from './geo';
 import { maplibre } from './maplibreSetup';
 import type { SchoolCollection, SchoolPointProperties } from './schools';
 
@@ -167,10 +167,13 @@ function regionFillOpacity(muted: boolean) {
   ] as unknown as number;
 }
 
-/** Deutschland-Maske: alles außerhalb Deutschlands ausblenden (#90). */
+/** Deutschland-Maske: alles außerhalb Deutschlands ausblenden (#90, #132). */
 const GERMANY_MASK_URL = '/geo/non-germany-mask.geojson';
 const GERMANY_OUTLINE_URL = '/geo/germany.geojson';
-const MASK_FILL_OPACITY = 0.62;
+/** Fast blickdicht: Die Basiskarte ist selbst hell bzw. dunkel, 62 % ließen Nachbarländer samt Ortsnamen durchscheinen. */
+const MASK_FILL_OPACITY = 0.92;
+/** Weicher Übergang an der Grenze statt harter Kante (FB-007) */
+const MASK_EDGE_PAINT = { 'line-width': 28, 'line-blur': 24, 'line-opacity': 0.85 } as const;
 
 /** Pflicht-Quellenvermerk für die Grenzen (docs/ARCHITECTURE.md §6) */
 const BOUNDARY_ATTRIBUTION =
@@ -207,6 +210,8 @@ export function MoodMap({
 }: MoodMapProps) {
   const theme = useTheme();
   const dark = theme === 'dark';
+  /** = Seitenhintergrund (--color-surface), damit die Karte außerhalb Deutschlands in die Seite übergeht */
+  const maskColor = dark ? '#0f172a' : '#f8fafc';
   const mapRef = useRef<MapRef>(null);
   const [basemapFailed, setBasemapFailed] = useState(false);
   const mapStyle = useMemo(
@@ -331,8 +336,10 @@ export function MoodMap({
       onMouseLeave={() => setHover(null)}
       onClick={handleClick}
       cursor={hover ? 'pointer' : 'grab'}
-      minZoom={5}
+      // Ab Zoom 6: keine groben Europa-Kacheln; die NRW-Startansicht liegt auf allen Breiten darüber
+      minZoom={6}
       maxZoom={18}
+      maxBounds={GERMANY_MAX_BOUNDS}
       maxPitch={60}
       dragRotate={false}
       attributionControl={{ compact: true, customAttribution: BOUNDARY_ATTRIBUTION }}
@@ -418,14 +425,16 @@ export function MoodMap({
           />
         </>
       )}
+      {/* Über allen Basemap-Layern (auch Labels), unter NRW-Flächen und Markern */}
       <Source id="germany-mask" type="geojson" data={GERMANY_MASK_URL}>
         <Layer
           id="germany-mask-fill"
           type="fill"
-          paint={{ 'fill-color': dark ? '#0f172a' : '#f8fafc', 'fill-opacity': MASK_FILL_OPACITY }}
+          paint={{ 'fill-color': maskColor, 'fill-opacity': MASK_FILL_OPACITY }}
         />
       </Source>
       <Source id="germany-outline" type="geojson" data={GERMANY_OUTLINE_URL}>
+        <Layer id="germany-mask-edge" type="line" paint={{ 'line-color': maskColor, ...MASK_EDGE_PAINT }} />
         <Layer id="germany-outline-line" type="line" paint={{ 'line-color': '#94a3b8', 'line-width': 1 }} />
       </Source>
       {regions && (
