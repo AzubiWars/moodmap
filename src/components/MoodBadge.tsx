@@ -24,9 +24,10 @@ export function MoodBadge({ score, n, size = 'md', showLabel = true, className }
       className={cn(
         'inline-flex items-center rounded-full font-semibold whitespace-nowrap',
         SIZES[size],
+        !level && 'no-data',
         className,
       )}
-      style={{ backgroundColor: level?.color ?? NO_DATA.color, color: level?.textColor ?? '#0F172A' }}
+      style={level ? { backgroundColor: level.color, color: level.textColor } : { color: '#0F172A' }}
     >
       <span aria-hidden>{level?.weather ?? '🌫️'}</span>
       {level ? <span className="tabular-nums">{Math.round(score!)}</span> : null}

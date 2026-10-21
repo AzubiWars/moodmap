@@ -7,6 +7,7 @@ import { WeatherIcon } from '@/components/WeatherIcon';
 import { TOPICS } from '@/data/topics';
 
 const SAMPLE_SCORES = [8, 31, 52, 68, 91, null] as const;
+const SEMANTIC_TOKENS = ['surface', 'card', 'subtle', 'border', 'fg', 'muted', 'primary', 'accent'] as const;
 
 /** /demo/components – Übersicht der Basis-Komponenten für visuelle Reviews (#10). */
 export function ComponentGallery() {
@@ -16,6 +17,30 @@ export function ComponentGallery() {
   return (
     <div className="mx-auto max-w-3xl space-y-10 px-4 py-8">
       <h1 className="text-2xl font-bold">Komponenten</h1>
+
+      <section className="space-y-3">
+        <h2 className="font-semibold">Tokens</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {SEMANTIC_TOKENS.map((t) => (
+            <div key={t} className="flex items-center gap-2 text-sm">
+              <span
+                className="size-8 shrink-0 rounded-lg ring-1 ring-border"
+                style={{ backgroundColor: `var(--color-${t})` }}
+              />
+              <code>{t}</code>
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="card p-4">
+            <p className="font-semibold">.card</p>
+            <p className="text-sm text-muted">rounded-2xl, Rahmen, weicher Schatten</p>
+          </div>
+          <div className="no-data flex items-center rounded-2xl p-4 font-semibold text-[#0F172A]">
+            .no-data – zu wenige Daten
+          </div>
+        </div>
+      </section>
 
       <section className="space-y-3">
         <h2 className="font-semibold">WeatherIcon & MoodBadge</h2>
@@ -55,7 +80,7 @@ export function ComponentGallery() {
         <h2 className="font-semibold">MoodScaleInput</h2>
         <p className="text-lg font-semibold">Wie geht's dir gerade mit Schule insgesamt?</p>
         <MoodScaleInput label="Wie geht's dir gerade mit Schule insgesamt?" value={mood} onChange={setMood} />
-        <p className="text-sm text-slate-500">Wert: {mood === undefined ? '–' : String(mood)}</p>
+        <p className="text-sm text-muted">Wert: {mood === undefined ? '–' : String(mood)}</p>
       </section>
     </div>
   );
