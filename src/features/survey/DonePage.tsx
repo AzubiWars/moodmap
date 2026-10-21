@@ -1,13 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useLastAnswersStore } from '@/store/lastAnswers';
+import { pickComparisonTopics } from './pickTopics';
+import { SchoolVsNrw } from './SchoolVsNrw';
+import { ShareButton } from './ShareButton';
 import { getDataSource } from '@/data';
 import { loadFreeText } from '@/lib/freeText';
 import { useParticipantStore } from '@/store/participant';
 import { WithdrawResponse } from './WithdrawResponse';
 
-/** Platzhalter bis #29 („Deine Schule vs. NRW" + Teilen). */
+/** Danke-Screen: Feier, „Deine Schule vs. NRW" (ab K_MIN) und Teilen. */
 export function DonePage() {
   const isTeacher = useParticipantStore((s) => s.role) === 'teacher';
+  const schoolId = useParticipantStore((s) => s.schoolId);
+  const schoolCode = useParticipantStore((s) => s.schoolCode);
+  const answers = useLastAnswersStore((s) => s.answers);
+  const topics = useMemo(() => pickComparisonTopics(answers), [answers]);
   const freeText = loadFreeText();
   const isTest = useParticipantStore((s) => s.isTest);
   const wave = useQuery({ queryKey: ['wave', 'current'], queryFn: () => getDataSource().getCurrentWave() });
@@ -15,12 +24,13 @@ export function DonePage() {
   return (
     <section className="mx-auto max-w-md space-y-4 px-4 py-8">
       <div className="card space-y-4 p-6 text-center">
-        <p className="text-5xl" aria-hidden>
+        <p className="text-5xl motion-safe:animate-bounce" aria-hidden>
           ☀️
         </p>
         <h1 className="text-2xl font-bold">
           {isTeacher ? 'Danke! Ihre Stimme zählt.' : 'Danke! Deine Stimme zählt.'}
         </h1>
+        <p className="font-semibold">Deine Stimme ist auf der Karte 🗺️</p>
         <p className="text-muted">
           {isTeacher ? 'Ihre Antworten sind anonym angekommen.' : 'Deine Antworten sind anonym angekommen.'}
         </p>
@@ -31,6 +41,20 @@ export function DonePage() {
           Zur Karte
         </Link>
       </div>
+
+      {schoolId && schoolCode && !isTest && (
+        <SchoolVsNrw schoolId={schoolId} schoolCode={schoolCode} topics={topics} />
+      )}
+
+      {/* Slot für „Die Politik antwortet dir" (#43) */}
+      <div id="policy-answers-slot" />
+
+      {schoolCode && !isTest && (
+        <ShareButton
+          schoolCode={schoolCode}
+          text="Wie geht's unserer Schule? Mach beim anonymen Mood-Check mit!"
+        />
+      )}
 
       {/* Pitch-Teilnahmen setzt der PIN-Reset zurück, nicht der Einzelnutzer (#171, #178). */}
       {wave.data && !isTest && (

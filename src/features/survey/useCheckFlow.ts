@@ -4,6 +4,7 @@ import { getDataSource } from '@/data';
 import { getDeviceToken } from '@/lib/device';
 import { saveFreeText, submitFreeText } from '@/lib/freeText';
 import { enqueueResponse, isOffline } from '@/lib/outbox';
+import { useLastAnswersStore } from '@/store/lastAnswers';
 import type { GradeBand, Question, ResponseInput, Role } from '@/types';
 import { buildAnswers, cardsOf, checkReducer, initialState, type CardAnswer } from './checkFlow';
 
@@ -108,6 +109,7 @@ export function useCheckFlow({
             saveFreeText(moderation);
           }
           if (!mounted.current) return;
+          useLastAnswersStore.getState().set(input.answers);
           void queryClient.invalidateQueries();
         }
         dispatch({
