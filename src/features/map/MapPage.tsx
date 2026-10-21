@@ -166,10 +166,10 @@ export function MapPage() {
         />
 
         <div className="pointer-events-none absolute top-0 right-12 left-0 p-3">
-          <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl bg-white/95 px-4 py-2 shadow-md ring-1 ring-slate-200">
+          <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl bg-card/95 px-4 py-2 shadow-md ring-1 ring-border">
             <h1 className="text-base font-bold">Moodmap NRW</h1>
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
-            <p className="text-xs text-slate-700" aria-live="polite">
+            <p className="text-xs text-fg" aria-live="polite">
               {topic.icon} {topic.title} · {levelCaption(drill)}
             </p>
           </div>
@@ -180,7 +180,7 @@ export function MapPage() {
         </div>
 
         {kreiseQuery.isError && (
-          <div className="absolute inset-x-3 top-24 rounded-2xl bg-white p-4 text-sm shadow-md ring-1 ring-slate-200 md:left-auto md:w-80">
+          <div className="absolute inset-x-3 top-24 rounded-2xl bg-card p-4 text-sm shadow-md ring-1 ring-border md:left-auto md:w-80">
             Die Kreisgrenzen konnten nicht geladen werden. Lade die Seite bitte erneut.
           </div>
         )}

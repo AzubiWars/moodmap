@@ -30,6 +30,7 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 - **Typografie:** Eine moderne, gut lesbare Sans (z. B. *Inter* oder *Plus Jakarta Sans*). Große, kräftige Zahlen für Scores.
 - **Formen:** Großzügige Rundungen (`rounded-2xl`), weiche Schatten, Karten-Look.
 - **Hintergrund:** Hell mit leichtem Verlauf; **Dark Mode** (P1) – Schüler lieben ihn, Karte wirkt darauf sehr gut.
+- **Theme-Auswahl:** Sonne/Mond im Header schaltet hell/dunkel um (44 px Touch-Ziel). Ohne eigene Auswahl gilt die Systemeinstellung, danach wird die Auswahl lokal gespeichert. Oberflächen, Legende und Popups verwenden semantische Farb-Tokens; die Mood-Skala bleibt gleich. Die Basiskarte wechselt zwischen OpenFreeMap Positron und [Dark](https://openfreemap.org/quick_start/), der Offline-Fallback folgt dem Theme ebenfalls.
 - **Icons:** Emojis für Themen (schnell, universell) + Lucide-Icons für UI-Bedienelemente.
 - **Logo-Idee:** NRW-Umriss als Wetter-Symbol (Sonne/Wolke) oder Kartenpin mit Smiley. Platzhalter reicht für den Start.
 - **Claim-Ideen:** „Wie geht's NRWs Schulen?" · „Deine Stimmung. Unsere Karte." · „Das Stimmungswetter für NRWs Schulen."

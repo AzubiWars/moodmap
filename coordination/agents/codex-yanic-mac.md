@@ -13,13 +13,15 @@
 - **Bevorzugte Labels:** `fit:data`, `fit:reasoning`, `fit:fast`, `fit:ui`
 
 ## Aktueller Stand
-- **Arbeite an:** #9 – MockDataSource (Branch `codex-yanic-mac/9-mock-data-source`)
-- **Status:** PR #95 reviewfähig, gepusht; lokale Checks, GitHub-CI und Vercel grün (189 Tests). Vollständige DataSource mit Runtime-Seed, Registrierung, Persistenz, Einmalteilnahme, Aggregaten/Trends, Radar/Dialog und Tab-Events.
-- **Nächster Schritt:** Lead-Review und eventuelle Korrekturen; danach UI-Anbindung #68/#11/#12 abstimmen. Den kompletten Umfrage → Karte-Smoke nach UI-Integration durchführen lassen.
-- **Blockiert durch / brauche:** Lead-Review, insbesondere Distribution.count number|null und großer Umfang des vollständigen DataSource-Vertrags. Keine eigene visuelle Prüfung möglich; hier Backend-Änderung. Darkmode-Feedback FB-004 ist über PR #99 gemerged und mit #35 verknüpft.
-- **Zuletzt aktualisiert:** 2026-10-21 11:42
+- **Arbeite an:** #35 – Darkmode, auf ausdrücklichen Wunsch von Yanic (Branch `codex-yanic-mac/35-dark-mode`).
+- **Status:** Header-Schalter, System-Voreinstellung, lokale Persistenz/Tab-Synchronisierung und dunkle Tokens/MapLibre-Basiskarte implementiert. PR #123 gepusht; Format/Lint/Typecheck, 197 Tests und Build grün. Vercel-Preview erfolgreich; GitHub-CI startet wegen Merge-Konflikt noch nicht.
+- **Nächster Schritt:** Lead-Rebase/Review mit Mobile-/Desktop-Sichtprüfung, da Browserzugriff hier automatisch abgelehnt wurde.
+- **Blockiert durch / brauche:** Rebase auf neues main kollidiert mit #18 in MoodMap (Import und Props-Destrukturierung); gemäß AGENTS übernimmt Lead den Konflikt. Header muss ThemeToggle und bereits gemergten RoleSwitcher behalten, MapPage/TopicFilter semantisch einfärben.
+- **Zuletzt aktualisiert:** 2026-10-21 12:05
 
 ## Journal
+- **2026-10-21 12:05** – #35 als PR #123 gepusht. Vollständige lokale Checks grün (197 Tests), Vercel-Preview erfolgreich. Lead um Konfliktlösung/Integration mit #18 und #30 sowie visuelles Review gebeten; noch kein LGTM oder Merge. Neue dunkle Textpaare rechnerisch mit Kontrast 7,1–13,4:1 geprüft.
+- **2026-10-21 11:59** – #9/PR #95 ist gemerged. #19 wegen neuer Lead-Zuteilung an Henrik ohne Code zurückgegeben; NRW-Aggregationslücke im Issue dokumentiert. #68 zunächst geclaimt, auf Yanics Wunsch zugunsten #35 ohne Code wieder freigegeben (Henrik übernimmt nun #68). #106 auf Reset-Präfixfehler hingewiesen. #35 implementiert, erste 10 relevante Tests grün, vollständige Checks vor PR. Darkmode-Sichtprüfung beim Lead angefragt.
 - **2026-10-21 11:42** – PR #95 fertig zur Review, alle 189 Tests und Mock-Build grün; auch CI und Vercel erfolgreich. Lead um Review inkl. count-null-Vertrag gebeten, #9 und #30 mit Integrationshinweisen aktualisiert. PR #99 (Darkmode-Feedback FB-004) gemerged. UI-Tickets bleiben offen; keine vollständige Demo-Prüfung behauptet.
 - **2026-10-21 11:39** – #9 vollständig gegen Seed aus #88 integriert: keine seed.json-Auslieferung, Geräte-Token aus Seed verworfen, Hash/Datum minimiert persistiert. Tests prüfen Grenzwerte, direkte Aggregation, Reload, Einmaligkeit, Fehler/Skips, Tab-Events sowie Radar/Policy-Methoden. SSO #83 ist gemerged. Yanics Feedback „Darkmode“ wörtlich als FB-004 in PR #99 ergänzt und #35 informiert; keine eigenmächtige Priorisierung. Echte Stammdaten aus #100 erfordern spätere konsistente Seed-/Demo-ID-Integration, #9 bleibt beim vereinbarten synthetischen Datensatz.
 - **2026-10-21 11:25** – #9 auf Lead-Auftrag übernommen, parallel zu #8 gegen Fixtures. Aggregationen zählen unterschiedliche Teilnahmen, filtern vor K_MIN und berechnen direkt über Antworten statt Schul-Mittelwerte. Blockierenden Wellen-Datumsfehler in #88 gemeldet; vom Lead behoben. Benutzer-SSO als Plan (#83) gemerged, keine Runtime-Auth eingeführt.

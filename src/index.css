@@ -48,6 +48,57 @@
   color-scheme: light;
 }
 
+.dark {
+  color-scheme: dark;
+  --color-surface: #0f172a;
+  --color-surface-tint: #172b45;
+  --color-fg: #f1f5f9;
+  --color-muted: #a8b6ca;
+  --color-card: #1e293b;
+  --color-subtle: #334155;
+  --color-border: #475569;
+  --color-primary: #e2e8f0;
+  --color-primary-fg: #0f172a;
+  --color-accent: #7fc4de;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.2), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+}
+
+/* MapLibre-Popups und Bedienelemente setzen sonst feste helle Oberflächen. */
+.dark .maplibregl-popup-content,
+.dark .maplibregl-ctrl-group,
+.dark .maplibregl-ctrl-attrib {
+  background: var(--color-card);
+  color: var(--color-fg);
+}
+
+.dark .maplibregl-ctrl-attrib a {
+  color: var(--color-fg);
+}
+
+.dark .maplibregl-ctrl-icon,
+.dark .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+.dark .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.dark .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.dark .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: var(--color-card);
+}
+
+.dark .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.dark .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.dark .maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: var(--color-card);
+}
+
+.dark .maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: var(--color-card);
+}
+.dark .maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: var(--color-card);
+}
+
 html,
 body,
 #root {
