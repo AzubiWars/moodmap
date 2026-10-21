@@ -21,8 +21,8 @@ const KREISE_PATH = new URL('../public/geo/nrw-kreise.geojson', import.meta.url)
 const OUT_PATH = new URL('../public/data/schools.real.json', import.meta.url);
 const META_PATH = new URL('../public/data/schools.real.meta.json', import.meta.url);
 
-const DEMO_SCHOOL_ID = '199916';
-const DEMO_JOIN_CODE = 'DEMO42';
+// DEMO42 gehört der synthetischen Demo-Schule (schools.json) und wird hier nie vergeben (ADR-012).
+const RESERVED_JOIN_CODE = 'DEMO42';
 const JOIN_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const JOIN_LENGTH = 6;
 
@@ -87,7 +87,7 @@ async function main(): Promise<void> {
   const kreise = JSON.parse(readFileSync(KREISE_PATH, 'utf8')) as KreisCollection;
 
   const schools: School[] = [];
-  const usedCodes = new Set<string>([DEMO_JOIN_CODE]);
+  const usedCodes = new Set<string>([RESERVED_JOIN_CODE]);
   const skippedForms = new Map<string, number>();
   let skippedWithoutKreis = 0;
   let skippedWithoutGeometry = 0;
@@ -135,7 +135,7 @@ async function main(): Promise<void> {
       lat: point[1],
       lon: point[0],
       studentCount: numberOrNull(feature.properties.occupancy),
-      joinCode: id === DEMO_SCHOOL_ID ? DEMO_JOIN_CODE : makeJoinCode(id, usedCodes),
+      joinCode: makeJoinCode(id, usedCodes),
     });
   }
 
@@ -150,8 +150,8 @@ async function main(): Promise<void> {
         attribution: 'Schuldaten: Ministerium für Schule und Bildung NRW, dl-de/by-2-0',
         retrievedAt: new Date().toISOString().slice(0, 10),
         count: schools.length,
-        demoSchoolId: DEMO_SCHOOL_ID,
-        demoJoinCode: DEMO_JOIN_CODE,
+        usage:
+          'Nur Standorte/Stammdaten. Keine synthetischen Stimmungswerte an echte Schulnamen hängen (ADR-012).',
       },
       null,
       2,
@@ -160,7 +160,6 @@ async function main(): Promise<void> {
 
   console.log(`OGC API: ${collection.numberReturned ?? collection.features.length} Features`);
   console.log(`geschrieben: ${schools.length} Schulen → public/data/schools.real.json`);
-  console.log(`Demo: ${DEMO_SCHOOL_ID} = ${DEMO_JOIN_CODE}`);
   console.log(
     `übersprungen: ${skippedWithoutId} ohne ID, ${skippedWithoutGeometry} ohne Geometrie, ${skippedWithoutKreis} ohne Kreis`,
   );

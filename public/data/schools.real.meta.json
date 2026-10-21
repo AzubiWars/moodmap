@@ -4,6 +4,5 @@
   "attribution": "Schuldaten: Ministerium für Schule und Bildung NRW, dl-de/by-2-0",
   "retrievedAt": "2026-10-21",
   "count": 5327,
-  "demoSchoolId": "199916",
-  "demoJoinCode": "DEMO42"
+  "usage": "Nur Standorte/Stammdaten. Keine synthetischen Stimmungswerte an echte Schulnamen hängen (ADR-012)."
 }

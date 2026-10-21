@@ -5318,7 +5318,7 @@
   {"id":"199886","name":"Mathilde-Anneke-Gesamtschule","schoolForm":"gesamtschule","kreisId":"05515","city":"Münster","lat":51.95859756176518,"lon":7.653982775533497,"studentCount":1233,"joinCode":"4DDJVK"},
   {"id":"199898","name":"Sekundarschule Radevormwald","schoolForm":"sekundarschule","kreisId":"05374","city":"Radevormwald","lat":51.20613133832244,"lon":7.347189205990103,"studentCount":530,"joinCode":"J95G6Q"},
   {"id":"199904","name":"Gesamtschule der Stadt Jüchen","schoolForm":"gesamtschule","kreisId":"05162","city":"Jüchen","lat":51.105260167728275,"lon":6.51598749013268,"studentCount":875,"joinCode":"YG26T4"},
-  {"id":"199916","name":"Städtische Gesamtschule Stettiner Straße","schoolForm":"gesamtschule","kreisId":"05111","city":"Düsseldorf","lat":51.1470652477371,"lon":6.900984600051814,"studentCount":810,"joinCode":"DEMO42"},
+  {"id":"199916","name":"Städtische Gesamtschule Stettiner Straße","schoolForm":"gesamtschule","kreisId":"05111","city":"Düsseldorf","lat":51.1470652477371,"lon":6.900984600051814,"studentCount":810,"joinCode":"YEVQVP"},
   {"id":"199930","name":"Gesamtschule der Stadt Büren","schoolForm":"gesamtschule","kreisId":"05774","city":"Büren","lat":51.54938945512784,"lon":8.554512545580483,"studentCount":742,"joinCode":"X8D9Q3"},
   {"id":"199941","name":"Gesamtschule am Botanischen Garten","schoolForm":"gesamtschule","kreisId":"05114","city":"Krefeld","lat":51.33144739953048,"lon":6.605221021031108,"studentCount":1015,"joinCode":"A5CXKT"},
   {"id":"199953","name":"KOSMOS-Bildung Münsterlandschule Tilbeck","schoolForm":"gesamtschule","kreisId":"05558","city":"Havixbeck","lat":51.94187299849293,"lon":7.442536410546705,"studentCount":232,"joinCode":"WFRDPQ"},

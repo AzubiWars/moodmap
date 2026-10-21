@@ -10,7 +10,9 @@ const readJson = <T>(name: string): T =>
   JSON.parse(readFileSync(fileURLToPath(new URL(`../public/data/${name}`, import.meta.url)), 'utf8')) as T;
 
 const schools = readJson<School[]>('schools.real.json');
-const meta = readJson<{ license: string; count: number; source: string }>('schools.real.meta.json');
+const meta = readJson<{ license: string; count: number; source: string; usage: string }>(
+  'schools.real.meta.json',
+);
 const kreise = readJson<KreisCollection>('../geo/nrw-kreise.geojson');
 
 describe('public/data/schools.real.json', () => {
@@ -26,9 +28,7 @@ describe('public/data/schools.real.json', () => {
     expect(new Set(schools.map((school) => school.id)).size).toBe(schools.length);
     expect(new Set(schools.map((school) => school.joinCode)).size).toBe(schools.length);
     for (const school of schools) {
-      if (school.joinCode !== 'DEMO42') {
-        expect(school.joinCode, school.id).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/);
-      }
+      expect(school.joinCode, school.id).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/);
     }
   });
 
@@ -53,15 +53,8 @@ describe('public/data/schools.real.json', () => {
     }
   });
 
-  it('uses the real Düsseldorf Gesamtschule as demo school', () => {
-    const demo = schools.find((school) => school.joinCode === 'DEMO42');
-    expect(demo).toEqual(
-      expect.objectContaining({
-        id: '199916',
-        schoolForm: 'gesamtschule',
-        city: 'Düsseldorf',
-        kreisId: '05111',
-      }),
-    );
+  it('never hands out the demo code reserved for the synthetic demo school (ADR-012)', () => {
+    expect(schools.some((school) => school.joinCode === 'DEMO42')).toBe(false);
+    expect(meta.usage).toContain('ADR-012');
   });
 });
