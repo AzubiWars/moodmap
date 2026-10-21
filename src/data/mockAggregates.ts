@@ -11,6 +11,7 @@ import { QUESTIONS_BY_ID } from './topics';
 import type { MockAnswer, MockDataset, MockResponse } from './mockRecords';
 
 export function schoolInScope(school: School, scope: Scope): boolean {
+  if (school.isTest) return false;
   if (scope.level === 'nrw') return scope.id === null;
   if (scope.level === 'school') return school.id === scope.id;
   if (scope.level === 'kreis') return school.kreisId === scope.id;
@@ -25,6 +26,7 @@ export function schoolGroupId(school: School, level: AggregateQuery['level']): s
 export function selectSchools(schools: School[], query: AggregateQuery): School[] {
   return schools.filter(
     (school) =>
+      !school.isTest &&
       (!query.schoolForm?.length || query.schoolForm.includes(school.schoolForm)) &&
       (!query.parentId ||
         query.level === 'nrw' ||

@@ -1,6 +1,7 @@
 // @vitest-environment node
 // End-to-end submission flow with a mocked backend + LLM (#126). No network, no real data.
 import { describe, expect, it, vi } from 'vitest';
+import { createHash } from 'node:crypto';
 import { submitFreetext, type SubmitFreetextDeps } from '../functions/_shared/submitFreetext.ts';
 import { DISCARDED, type ModerationResult } from '../functions/_shared/moderation.ts';
 
@@ -82,6 +83,28 @@ function deps(fetchImpl: typeof fetch, overrides: Partial<SubmitFreetextDeps> = 
 }
 
 describe('submitFreetext', () => {
+  it('finds a pitch hash while keeping the school and wave filters mandatory before moderation', async () => {
+    const { fetchImpl: rest, calls } = backend();
+    const hash = createHash('sha256').update(`${TOKEN}:${input.waveId}:pitch`).digest('hex');
+    const fetchImpl = vi.fn<typeof fetch>(async (target, init) => {
+      const url = new URL(String(target));
+      if (url.pathname === '/rest/v1/responses') {
+        const found =
+          url.searchParams.get('school_id') === 'eq.pitch-test' &&
+          url.searchParams.get('wave_id') === `eq.${input.waveId}` &&
+          url.searchParams.get('device_hash')?.startsWith('in.(') &&
+          url.searchParams.get('device_hash')?.includes(hash);
+        return json(found ? [{ id: 'pitch-response' }] : []);
+      }
+      return rest(target, init);
+    });
+    expect((await submitFreetext(input, deps(fetchImpl))).status).toBe(403);
+    expect(calls).toEqual([]);
+    const result = await submitFreetext({ ...input, schoolId: 'pitch-test' }, deps(fetchImpl));
+    expect(result.body).toMatchObject({ ok: true, stored: true });
+    expect(calls.filter((call) => call.url.includes('openrouter.ai'))).toHaveLength(1);
+  });
+
   it('verifies the participant, moderates and stores only the cleaned text', async () => {
     const { fetchImpl, calls } = backend();
     const result = await submitFreetext(input, deps(fetchImpl));

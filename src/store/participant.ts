@@ -6,8 +6,9 @@ interface ParticipantState {
   schoolId: string | null;
   schoolCode: string | null;
   schoolName: string | null;
+  isTest: boolean;
   gradeBand?: GradeBand;
-  setSchool: (school: { id: string; code: string; name: string }) => void;
+  setSchool: (school: { id: string; code: string; name: string; isTest?: boolean }) => void;
   setGradeBand: (gradeBand: GradeBand | undefined) => void;
   reset: () => void;
 }
@@ -19,10 +20,13 @@ export const useParticipantStore = create<ParticipantState>()(
       schoolId: null,
       schoolCode: null,
       schoolName: null,
+      isTest: false,
       gradeBand: undefined,
-      setSchool: ({ id, code, name }) => set({ schoolId: id, schoolCode: code, schoolName: name }),
+      setSchool: ({ id, code, name, isTest = false }) =>
+        set({ schoolId: id, schoolCode: code, schoolName: name, isTest }),
       setGradeBand: (gradeBand) => set({ gradeBand }),
-      reset: () => set({ schoolId: null, schoolCode: null, schoolName: null, gradeBand: undefined }),
+      reset: () =>
+        set({ schoolId: null, schoolCode: null, schoolName: null, isTest: false, gradeBand: undefined }),
     }),
     { name: 'moodmap:participant:v1' },
   ),

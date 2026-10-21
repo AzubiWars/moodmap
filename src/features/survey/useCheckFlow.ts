@@ -28,14 +28,23 @@ interface CheckFlowOptions {
   questions: Question[];
   waveId: string;
   schoolId: string;
+  isTest?: boolean;
   gradeBand?: GradeBand;
   onDone: () => void;
 }
 
-export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }: CheckFlowOptions) {
+export function useCheckFlow({
+  questions,
+  waveId,
+  schoolId,
+  isTest = false,
+  gradeBand,
+  onDone,
+}: CheckFlowOptions) {
   const queryClient = useQueryClient();
   const [state, dispatch] = useReducer(checkReducer, undefined, () =>
-    initialState(questions, hasSubmitted(waveId)),
+    // Pitch resets happen on the server, so a week-long local flag cannot decide test eligibility.
+    initialState(questions, !isTest && hasSubmitted(waveId)),
   );
   // Jeder Sendeversuch läuft genau einmal (StrictMode ruft Effekte doppelt auf).
   const attempt = useRef(0);
@@ -66,7 +75,7 @@ export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }:
       })
       .then(async (result) => {
         if (!mounted.current) return;
-        if (result.ok || result.reason === 'already_submitted') markSubmitted(waveId);
+        if (!isTest && (result.ok || result.reason === 'already_submitted')) markSubmitted(waveId);
         if (result.ok) {
           if (state.freeText) {
             const moderation = await submitFreeText({
@@ -87,7 +96,7 @@ export function useCheckFlow({ questions, waveId, schoolId, gradeBand, onDone }:
         if (result.ok) onDoneRef.current();
       })
       .catch(() => mounted.current && dispatch({ type: 'RESULT', result: 'error' }));
-  }, [state, schoolId, waveId, gradeBand, queryClient]);
+  }, [state, schoolId, isTest, waveId, gradeBand, queryClient]);
 
   const cards = cardsOf(state);
   return {

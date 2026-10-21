@@ -82,7 +82,7 @@ export function SchoolEntryPage() {
   }
 
   const start = () => {
-    setSchool({ id: school.id, code: school.joinCode, name: school.name });
+    setSchool({ id: school.id, code: school.joinCode, name: school.name, isTest: school.isTest });
     setGradeBand(grade);
     navigate('/check');
   };

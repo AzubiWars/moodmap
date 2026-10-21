@@ -80,7 +80,10 @@ async function findResponseId(
     url.searchParams.set('select', 'id');
     url.searchParams.set('school_id', `eq.${input.schoolId}`);
     url.searchParams.set('wave_id', `eq.${input.waveId}`);
-    url.searchParams.set('device_hash', `eq.${await sha256Hex(`${input.deviceToken}:${input.waveId}`)}`);
+    const normalHash = await sha256Hex(`${input.deviceToken}:${input.waveId}`);
+    const pitchHash = await sha256Hex(`${input.deviceToken}:${input.waveId}:pitch`);
+    // Both namespaces stay bound to the exact school and wave; SQL decides which one may store text.
+    url.searchParams.set('device_hash', `in.(${normalHash},${pitchHash})`);
     const response = await fetchImpl(url, { headers: restHeaders(deps.serviceRoleKey) });
     if (!response.ok) return 'unavailable';
     const rows = (await response.json()) as Array<{ id?: unknown }>;

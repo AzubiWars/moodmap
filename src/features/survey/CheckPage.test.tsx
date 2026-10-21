@@ -50,6 +50,7 @@ describe('CheckPage', () => {
       schoolId: '900000',
       schoolCode: 'DEMO42',
       schoolName: 'Demo',
+      isTest: false,
       gradeBand: '8-10',
     });
   });
@@ -117,6 +118,21 @@ describe('CheckPage', () => {
     expect(await screen.findByText(/Nächster Mood-Check ab Montag/)).toBeInTheDocument();
     expect(submit).not.toHaveBeenCalled();
   });
+
+  it.each([false, true])(
+    'uses server eligibility for pitch retakes, with an existing NRW flag: %s',
+    async (flag) => {
+      if (flag) localStorage.setItem(`moodmap:submitted:${WAVE}`, '1');
+      useParticipantStore.setState({ schoolId: 'pitch-test', schoolCode: 'PITCH', isTest: true });
+      const submit = setup();
+      for (const q of questions()) await answerScale(q.text, 'eher gut');
+      fireEvent.click(await screen.findByRole('button', { name: 'Überspringen' }));
+      await screen.findByText('FERTIG');
+      expect(firstCall(submit).schoolId).toBe('pitch-test');
+      // Completing the test never sets/clears the normal NRW flag.
+      expect(localStorage.getItem(`moodmap:submitted:${WAVE}`)).toBe(flag ? '1' : null);
+    },
+  );
 
   it('handles already_submitted from the server', async () => {
     setup({ ok: false, reason: 'already_submitted' });

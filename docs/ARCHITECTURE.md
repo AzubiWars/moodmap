@@ -382,8 +382,8 @@ Freitext ist optional und wird **vor dem Speichern serverseitig** moderiert (ADR
 5. Die Function ruft `record_freetext` (service role) auf. Gespeichert werden nur `cleaned`, `topics`, `cluster`, `concern` sowie – über `response_id` – Schule, Welle und Tag in `freetext_entries`. Abgelehnte Texte werden **gar nicht** gespeichert. Der Rohtext wird **nie** gespeichert oder geloggt.
 6. **Robustheit:** Timeout 5 s. Fällt OpenRouter aus oder fehlt der Key, wird **nur der Freitext verworfen** (`stored:false`); die Umfrage bleibt gespeichert. Im Mock-Modus gibt es einen lokalen Fallback (Wortliste + Themen-Keywords) in der Survey-UI.
 7. Bei `concern:true` zeigt der Client sofort Hilfsangebote (`PRIVACY.md` §5), keine Weiterleitung. Solche Einträge werden von `get_freetext_clusters` nicht öffentlich ausgewertet.
-8. Die öffentliche Auswertung läuft über `get_freetext_clusters(scope)` (nur aktuelle Welle, nur `concern = false`, Cluster erst ab `K_MIN`, max. 3 bereinigte Beispiele). Der Test-Standort (`is_test`, #113) wird ergänzt, sobald die Spalte existiert.
-9. Der Client ruft `submit-freetext` **nach** erfolgreicher Umfrage-Abgabe auf, sobald `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` gesetzt sind – auch bei `VITE_DATA_MODE=mock`. Ohne diese Env (reiner Dev/Mock) greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords.
+8. Die öffentliche Auswertung läuft über `get_freetext_clusters(scope)` (nur aktuelle Welle, nur `concern = false`, Cluster erst ab `K_MIN`, max. 3 bereinigte Beispiele). Testschulen sind aus regionalen Auswertungen ausgeschlossen; der Pitch liest sie ausschließlich über den expliziten Scope `{ level: 'school', id: 'pitch-test' }`.
+9. Der Client ruft `submit-freetext` **nach** erfolgreicher Umfrage-Abgabe nur bei `VITE_DATA_MODE=supabase` und gesetztem `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` auf. Im Mock-Modus greift der lokale Demo-Fallback mit Wortliste + Themen-Keywords, auch wenn Supabase-Env gesetzt ist.
 
 **Secret setzen (niemals committen):**
 
@@ -411,3 +411,11 @@ if (error || !data?.ok || !data.stored) {
 ```
 
 Der Key darf **niemals** als `VITE_*`-Variable oder in `public/` landen – sonst ist er im Browser sichtbar.
+
+## 13. Getrennter Pitch-Teststandort (#113)
+
+Die Migration `20261021160000_pitch_site.sql` ergänzt `is_test` für Schulen und Regionen. Der konfigurierbare Standort `pitch-test` (Join-Code `PITCH`) bleibt aus normalen Stammdatenlisten, NRW-Aggregaten, Trends, Verteilungen, Radar und regionalen Freitext-Clustern ausgeschlossen. Der synthetische Berlin-Default ist kein bestätigter Veranstaltungsort; die echten Angaben kommen aus #118.
+
+`get_pitch_aggregate()` liefert den getrennten Teilnahmezähler und Scores mit `K_MIN`. Der Test nutzt serverseitig `sha256(token:wave:pitch)`; normale Abgaben behalten `sha256(token:wave)`. Die Freitextprüfung unterstützt beide Hashes, stets an Schule und Welle gebunden. Der Client verwendet für Testschulen keine dauerhafte lokale Wochensperre; die Datenbank verhindert doppelte Abgaben bis zum Reset.
+
+Die Edge Function `pitch-reset` prüft das Secret `PITCH_RESET_PIN` und ruft den ausschließlich für `service_role` zugänglichen RPC `reset_pitch_test()` auf. Dieser löscht nur Antworten der markierten Schule `pitch-test`; Antwortwerte, Hashes und moderierte Freitexte werden mitgelöscht. Normale NRW-Abgaben bleiben erhalten. Konfiguration, API und Deployment stehen in [pitch-reset/README.md](../supabase/functions/pitch-reset/README.md).

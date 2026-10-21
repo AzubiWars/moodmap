@@ -72,6 +72,31 @@ afterEach(() => {
 });
 
 describe('MockDataSource', () => {
+  it('keeps test schools outside NRW data and separates their device participation', async () => {
+    const data = fixture(10);
+    data.schools.push({
+      ...data.schools[0]!,
+      id: 'pitch-test',
+      kreisId: 'TEST-PITCH',
+      joinCode: 'PITCH',
+      isTest: true,
+    });
+    const mock = source(data);
+    expect((await mock.getSchools()).map((s) => s.id)).toEqual(['900000']);
+    expect(await mock.getSchoolByCode('PITCH')).toMatchObject({ id: 'pitch-test', isTest: true });
+    expect(await mock.submitResponse(input())).toEqual({ ok: true });
+    expect(await mock.submitResponse(input({ schoolId: 'pitch-test' }))).toEqual({ ok: true });
+    expect(await mock.submitResponse(input({ schoolId: 'pitch-test' }))).toEqual({
+      ok: false,
+      reason: 'already_submitted',
+    });
+    expect(await mock.getAggregates({ level: 'nrw', topic: 'ai' })).toEqual([
+      expect.objectContaining({ id: 'nrw', n: 11 }),
+    ]);
+    expect(await mock.getAggregates(query)).toEqual([expect.objectContaining({ id: '900000', n: 11 })]);
+    expect(await mock.getChoiceDistribution('ai.deep', { level: 'school', id: 'pitch-test' })).toBeNull();
+  });
+
   it('restores submitted votes after reload without persisting the raw device token', async () => {
     const first = source();
     expect((await first.getAggregates(query))[0]).toMatchObject({ n: 9, score: null });
