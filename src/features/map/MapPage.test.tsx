@@ -561,3 +561,22 @@ describe('more filters (#20)', () => {
     expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
   });
 });
+
+describe('timeline (#34)', () => {
+  it('queries a single week chosen on the timeline and keeps it in the URL', async () => {
+    const router = openMap('/map?topic=stress&period=month');
+    const slider = await screen.findByRole('slider', { name: 'Woche wählen' });
+    // Schuljahr ab KW 35 → Index 6 = KW 41
+    fireEvent.change(slider, { target: { value: '6' } });
+    await waitFor(() =>
+      expect(router.state.location.search).toBe('?topic=stress&period=month&wave=2026-W41'),
+    );
+    expect(router.state.historyAction).toBe('REPLACE');
+    await waitFor(() =>
+      expect(aggregateCalls).toContainEqual(
+        expect.objectContaining({ level: 'regbez', topic: 'stress', waveIds: ['2026-W41'] }),
+      ),
+    );
+    expect(screen.getByText(/· KW 41/)).toBeInTheDocument();
+  });
+});
