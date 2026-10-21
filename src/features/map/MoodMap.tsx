@@ -30,11 +30,45 @@ const BLANK_STYLE: StyleSpecification = {
 
 const FILL_LAYER_ID = 'regions-fill';
 
+/** 3D-Gebäude aus dem bereits vorhandenen OpenFreeMap-Vektortileset (#85). */
+const BUILDING_LAYER_ID = 'buildings-3d';
+const BUILDING_SOURCE = 'openmaptiles';
+const BUILDING_SOURCE_LAYER = 'building';
+/** Erste Label-Ebene in Positron: Gebäude davor einfügen, damit Labels lesbar bleiben. */
+const FIRST_SYMBOL_LAYER_ID = 'waterway_line_label';
+
+const BUILDING_COLOR = ['coalesce', ['get', 'colour'], '#d6d3d1'] as unknown as string;
+const BUILDING_HEIGHT = ['coalesce', ['get', 'render_height'], 8] as unknown as number;
+const BUILDING_BASE = ['coalesce', ['get', 'render_min_height'], 0] as unknown as number;
+
+/** Bei hohem Zoom zurückhaltender, damit Gebäude/Schulgelände sichtbar werden. */
+/** Deckkraft je Zoom (#85: Flächen treten für 3D-Gebäude zurück) und abgeblendet außerhalb des Drill-downs (#17). */
+const dimmed = (normal: number, dim: number) => ['case', ['==', ['get', 'dim'], true], dim, normal];
+const REGION_FILL_OPACITY = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  5,
+  dimmed(0.78, 0.22),
+  12,
+  dimmed(0.78, 0.22),
+  15,
+  dimmed(0.32, 0.1),
+  17,
+  dimmed(0.12, 0.05),
+] as unknown as number;
+
+/** Deutschland-Maske: alles außerhalb Deutschlands ausblenden (#90). */
+const GERMANY_MASK_URL = '/geo/non-germany-mask.geojson';
+const GERMANY_OUTLINE_URL = '/geo/germany.geojson';
+const MASK_FILL_OPACITY = 0.62;
+
 /** Pflicht-Quellenvermerk für die Grenzen (docs/ARCHITECTURE.md §6) */
 const BOUNDARY_ATTRIBUTION =
   '© <a href="https://www.bkg.bund.de" target="_blank" rel="noopener">BKG</a> (2026) ' +
   '<a href="https://www.govdata.de/dl-de/by-2-0" target="_blank" rel="noopener">dl-de/by-2-0</a>, ' +
-  'Datenquellen: <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener">VG250</a> – Geometrien vereinfacht';
+  'Datenquellen: <a href="https://sgx.geodatenzentrum.de/web_public/gdz/datenquellen/datenquellen_vg_nuts.pdf" target="_blank" rel="noopener">VG250</a> – Geometrien vereinfacht · ' +
+  'Deutschland: <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> (Public Domain)';
 
 interface HoverInfo {
   lng: number;
@@ -104,18 +138,52 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
         setLoaded(true);
       }}
       onError={() => setMapStyle((s) => (s === BASEMAP_URL ? BLANK_STYLE : s))}
+      onZoomEnd={(event) => {
+        // Ab Schulebene leicht kippen, damit die 3D-Gebäude sichtbar sind.
+        const targetPitch = event.viewState.zoom >= 15 ? 45 : 0;
+        if (Math.abs(event.viewState.pitch - targetPitch) > 1) {
+          mapRef.current?.easeTo({ pitch: targetPitch, duration: 400 });
+        }
+      }}
       interactiveLayerIds={[FILL_LAYER_ID]}
       onMouseMove={handleMove}
       onMouseLeave={() => setHover(null)}
       onClick={handleClick}
       cursor={hover ? 'pointer' : 'grab'}
       minZoom={5}
-      maxZoom={14}
+      maxZoom={18}
+      maxPitch={60}
       dragRotate={false}
       attributionControl={{ compact: true, customAttribution: BOUNDARY_ATTRIBUTION }}
       style={{ width: '100%', height: '100%' }}
     >
       <NavigationControl position="top-right" showCompass={false} />
+      {mapStyle === BASEMAP_URL && (
+        <Layer
+          id={BUILDING_LAYER_ID}
+          source={BUILDING_SOURCE}
+          source-layer={BUILDING_SOURCE_LAYER}
+          type="fill-extrusion"
+          minzoom={15}
+          beforeId={FIRST_SYMBOL_LAYER_ID}
+          paint={{
+            'fill-extrusion-color': BUILDING_COLOR,
+            'fill-extrusion-height': BUILDING_HEIGHT,
+            'fill-extrusion-base': BUILDING_BASE,
+            'fill-extrusion-opacity': 0.7,
+          }}
+        />
+      )}
+      <Source id="germany-mask" type="geojson" data={GERMANY_MASK_URL}>
+        <Layer
+          id="germany-mask-fill"
+          type="fill"
+          paint={{ 'fill-color': '#f8fafc', 'fill-opacity': MASK_FILL_OPACITY }}
+        />
+      </Source>
+      <Source id="germany-outline" type="geojson" data={GERMANY_OUTLINE_URL}>
+        <Layer id="germany-outline-line" type="line" paint={{ 'line-color': '#94a3b8', 'line-width': 1 }} />
+      </Source>
       {regions && (
         <Source id="regions" type="geojson" data={regions} promoteId="id">
           <Layer
@@ -124,7 +192,7 @@ export function MoodMap({ regions, selectedId, onSelect, focusBounds = NRW_BOUND
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
               'fill-color': MOOD_FILL_EXPRESSION as unknown as string,
-              'fill-opacity': ['case', ['==', ['get', 'dim'], true], 0.22, 0.78],
+              'fill-opacity': REGION_FILL_OPACITY,
             }}
           />
           <Layer id="regions-outline" type="line" paint={{ 'line-color': '#ffffff', 'line-width': 1 }} />
