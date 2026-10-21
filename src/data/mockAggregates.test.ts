@@ -123,4 +123,26 @@ describe('mock aggregates', () => {
       aggregateRows(data, { level: 'kreis', topic: 'ai' }, ['current'], ['previous'], 10)[0]?.delta,
     ).toBeNull();
   });
+
+  it('counts mood5 answers per level and hides the distribution below K_MIN', () => {
+    const part = cohort(12, 'a', 1);
+    part.answers[0]!.value = 3;
+    // Swipe- und Choice-Antworten gehören nicht in die Verteilung.
+    part.answers.push({ responseId: part.responses[1]!.id, questionId: 'ai.swipe.rules', value: 1 });
+    // Doppelte Antwort derselben Teilnahme auf dieselbe Frage zählt nur einmal.
+    part.answers.push({ responseId: part.responses[2]!.id, questionId: 'ai.core', value: 5 });
+    const data = dataset(part, cohort(4, 'b', 5));
+    expect(aggregateRows(data, { level: 'kreis', topic: 'ai' }, ['current'], [], 10)[0]).toMatchObject({
+      n: 16,
+      distribution: { 1: 11, 2: 0, 3: 1, 4: 0, 5: 4 },
+    });
+    expect(
+      aggregateRows(data, { level: 'school', topic: 'ai' }, ['current'], [], 10).map(
+        (row) => row.distribution,
+      ),
+    ).toEqual([{ 1: 11, 2: 0, 3: 1, 4: 0, 5: 0 }, null]);
+    expect(aggregateRows(data, { level: 'kreis', topic: 'all' }, ['current'], [], 10)[0]).not.toHaveProperty(
+      'distribution',
+    );
+  });
 });

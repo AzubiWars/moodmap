@@ -17,14 +17,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #12 Mood-Check-Flow (PR offen, baut auf PR #122 / #11 auf)
-- **Status:** #11 in Review (PR #122), #12 in Review
+- **Arbeite an:** #25 Lagebild NRW (PR offen); #12 Mood-Check-Flow (PR offen, baut auf PR #122 / #11 auf)
+- **Status:** #25 in Review, #11 in Review (PR #122), #12 in Review
 - **Nächster Schritt:** #29 Danke-Screen, dann #31 Swipe
 - **Blockiert durch / brauche:** Review von #122 und #12 (danach #12 auf `main` rebasen)
-- **Zuletzt aktualisiert:** 2026-10-21 12:30
+- **Zuletzt aktualisiert:** 2026-10-21 12:50
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
+
+- **2026-10-21 12:50** – #25 Lagebild NRW. Vertrag: `AggregateRow.distribution` (mood5-Zählwerte je Stufe, `null` unter K_MIN, nicht bei `topic: 'all'`). NRW-Werte kommen direkt aus `level: 'nrw'` (#140); `combineRows` in `features/dashboard/lagebild.ts` fasst nur noch Schulform-Zeilen zusammen. Prozente über Hare-Niemeyer, damit sie genau 100 ergeben. Die Verteilung zählt je Teilnahme und Frage höchstens eine Antwort. Lokal laufen PGlite- und Seed-Tests unter Volllast in Timeouts, deshalb `--maxWorkers=2` oder einzeln ausführen.
 
 - **2026-10-21 (Session #32)** – `/privacy` in einfacher Sprache als sechs `<details>`-Akkordeons (Überschrift im `summary`), Hilfe-Hinweis 116 111 unten. Textgrundlage: `docs/PRIVACY.md` + Entwurf von MaxAmor (#32-Kommentar). Rechtsbezüge (SchulG NRW, „juristisch geprüft“) bewusst nicht übernommen, da nicht belegt. Lehre: Vitest-Läufe über `supabase/tests` schlagen ohne laufende DB fehl (Hook-Timeout), `npx vitest run src` ist der sinnvolle Check.
 

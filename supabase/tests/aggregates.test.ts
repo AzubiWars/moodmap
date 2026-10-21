@@ -87,7 +87,12 @@ describe('parity with the MockDataSource', () => {
     let withDelta = 0;
     for (const query of queries) {
       const [sql, ts] = [await sqlAggregates(query), await mock.getAggregates(query)];
-      expect(sql, JSON.stringify(query)).toEqual(ts);
+      // `distribution` (#25) ist neu und optional; bis `get_aggregates` es liefert, nur ohne vergleichen.
+      // Sobald die SQL-Seite es zurückgibt, wird es automatisch mitgeprüft.
+      const expected = sql.some((row) => 'distribution' in row)
+        ? ts
+        : ts.map((row) => Object.fromEntries(Object.entries(row).filter(([key]) => key !== 'distribution')));
+      expect(sql, JSON.stringify(query)).toEqual(expected);
       compared += sql.length;
       withScore += sql.filter((r) => r.score !== null).length;
       withDelta += sql.filter((r) => r.delta !== null).length;
