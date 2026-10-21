@@ -27,6 +27,32 @@ const BLANK_STYLE: StyleSpecification = {
 
 const FILL_LAYER_ID = 'regions-fill';
 
+/** 3D-Gebäude aus dem bereits vorhandenen OpenFreeMap-Vektortileset (#85). */
+const BUILDING_LAYER_ID = 'buildings-3d';
+const BUILDING_SOURCE = 'openmaptiles';
+const BUILDING_SOURCE_LAYER = 'building';
+/** Erste Label-Ebene in Positron: Gebäude davor einfügen, damit Labels lesbar bleiben. */
+const FIRST_SYMBOL_LAYER_ID = 'waterway_line_label';
+
+const BUILDING_COLOR = ['coalesce', ['get', 'colour'], '#d6d3d1'] as unknown as string;
+const BUILDING_HEIGHT = ['coalesce', ['get', 'render_height'], 8] as unknown as number;
+const BUILDING_BASE = ['coalesce', ['get', 'render_min_height'], 0] as unknown as number;
+
+/** Bei hohem Zoom zurückhaltender, damit Gebäude/Schulgelände sichtbar werden. */
+const REGION_FILL_OPACITY = [
+  'interpolate',
+  ['linear'],
+  ['zoom'],
+  5,
+  0.78,
+  12,
+  0.78,
+  15,
+  0.32,
+  17,
+  0.12,
+] as unknown as number;
+
 /** Pflicht-Quellenvermerk für die Grenzen (docs/ARCHITECTURE.md §6) */
 const BOUNDARY_ATTRIBUTION =
   '© <a href="https://www.bkg.bund.de" target="_blank" rel="noopener">BKG</a> (2026) ' +
@@ -83,18 +109,42 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
       mapStyle={mapStyle}
       onLoad={collapseAttribution}
       onError={() => setMapStyle((s) => (s === BASEMAP_URL ? BLANK_STYLE : s))}
+      onZoomEnd={(event) => {
+        // Ab Schulebene leicht kippen, damit die 3D-Gebäude sichtbar sind.
+        const targetPitch = event.viewState.zoom >= 15 ? 45 : 0;
+        if (Math.abs(event.viewState.pitch - targetPitch) > 1) {
+          mapRef.current?.easeTo({ pitch: targetPitch, duration: 400 });
+        }
+      }}
       interactiveLayerIds={[FILL_LAYER_ID]}
       onMouseMove={handleMove}
       onMouseLeave={() => setHover(null)}
       onClick={handleClick}
       cursor={hover ? 'pointer' : 'grab'}
       minZoom={5}
-      maxZoom={14}
+      maxZoom={18}
+      maxPitch={60}
       dragRotate={false}
       attributionControl={{ compact: true, customAttribution: BOUNDARY_ATTRIBUTION }}
       style={{ width: '100%', height: '100%' }}
     >
       <NavigationControl position="top-right" showCompass={false} />
+      {mapStyle === BASEMAP_URL && (
+        <Layer
+          id={BUILDING_LAYER_ID}
+          source={BUILDING_SOURCE}
+          source-layer={BUILDING_SOURCE_LAYER}
+          type="fill-extrusion"
+          minzoom={15}
+          beforeId={FIRST_SYMBOL_LAYER_ID}
+          paint={{
+            'fill-extrusion-color': BUILDING_COLOR,
+            'fill-extrusion-height': BUILDING_HEIGHT,
+            'fill-extrusion-base': BUILDING_BASE,
+            'fill-extrusion-opacity': 0.7,
+          }}
+        />
+      )}
       {regions && (
         <Source id="regions" type="geojson" data={regions} promoteId="id">
           <Layer
@@ -103,7 +153,7 @@ export function MoodMap({ regions, selectedId, onSelect }: MoodMapProps) {
             paint={{
               // Expression-Typen von MapLibre sind sehr streng, die Struktur ist in colors.test.ts abgesichert.
               'fill-color': MOOD_FILL_EXPRESSION as unknown as string,
-              'fill-opacity': 0.78,
+              'fill-opacity': REGION_FILL_OPACITY,
             }}
           />
           <Layer id="regions-outline" type="line" paint={{ 'line-color': '#ffffff', 'line-width': 1 }} />
