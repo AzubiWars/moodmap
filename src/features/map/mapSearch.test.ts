@@ -79,6 +79,17 @@ describe('searchMap', () => {
     expect(searchMap('berufskolleg', { schools, kreise, regbez })[0]?.label).toBe('Berufskolleg Rhein');
   });
 
+  it('does not duplicate a live school from the directory', () => {
+    const results = searchMap('stettiner', {
+      schools,
+      directorySchools: [schools[0]!],
+      kreise,
+      regbez,
+    });
+    expect(results.filter((result) => result.label.includes('Stettiner'))).toHaveLength(1);
+    expect(results.find((result) => result.label.includes('Stettiner'))?.directory).not.toBe(true);
+  });
+
   it('groups cities from school locations and skips independent cities', () => {
     const results = searchMap('musterstadt', { schools, kreise, regbez });
     const city = results.find((result) => result.kind === 'city');
