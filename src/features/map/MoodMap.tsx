@@ -262,9 +262,16 @@ export function MoodMap({
     return () => document.removeEventListener('fullscreenchange', sync);
   }, []);
 
+  // iPhone-Safari kennt die Fullscreen API nicht – dort gibt es keinen Button.
+  const canFullscreen = typeof document !== 'undefined' && document.fullscreenEnabled === true;
+
   async function toggleFullscreen() {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      /* Vom Browser abgelehnt (z. B. ohne Nutzergeste) – Karte bleibt einfach normal. */
+    }
   }
 
   // Nicht bei jedem Tile-/Glyph-Fehler sofort auf den Raster-Fallback wechseln.
@@ -763,19 +770,21 @@ export function MoodMap({
         >
           −
         </button>
-        <button
-          type="button"
-          aria-label={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
-          title={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
-          onClick={() => void toggleFullscreen()}
-          className="flex min-h-11 items-center justify-center border-b border-border px-2 hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          {fullscreen ? (
-            <Minimize2 className="size-4" aria-hidden />
-          ) : (
-            <Maximize2 className="size-4" aria-hidden />
-          )}
-        </button>
+        {canFullscreen && (
+          <button
+            type="button"
+            aria-label={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
+            title={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
+            onClick={() => void toggleFullscreen()}
+            className="flex min-h-11 items-center justify-center border-b border-border px-2 hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            {fullscreen ? (
+              <Minimize2 className="size-4" aria-hidden />
+            ) : (
+              <Maximize2 className="size-4" aria-hidden />
+            )}
+          </button>
+        )}
         <button
           type="button"
           aria-label="NRW-Ansicht"
