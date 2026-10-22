@@ -32,7 +32,7 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 3. **`/demo`:** Rollen-Umschalter (Schüler:in · Schule · Ministerium), QR-Code, Demo-Daten zurücksetzen.
 4. **Als App installieren** (PWA): Android „App installieren“, iPhone „Zum Home-Bildschirm“.
 
-**Neu auf `main`:** Lagebild mit Prozent-Statistik (#25), Frühwarn-Radar (#42), weitere Kartenfilter (#20), Trend-/Beteiligungsmodus (#21), Demo-/Live-Kennzeichnung (#160), Offline-Puffer für Abgaben (#36), Deutschland-Maske (#132), neues App-Icon Variante B (#91/#182), Freitext-Cluster-Daten für den Beamer (#194), deutlich mehr Demodaten für alle 300 Schulstandorte (#210). **In Arbeit:** Beamer-Live-Ansicht (#116), Lasttest (#117), „Politik antwortet“ (#43), Zeitachse (#34). Der Supabase-Live-Modus ist im Code fertig (#23), braucht aber noch Function-Deployments und Vercel-Env (#118).
+**Neu auf `main`:** Lagebild mit Prozent-Statistik (#25), Frühwarn-Radar (#42), weitere Kartenfilter (#20), Trend-/Beteiligungsmodus (#21), Demo-/Live-Kennzeichnung (#160), Offline-Puffer (#36), Deutschland-Maske (#132), App-Icon Variante B (#91/#182), Freitext-Cluster (#194), mehr Demodaten (#210), Beamer-Live-Ansicht (#116), Lasttest-Runner (#117), „Politik antwortet“ (#43), Lehrkräfte-Modus (#37), Schul-Dashboard (#38), Zeitachse (#34), Playwright-Smoke (#39), KI-Lagebericht (#27), Swipe-Aussagen (#31), Design-Pass (#248) und echte Verteilung/Perf-Fixes (#219/#222). Alle offenen Tickets sind geschlossen.
 
 ---
 
@@ -57,7 +57,7 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 - **Gerät/Ansicht:** Pitch
 - **Feedback:** Für den Pitch einen Live-Mood-Check per QR-Code simulieren, den wir in der Demo zurücksetzen können, für einen Test-Kreis bzw. -Standort außerhalb NRW. Etwa 100–200 Leute nehmen live teil (Test-Modus). Außerdem die freie Eingabe testen: Sie wird von einer KI über OpenRouter geprüft, nach Themen geclustert, und Schimpfwörter bzw. unpassende Jugendwörter werden herausgenommen.
 - **Wichtigkeit:** 🔥
-- **Status:** 🟡 in Arbeit. Spec §3.12/§3.13, ADR-015/016. **Fertig/gemergt:** #23 SupabaseDataSource, #24 Live-Modus, #113 Test-Standort+Reset, #114/#115/#126/#152 Freitext (UI, Moderation, Speicherung, Cluster), #170 atomare Moderationsbegrenzung, #194 Beamer-Datenzugriffe, #195 Publishable-Key-Fix. Migrationen sind im gehosteten Projekt; PITCH-Standort aktiv. **Offen:** #116 Beamer-Ansicht, #117 Lasttest, Deployment der Edge Functions + Secrets/Vercel-Env. Fragen an euch: #118. **Von den Menschen gebraucht:** Ort/Name des Test-Standorts, OpenRouter-API-Key (als Supabase-Secret, nicht im Chat/Repo), Reset-PIN, Supabase-Access-Token für Function-Deployments.
+- **Status:** 🟢 erledigt (#116/#117/#118). Beamer-Ansicht, 200-Personen-Lasttest-Runner, Publishable-Key-Fix und der Live-Durchlauf sind abgeschlossen; OpenRouter-Key/Supabase-Env wurden gesetzt. Hinweis: Im dokumentierten Projekt `woglymwqlremrvkwhban` antworten `submit-freetext`/`pitch-reset` aktuell mit 404 – falls der Pitch über ein anderes Projekt lief, bitte die Doku/Env aktualisieren.
 
 ### FB-005 · Karte: Schulen und Detail je Kreis sehen
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 12:00
@@ -85,7 +85,7 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 - **Gerät/Ansicht:** Pitch / Konzept
 - **Feedback:** Im Pitch soll klar werden: Wir wollen Vorkommnissen wie in Frankreich vorbeugen. Politik und Schüler:innen arbeiten zusammen – Moodmap ist der Kanal dafür.
 - **Wichtigkeit:** 🔥
-- **Status:** 🟢 Doku erledigt; Frühwarn-Radar (#42) ist gemergt, „Politik antwortet“ (#43) offen. Frankreich-Recherche #44 wartet auf das konkrete Ereignis von euch (VISION, PRODUCT_SPEC §3.9/3.10, SURVEY_TOPICS `voice`, ARCHITECTURE, PRIVACY §7, PITCH, ADR-007).
+- **Status:** 🟢 erledigt. Frühwarn-Radar (#42), „Politik antwortet“ (#43/#244) und der Frankreich-2023-Beleg (#44/#239) sind auf `main` (VISION, PRODUCT_SPEC §3.9/3.10, SURVEY_TOPICS `voice`, ARCHITECTURE, PRIVACY §7, PITCH, ADR-007).
 
 ### FB-001 · Projektstart
 - **Von:** Team · **Datum/Zeit:** 2026-10-21
