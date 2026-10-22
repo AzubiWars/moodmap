@@ -17,10 +17,10 @@ export function AiReport({ topics }: AiReportProps) {
         <div>
           <h2 className="flex items-center gap-2 font-bold">
             <Sparkles aria-hidden className="size-4 text-accent" />
-            KI-Lagebericht
+            Automatischer Lagebericht
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Fasst nur aggregierte Kennzahlen zusammen. Demo-Bericht ohne externe API.
+            Regelbasiert aus aggregierten Kennzahlen; keine externe KI, keine Einzeldaten.
           </p>
         </div>
         <button
@@ -34,7 +34,9 @@ export function AiReport({ topics }: AiReportProps) {
 
       {open && (
         <div className="mt-4 space-y-3 rounded-2xl bg-subtle p-4 text-sm" aria-live="polite">
-          <p className="text-xs font-semibold tracking-wide text-accent uppercase">KI-generiert · Demo</p>
+          <p className="text-xs font-semibold tracking-wide text-accent uppercase">
+            Regelbasiert · aus Live-Aggregaten
+          </p>
           <p>
             Die NRW-weite Stimmung liegt aktuell bei{' '}
             <strong>{topics.length > 0 ? 'den unten genannten Themen' : 'noch zu wenigen Daten'}</strong>.
@@ -55,8 +57,8 @@ export function AiReport({ topics }: AiReportProps) {
             <p className="text-muted">Noch keine Themen über der Mindeststimmenzahl.</p>
           )}
           <p className="text-xs text-muted">
-            Keine Einzeldaten, keine Personenbezüge. Der Bericht ist eine Demo-Zusammenfassung und ersetzt
-            keine pädagogische Einschätzung.
+            Keine Einzeldaten, keine Personenbezüge. Der Bericht ist eine automatische Zusammenfassung und
+            ersetzt keine pädagogische Einschätzung.
           </p>
         </div>
       )}

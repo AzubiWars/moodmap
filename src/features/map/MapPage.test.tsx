@@ -552,18 +552,18 @@ describe('trend and participation modes (#21)', () => {
   });
 });
 
-describe('demo vs. live labelling (#160)', () => {
+describe('live data labelling (#160)', () => {
   it('marks units with real votes as live and everything else as demo data', async () => {
     openMap('/map?regbez=053&kreis=05315');
     const live = await screen.findByRole('complementary', { name: 'Details: Stadt Köln' });
     expect(await within(live).findByText('Live-Stimmen')).toBeInTheDocument();
   });
 
-  it('shows the demo badge and the source note without real votes', async () => {
+  it('shows the no-live-data badge and the source note without real votes', async () => {
     openMap('/map?regbez=053');
     const panel = await screen.findByRole('complementary', { name: 'Details: Reg.-Bez. Köln' });
-    expect(await within(panel).findByText('Demo-Daten')).toBeInTheDocument();
-    expect(screen.getByText(/kalibrierte Demo-Daten/)).toBeInTheDocument();
+    expect(await within(panel).findByText('Noch keine Live-Stimmen')).toBeInTheDocument();
+    expect(screen.getByText(/anonyme Live-Befragung/)).toBeInTheDocument();
   });
 });
 

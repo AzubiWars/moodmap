@@ -215,7 +215,10 @@ function QueuedMessage({ droppedFreeText }: { droppedFreeText: boolean }) {
 const MAX_FREE_TEXT_PREVIEW = 80;
 
 function describeAnswer(question: Question, answer: number | string[] | undefined): string {
-  if (answer === undefined) return '🤷 keine Angabe';
+  if (answer === undefined) return 'keine Angabe';
+  if (question.type === 'swipe') {
+    return answer === 1 ? 'Trifft zu' : answer === 0 ? 'Trifft nicht zu' : 'keine Angabe';
+  }
   if (typeof answer === 'number') {
     const level = MOOD_LEVELS.find((l) => l.level === answer);
     return `${level?.face ?? ''} ${ANSWER_LABELS[answer - 1] ?? answer}`.trim();
@@ -321,7 +324,7 @@ function SwipeControls({ onAnswer, onSkip }: { onAnswer: (value: CardAnswer) => 
   const start = useRef<number | null>(null);
   const answered = useRef(false);
 
-  function answer(value: 1 | 5) {
+  function answer(value: 0 | 1) {
     if (answered.current) return;
     answered.current = true;
     onAnswer(value);
@@ -332,7 +335,7 @@ function SwipeControls({ onAnswer, onSkip }: { onAnswer: (value: CardAnswer) => 
     const delta = dx;
     start.current = null;
     setDx(0);
-    if (Math.abs(delta) >= 64) answer(delta > 0 ? 5 : 1);
+    if (Math.abs(delta) >= 64) answer(delta > 0 ? 1 : 0);
   }
 
   return (
@@ -364,14 +367,14 @@ function SwipeControls({ onAnswer, onSkip }: { onAnswer: (value: CardAnswer) => 
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
-          onClick={() => answer(1)}
+          onClick={() => answer(0)}
           className="min-h-12 rounded-2xl bg-card px-3 font-medium ring-1 ring-border hover:bg-subtle"
         >
           Trifft nicht zu
         </button>
         <button
           type="button"
-          onClick={() => answer(5)}
+          onClick={() => answer(1)}
           className="min-h-12 rounded-2xl bg-primary px-3 font-semibold text-primary-fg"
         >
           Trifft zu
@@ -417,7 +420,13 @@ function QuestionCard({
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const topic = getTopic(question.topicSlug);
   const [scale, setScale] = useState<MoodValue | undefined>(
-    typeof initial === 'number' ? (initial as MoodValue) : initial === null ? null : undefined,
+    question.type === 'swipe'
+      ? undefined
+      : typeof initial === 'number'
+        ? (initial as MoodValue)
+        : initial === null
+          ? null
+          : undefined,
   );
   const [picked, setPicked] = useState<string[]>(Array.isArray(initial) ? initial : []);
   const [help, setHelp] = useState<number | null>(null);

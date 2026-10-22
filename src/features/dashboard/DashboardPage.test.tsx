@@ -98,10 +98,10 @@ describe('DashboardPage – Lagebild NRW', () => {
     expect(screen.queryByRole('option', { name: /Mensa/ })).toBeNull();
   });
 
-  it('renders a labelled mock AI report', async () => {
+  it('renders a labelled rule-based report', async () => {
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Lagebericht erstellen' }));
-    expect(screen.getByText('KI-generiert · Demo')).toBeInTheDocument();
+    expect(screen.getByText('Regelbasiert · aus Live-Aggregaten')).toBeInTheDocument();
     expect(screen.getByText(/Hier sollte zuerst ein Dialogformat/)).toBeInTheDocument();
   });
 

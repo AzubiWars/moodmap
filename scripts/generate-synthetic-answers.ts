@@ -9,7 +9,7 @@ const args = process.argv.slice(2);
 if (args[0] !== '--synthetic-demo' || args.length > 2) {
   throw new Error('Aufruf: npm run db:seed:answers -- --synthetic-demo [Ausgabedatei.sql]');
 }
-const schools = loadSeedSources().schools;
+const schools = loadSeedSources({ synthetic: true }).schools;
 const data = generateSeedData([...schools]);
 const output = resolve(args[1] ?? '.cache/synthetic-answers.sql');
 const sql = buildSyntheticAnswerSql(data, schools);

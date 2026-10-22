@@ -2,8 +2,6 @@
 // Early-warning radar + "Politik antwortet" (#81): parity with the MockDataSource, permissions, ratings.
 import type { PGlite } from '@electric-sql/pglite';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { MockDataset } from '../../src/data/mockRecords.ts';
 import { createMockSource } from '../../src/data/mockSource.ts';
@@ -17,7 +15,7 @@ import type {
   TensionRow,
   TrendQuery,
 } from '../../src/types/index.ts';
-import { loadSeedSources, sqlLiteral } from '../../scripts/lib/supabase-seed.ts';
+import { buildSeedSql, loadSeedSources, sqlLiteral } from '../../scripts/lib/supabase-seed.ts';
 import {
   buildAggregateFixture,
   insertAggregateFixture,
@@ -26,8 +24,9 @@ import {
 } from './fixtures.ts';
 import { asRole, createTestDb, type DbRole } from './harness.ts';
 
-const seedSql = readFileSync(fileURLToPath(new URL('../seed.sql', import.meta.url)), 'utf8');
-const { schools } = loadSeedSources();
+const seedSources = loadSeedSources({ synthetic: true });
+const seedSql = buildSeedSql(seedSources);
+const { schools } = seedSources;
 const NOW = () => new Date('2026-10-21T10:00:00Z');
 
 /** Map-backed Storage, so ratings can be injected into the mock like a browser would hold them. */

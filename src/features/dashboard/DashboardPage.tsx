@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { K_MIN } from '@/lib/env';
 import { useRoleStore } from '@/store/role';
@@ -14,12 +14,9 @@ import { loadLagebild } from './loadLagebild';
 export function DashboardPage() {
   const queryClient = useQueryClient();
   const role = useRoleStore((s) => s.role);
-  const [searchParams] = useSearchParams();
-  // Live ist nach der Backend-Optimierung (#227) schnell genug; Demo-Daten unter ?demo=1.
-  const demo = searchParams.get('demo') === '1';
-  const source = useMemo(() => getDataSource(demo ? 'mock' : undefined), [demo]);
+  const source = getDataSource();
   const query = useQuery({
-    queryKey: ['aggregates', 'lagebild', demo],
+    queryKey: ['aggregates', 'lagebild'],
     queryFn: async () => {
       const [wave, lagebild] = await Promise.all([source.getCurrentWave(), loadLagebild(source, K_MIN)]);
       return { wave, ...lagebild };
@@ -30,9 +27,9 @@ export function DashboardPage() {
   useEffect(
     () =>
       source.subscribeToNewResponses(() => {
-        void queryClient.invalidateQueries({ queryKey: ['aggregates', 'lagebild', demo] });
+        void queryClient.invalidateQueries({ queryKey: ['aggregates', 'lagebild'] });
       }),
-    [queryClient, source, demo],
+    [queryClient, source],
   );
 
   return (
@@ -48,15 +45,14 @@ export function DashboardPage() {
           </Link>
         )}
         <Link
-          to={demo ? '/dashboard' : '/dashboard?demo=1'}
+          to="/methodik"
           className="mt-2 ml-3 inline-flex min-h-11 items-center font-medium text-accent underline"
         >
-          {demo ? 'Live-Daten anzeigen' : 'Demo-Daten anzeigen'}
+          Methodik & Quellen
         </Link>
         <p className="mt-1 text-sm text-muted">
           {query.data ? `Woche ${query.data.wave.id.replace(/^\d{4}-W/, 'KW ')} · ` : ''}
-          Alle Schulformen · Werte erst ab {K_MIN} Stimmen, darunter „zu wenige Daten“.
-          {demo && ' · Demo-Daten'}
+          Live-Befragung · Alle Schulformen · Werte erst ab {K_MIN} Stimmen, darunter „zu wenige Daten“.
         </p>
       </header>
 

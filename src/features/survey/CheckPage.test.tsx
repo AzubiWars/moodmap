@@ -95,7 +95,9 @@ describe('CheckPage', () => {
     });
     expect(input.answers).toHaveLength(qs.length - 1);
     expect(input.answers.map((a) => a.questionId)).not.toContain(qs[1]?.id);
-    expect(input.answers.every((a) => 'value' in a && (a.value === 4 || a.value === 5))).toBe(true);
+    expect(
+      input.answers.every((a) => 'value' in a && (a.value === 4 || a.value === 1 || a.value === 0)),
+    ).toBe(true);
     expect(localStorage.getItem(`moodmap:submitted:${WAVE}`)).toBe('1');
   });
 

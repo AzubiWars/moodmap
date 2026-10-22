@@ -78,6 +78,6 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 | `DetailPanel` | Responsive Sidebar/Bottom-Sheet |
 | `Sparkline` | Mini-Trend |
 | `KpiTile` | Kennzahl + Δ |
-| `DemoBanner` | „Prototyp – Demo-Daten" |
+| `DemoBanner` | Datenstatus: „Live-Daten · anonymisiert" bzw. Entwicklungsmodus |
 
 Alle in `src/components/`, mit Storybook-ähnlicher Demo-Seite optional unter `/demo/components` (P2).

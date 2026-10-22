@@ -25,11 +25,12 @@ export interface SeedSources {
 const repoPath = (relative: string) => fileURLToPath(new URL(`../../${relative}`, import.meta.url));
 const readJson = <T>(relative: string) => JSON.parse(readFileSync(repoPath(relative), 'utf8')) as T;
 
-export function loadSeedSources(): SeedSources {
+export function loadSeedSources(options: { synthetic?: boolean } = {}): SeedSources {
   return {
     regbez: readJson('public/geo/nrw-regbez.geojson'),
     kreise: readJson('public/geo/nrw-kreise.geojson'),
-    schools: readJson('public/data/schools.json'),
+    // Produktions-Stammdaten sind die echten NRW-Schulstandorte; synthetisch nur für die Test-Fixtures.
+    schools: readJson(options.synthetic ? 'public/data/schools.json' : 'public/data/schools.real.json'),
     topics: TOPICS,
     questions: QUESTIONS,
     waves: waveRange(SEED_WAVES.first, SEED_WAVES.last),

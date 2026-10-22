@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { TOPICS } from '@/data/topics';
 import type { School } from '@/types';
 import {
@@ -526,10 +526,11 @@ export function MapPage() {
             onPlayingChange={setPlaying}
           />
           <MapLegend mode={mode} />
-          {/* Quellenhinweis Demo vs. Live (#160) */}
-          <p className="mt-1 max-w-[16rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
-            Werte: kalibrierte Demo-Daten, echte Mood-Check-Stimmen als „Live“ markiert · Schulen:
-            Demo-Standorte
+          <p className="mt-1 max-w-[17rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
+            Werte: anonyme Live-Befragung · Schulen: Schulverzeichnis NRW ·{' '}
+            <Link to="/methodik" className="underline hover:text-fg">
+              Methodik
+            </Link>
           </p>
         </div>
 

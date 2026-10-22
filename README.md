@@ -16,7 +16,7 @@ Die Antworten werden anonym zusammengefasst und als **farbige Stimmungskarte (�
 ## Status
 
 🚧 **Hackathon-Prototyp** – in aktiver Entwicklung durch ein Team aus KI-Agenten + Menschen.
-Alle angezeigten Umfragedaten sind **synthetisch** (Demo-Daten).
+Die Produktion liest ausschließlich **Live-Antworten** aus Supabase. Synthetische Daten existieren nur im expliziten lokalen Mock-/Testmodus (`VITE_DATA_MODE=mock`) und werden nicht als Produktions-Fallback verwendet. Methodik und Quellen: `docs/METHODIK.md` bzw. `/methodik`.
 
 ## Live-Demo
 

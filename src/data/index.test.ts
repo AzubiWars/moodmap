@@ -9,15 +9,11 @@ describe('data source factory', () => {
     clearDataSources();
   });
 
-  it('defaults to mock for missing, empty or unknown values', () => {
-    expect(resolveDataSourceMode(undefined)).toBe('mock');
-    expect(resolveDataSourceMode('')).toBe('mock');
-    expect(resolveDataSourceMode('something-else')).toBe('mock');
-  });
-
-  it('selects supabase only for the exact value', () => {
-    expect(resolveDataSourceMode('supabase')).toBe('supabase');
-    expect(resolveDataSourceMode('Supabase')).toBe('mock');
+  it('treats only explicit mock as demo mode', () => {
+    expect(resolveDataSourceMode('mock')).toBe('mock');
+    expect(resolveDataSourceMode('')).toBe('supabase');
+    expect(resolveDataSourceMode('something-else')).toBe('supabase');
+    expect(resolveDataSourceMode()).toBe('mock'); // Testlauf ohne VITE_DATA_MODE
   });
 
   it('returns the registered source for the requested mode', () => {
@@ -28,10 +24,10 @@ describe('data source factory', () => {
     expect(getDataSource('supabase')).toBe(supabaseSource);
   });
 
-  it('falls back to mock when supabase is not registered (demo safety)', () => {
+  it('never falls back to mock when live is requested', () => {
     registerDataSource('mock', mockSource);
 
-    expect(getDataSource('supabase')).toBe(mockSource);
+    expect(() => getDataSource('supabase')).toThrow(/Live-Daten sind nicht konfiguriert/);
   });
 
   it('fails with a helpful message when nothing is registered', () => {
