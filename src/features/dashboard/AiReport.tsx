@@ -26,7 +26,7 @@ export function AiReport({ topics }: AiReportProps) {
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="min-h-11 rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-fg"
+          className="min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg"
         >
           {open ? 'Bericht ausblenden' : 'Lagebericht erstellen'}
         </button>

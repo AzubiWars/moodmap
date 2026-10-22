@@ -1,5 +1,7 @@
 # Design – Moodmap NRW
 
+> Verbindliche, komponentenübergreifende Regeln: [DESIGN_GUIDELINES.md](./DESIGN_GUIDELINES.md). Dieses Dokument beschreibt die Produktidee; bei UI-Details gilt die Guidelines-Datei.
+
 ## 1. Leitidee: Stimmungswetter
 
 Moodmap ist ein **Wetterbericht für die Stimmung an Schulen**. Jede Stimmung hat ein Wetter. Das zieht sich durch Skala, Karte, Icons, Texte und Pitch.
@@ -31,7 +33,7 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 - **Formen:** Großzügige Rundungen (`rounded-2xl`), weiche Schatten, Karten-Look.
 - **Hintergrund:** Hell mit leichtem Verlauf; **Dark Mode** (P1) – Schüler lieben ihn, Karte wirkt darauf sehr gut.
 - **Theme-Auswahl:** Sonne/Mond im Header schaltet hell/dunkel um (44 px Touch-Ziel). Ohne eigene Auswahl gilt die Systemeinstellung, danach wird die Auswahl lokal gespeichert. Oberflächen, Legende und Popups verwenden semantische Farb-Tokens; die Mood-Skala bleibt gleich. Die Basiskarte wechselt zwischen OpenFreeMap Positron und [Dark](https://openfreemap.org/quick_start/), der Offline-Fallback folgt dem Theme ebenfalls.
-- **Icons:** Emojis für Themen (schnell, universell) + Lucide-Icons für UI-Bedienelemente.
+- **Icons:** Lucide-Icons für UI-Bedienelemente; Themenfilter nutzen neutrale Farbpunkte statt Emojis. Emojis bleiben der Mood-/Wetter-Skala vorbehalten.
 - **Logo-Idee:** NRW-Umriss als Wetter-Symbol (Sonne/Wolke) oder Kartenpin mit Smiley. Platzhalter reicht für den Start.
 - **Claim-Ideen:** „Wie geht's NRWs Schulen?" · „Deine Stimmung. Unsere Karte." · „Das Stimmungswetter für NRWs Schulen."
 
@@ -71,7 +73,7 @@ Divergierende Skala, **farbfehlsichtigkeits-freundlich** (Rot–Gelb–Blau stat
 | `WeatherIcon` | Score → Wetter-Icon |
 | `MoodBadge` | Score + Icon + Label kompakt |
 | `ScoreBar` | Horizontaler Balken mit Vergleichsmarker (z. B. NRW-Ø) |
-| `TopicChip` | Thema mit Emoji, auswählbar |
+| `TopicChip` | Thema mit neutralem Punkt, auswählbar |
 | `MapLegend` | Legende inkl. „zu wenige Daten" |
 | `DetailPanel` | Responsive Sidebar/Bottom-Sheet |
 | `Sparkline` | Mini-Trend |

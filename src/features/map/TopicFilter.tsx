@@ -79,7 +79,7 @@ export function TopicFilter({ topics, selectedSlug, onSelect, trailing }: TopicF
         aria-expanded={open}
         aria-controls={panelId}
         aria-label="Alle Themen"
-        className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-card px-3 text-sm font-medium text-fg shadow-sm ring-1 ring-border transition-colors hover:bg-subtle"
+        className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium text-fg transition-colors hover:border-muted/40 hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       >
         <SlidersHorizontal className="size-4" aria-hidden />
         <span className="hidden sm:inline">Alle Themen</span>
@@ -174,7 +174,13 @@ export function TopicFilter({ topics, selectedSlug, onSelect, trailing }: TopicF
                                   : 'bg-card text-fg ring-border hover:bg-subtle',
                               )}
                             >
-                              <span aria-hidden>{topic.icon}</span>
+                              <span
+                                aria-hidden
+                                className={cn(
+                                  'size-1.5 shrink-0 rounded-full',
+                                  selected ? 'bg-primary-fg/80' : 'bg-muted/60',
+                                )}
+                              />
                               <span className="min-w-0 flex-1 truncate">{topic.title}</span>
                               {topic.mandatory && (
                                 <span

@@ -7,7 +7,7 @@ export function MapModeSwitch({ mode, onChange }: { mode: MapMode; onChange: (mo
     <div
       role="radiogroup"
       aria-label="Kartenmodus"
-      className="inline-flex w-fit max-w-full flex-wrap rounded-2xl bg-subtle p-0.5 text-xs"
+      className="inline-flex w-fit max-w-full flex-wrap rounded-lg border border-border bg-subtle p-0.5 text-xs"
     >
       {MAP_MODES.map((m) => (
         <button
@@ -18,8 +18,8 @@ export function MapModeSwitch({ mode, onChange }: { mode: MapMode; onChange: (mo
           aria-label={m.label}
           onClick={() => onChange(m.value)}
           className={cn(
-            'rounded-full px-2 py-0.5 font-medium sm:px-2.5 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
-            mode === m.value ? 'bg-primary text-primary-fg shadow-sm' : 'text-muted hover:text-fg',
+            'rounded-md px-2.5 py-1.5 font-medium transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
+            mode === m.value ? 'bg-card text-fg shadow-sm ring-1 ring-border/60' : 'text-muted hover:text-fg',
           )}
         >
           {/* Auf schmalen Screens „Radar“ statt „Frühwarn-Radar“, damit alle vier Modi in eine Zeile passen */}

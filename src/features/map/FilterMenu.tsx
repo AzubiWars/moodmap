@@ -29,8 +29,10 @@ export function FilterMenu({ filters, onChange }: FilterMenuProps) {
 
   const chip = (selected: boolean) =>
     cn(
-      'min-h-9 rounded-full px-3 text-sm ring-1 transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
-      selected ? 'bg-primary text-primary-fg ring-primary' : 'bg-card text-fg ring-border hover:bg-subtle',
+      'min-h-9 rounded-lg border px-3 text-sm transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
+      selected
+        ? 'border-primary bg-primary text-primary-fg'
+        : 'border-border bg-card text-fg hover:border-muted/40 hover:bg-subtle',
     );
 
   return (
@@ -42,8 +44,10 @@ export function FilterMenu({ filters, onChange }: FilterMenuProps) {
         aria-controls={panelId}
         aria-label={count ? `Filter (${count} aktiv)` : 'Filter'}
         className={cn(
-          'inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium shadow-sm ring-1 transition-colors',
-          count ? 'bg-primary text-primary-fg ring-primary' : 'bg-card text-fg ring-border hover:bg-subtle',
+          'inline-flex min-h-10 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
+          count
+            ? 'border-accent/40 bg-accent/10 text-accent'
+            : 'border-border bg-card text-fg hover:border-muted/40 hover:bg-subtle',
         )}
       >
         <ListFilter className="size-4" aria-hidden />

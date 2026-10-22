@@ -2,6 +2,7 @@ import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { AppLogo } from '@/components/brand/AppLogo';
 import { DemoBanner } from '@/components/DemoBanner';
+import { LoadingBar } from '@/components/LoadingBar';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -16,6 +17,7 @@ const NAV = [
 export function Layout() {
   return (
     <div className="flex min-h-full flex-col">
+      <LoadingBar />
       <DemoBanner />
       <header className="sticky top-0 z-20 border-b border-border bg-card/90 backdrop-blur print:hidden">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
@@ -31,8 +33,8 @@ export function Layout() {
                 end={to === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-full px-4 py-2 text-sm font-medium',
-                    isActive ? 'bg-primary text-primary-fg' : 'text-muted hover:bg-subtle',
+                    'rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    isActive ? 'bg-subtle text-fg' : 'text-muted hover:bg-subtle hover:text-fg',
                   )
                 }
               >
