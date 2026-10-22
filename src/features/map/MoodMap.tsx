@@ -298,9 +298,13 @@ export function MoodMap({
     if (!loaded) return;
     const map = mapApiRef.current;
     if (!map) return;
+    // Nur beim Hineinzoomen automatisch 3D einschalten. Ein pauschales `true` bei
+    // jedem moveend würde den manuellen 2D-Button bei hohem Zoom sofort überschreiben.
+    let wasBelow = map.getZoom() < 14;
     const sync = () => {
-      if (map.getZoom() >= 14) onPitchChange?.(true);
-      else onPitchChange?.(map.getPitch() > 10);
+      const zoom = map.getZoom();
+      if (zoom >= 14 && wasBelow) onPitchChange?.(true);
+      wasBelow = zoom < 14;
     };
     map.on('zoomend', sync);
     map.on('moveend', sync);
@@ -321,7 +325,7 @@ export function MoodMap({
       : width >= 768
         ? { ...base, right: base.right + PANEL_WIDTH }
         : { ...base, bottom: base.bottom + SHEET_PEEK };
-    map.fitBounds(focusBounds, { padding, duration: 800 });
+    map.fitBounds(focusBounds, { padding, duration: 800, pitch: is3d ? 50 : 0 });
     // boundsKey statt focusBounds: das Array ist bei jedem Render neu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, boundsKey, detailOpen]);
