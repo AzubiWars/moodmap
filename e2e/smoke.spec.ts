@@ -11,4 +11,14 @@ test('Mood-Check startet und Karte lädt', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Moodmap NRW' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Gesamt-Mood' })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+
+  // Schul-Suche (#245): echter NRW-Standort zoomt bis in die 3D-Gebäudeansicht.
+  await page.getByRole('searchbox', { name: 'Schule oder Stadt suchen' }).fill('Stettiner');
+  await page
+    .getByRole('button', { name: /Stettiner Straße/ })
+    .first()
+    .click();
+  const toggle = page.getByRole('button', { name: '3D-Ansicht umschalten' });
+  await expect(toggle).toHaveText('2D');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
 });

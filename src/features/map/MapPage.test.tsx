@@ -173,7 +173,16 @@ function openMap(url: string) {
   client.setQueryData(['geo', 'regbez'], regbez);
   client.setQueryData(['geo', 'kreis'], regions);
   client.setQueryData(['schools'], schools);
-  client.setQueryData(['schools', 'directory'], []);
+  client.setQueryData(
+    ['schools', 'directory'],
+    [
+      {
+        ...school('199916', '05111', 6.90098, 51.14707),
+        name: 'Städtische Gesamtschule Stettiner Straße',
+        city: 'Düsseldorf',
+      },
+    ],
+  );
   const router = createMemoryRouter([{ path: '/map', element: <MapPage /> }], { initialEntries: [url] });
   render(
     <QueryClientProvider client={client}>
@@ -380,6 +389,21 @@ describe('detail panel (#19)', () => {
     expect(within(panel).getByText('Gymnasium · Testort · Schulnummer 900002')).toBeInTheDocument();
     // 50 Stimmen bei 500 Schüler:innen
     await waitFor(() => expect(within(panel).getByText(/10 % Beteiligung/)).toBeInTheDocument());
+  });
+});
+
+describe('directory search focus', () => {
+  it('zooms to the selected real school and enables 3D', async () => {
+    openMap('/map');
+    const search = screen.getByRole('searchbox', { name: 'Schule oder Stadt suchen' });
+    fireEvent.change(search, { target: { value: 'Stettiner' } });
+    fireEvent.click(await screen.findByRole('button', { name: /Stettiner/ }));
+    await waitFor(() => {
+      const focus = JSON.parse(screen.getByTestId('map-focus').textContent!) as number[][];
+      expect(focus[0]![0]).toBeCloseTo(6.90098 - 0.0025 * 1.6, 5);
+      expect(focus[0]![1]).toBeCloseTo(51.14707 - 0.0025, 5);
+    });
+    expect(screen.getByTestId('map-3d')).toHaveTextContent('true');
   });
 });
 
