@@ -8,6 +8,7 @@ import { ShareButton } from './ShareButton';
 import { getDataSource } from '@/data';
 import { loadFreeText } from '@/lib/freeText';
 import { useParticipantStore } from '@/store/participant';
+import { PolicyAnswers } from '@/features/dialog/PolicyAnswers';
 import { WithdrawResponse } from './WithdrawResponse';
 
 /** Danke-Screen: Feier, „Deine Schule vs. NRW" (ab K_MIN) und Teilen. */
@@ -47,7 +48,7 @@ export function DonePage() {
       )}
 
       {/* Slot für „Die Politik antwortet dir" (#43) */}
-      <div id="policy-answers-slot" />
+      <PolicyAnswers />
 
       {schoolCode && !isTest && (
         <ShareButton
