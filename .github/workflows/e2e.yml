@@ -22,4 +22,6 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
+        env:
+          VITE_DATA_MODE: mock
       - run: npm run e2e
