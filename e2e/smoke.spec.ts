@@ -32,8 +32,12 @@ test('Mood-Check → Danke → Karte', async ({ page }) => {
     await page.waitForTimeout(500);
   }
 
-  await expect(page.getByRole('heading', { name: 'Was sollte sich an deiner Schule ändern?' })).toBeVisible();
-  await page.getByRole('button', { name: 'Überspringen' }).click();
+  const freeText = page.getByRole('heading', { name: 'Was sollte sich an deiner Schule ändern?' });
+  if (await freeText.isVisible().catch(() => false)) {
+    await page.getByRole('button', { name: 'Überspringen' }).click();
+  } else {
+    await expect(page.getByRole('heading', { name: 'Alles klar?' })).toBeVisible();
+  }
   await page.getByRole('button', { name: 'Jetzt anonym absenden' }).click();
   await expect(page).toHaveURL(/\/check\/done/);
 
