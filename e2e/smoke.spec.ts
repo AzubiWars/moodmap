@@ -6,30 +6,30 @@ test('Mood-Check → Danke → Karte', async ({ page }) => {
   await page.locator('main [role="radio"]').first().waitFor({ state: 'visible' });
 
   // Kernfragen und zwei Swipe-Karten beantworten, bis der Freitext erscheint.
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 20; i++) {
     if (await page.getByRole('heading', { name: 'Was sollte sich an deiner Schule ändern?' }).count()) {
       break;
     }
     const scale = page.locator('main [role="radio"]').first();
     if (await scale.count()) {
       await scale.click();
-      await page.waitForTimeout(350);
+      await page.waitForTimeout(500);
       continue;
     }
     const swipe = page.getByRole('button', { name: 'Trifft zu' });
     if (await swipe.count()) {
       await swipe.click();
-      await page.waitForTimeout(350);
+      await page.waitForTimeout(500);
       continue;
     }
     const help = page.getByRole('button', { name: 'Weiter' });
     if ((await help.count()) && (await help.isEnabled())) {
       await help.click();
-      await page.waitForTimeout(350);
+      await page.waitForTimeout(500);
       continue;
     }
     await page.getByRole('button', { name: 'Überspringen' }).click();
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(500);
   }
 
   await expect(page.getByRole('heading', { name: 'Was sollte sich an deiner Schule ändern?' })).toBeVisible();
