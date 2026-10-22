@@ -36,7 +36,7 @@ export function MapBreadcrumb({ crumbs, onNavigate }: MapBreadcrumbProps) {
       {drilled && (
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-medium text-primary-fg shadow-sm hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:outline-none"
+          className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border bg-card px-2.5 text-xs font-medium text-fg transition-colors hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           onClick={() => onNavigate({})}
         >
           <ArrowLeft aria-hidden className="size-3.5" />
