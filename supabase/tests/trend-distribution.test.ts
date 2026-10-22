@@ -1,13 +1,11 @@
 // @vitest-environment node
 // get_trend + get_choice_distribution (#80): parity with the MockDataSource on the #79 fixtures.
 import type { PGlite } from '@electric-sql/pglite';
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createMockSource } from '../../src/data/mockSource.ts';
 import { QUESTIONS } from '../../src/data/topics.ts';
 import type { AggregateQuery, Distribution, Scope, TrendPoint, TrendQuery } from '../../src/types/index.ts';
-import { loadSeedSources } from '../../scripts/lib/supabase-seed.ts';
+import { buildSeedSql, loadSeedSources } from '../../scripts/lib/supabase-seed.ts';
 import {
   buildAggregateFixture,
   insertAggregateFixture,
@@ -16,8 +14,9 @@ import {
 } from './fixtures.ts';
 import { asRole, createTestDb } from './harness.ts';
 
-const seedSql = readFileSync(fileURLToPath(new URL('../seed.sql', import.meta.url)), 'utf8');
-const { schools } = loadSeedSources();
+const seedSources = loadSeedSources({ synthetic: true });
+const seedSql = buildSeedSql(seedSources);
+const { schools } = seedSources;
 /** The mock's clock; the SQL side gets the same wave explicitly, so the tests do not depend on the date. */
 const CURRENT = '2026-W43';
 

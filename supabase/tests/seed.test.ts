@@ -46,11 +46,12 @@ describe('supabase/seed.sql', () => {
     expect(await count('schools')).toBe(sources.schools.length);
   });
 
-  it('makes the demo school reachable via DEMO42 for anon', async () => {
+  it('makes a real school reachable via its join code for anon', async () => {
+    const school = sources.schools[0]!;
     const { rows } = await asRole(db, 'anon', () =>
-      db.query<{ id: string }>(`select public.get_school_by_code('DEMO42') ->> 'id' as id`),
+      db.query<{ id: string }>("select public.get_school_by_code($1) ->> 'id' as id", [school.joinCode]),
     );
-    expect(rows[0]!.id).toBe('900000');
+    expect(rows[0]!.id).toBe(school.id);
   });
 
   it('stores choice options and weights like src/data/topics.ts', async () => {

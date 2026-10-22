@@ -8,7 +8,7 @@ import { adaptSeed } from '../../src/data/mockBootstrap.ts';
 import { createMockSource } from '../../src/data/mockSource.ts';
 import { asRole, createTestDb } from './harness.ts';
 
-const sources = loadSeedSources();
+const sources = loadSeedSources({ synthetic: true });
 const schools = [...sources.schools.slice(0, 2)];
 const seed = generateSeedData(schools, { waveCount: 2 });
 const sql = buildSyntheticAnswerSql(seed, schools);

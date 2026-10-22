@@ -149,7 +149,7 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
 
 /**
  * Kennzeichnung der Datenbasis (#160, ADR-012/013): „Live-Stimmen“, sobald mindestens K_MIN echte Abgaben
- * aus dem Mood-Check in der Einheit stecken (`liveN`), sonst „Demo-Daten“ (kalibriert, synthetisch).
+ * aus dem Mood-Check in der Einheit stecken (`liveN`), sonst „Noch keine Live-Stimmen“.
  */
 function DataBadge({ live }: { live: boolean }) {
   return live ? (
@@ -162,9 +162,9 @@ function DataBadge({ live }: { live: boolean }) {
   ) : (
     <span
       className="shrink-0 rounded-full bg-subtle px-2 py-0.5 text-[10px] text-muted"
-      title="Kalibrierte Demo-Daten (synthetisch, auf Basis veröffentlichter Studien)"
+      title="Für diese Einheit liegen noch keine ausreichenden Live-Antworten vor"
     >
-      Demo-Daten
+      Noch keine Live-Stimmen
     </span>
   );
 }
