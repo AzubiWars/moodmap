@@ -76,6 +76,7 @@ export function searchMap(query: string, input: MapSearchInput, limit = 12): Map
   if (normalizedQuery.length < MIN_SEARCH_LENGTH) return [];
   const queryWords = words(query);
   const results: MapSearchResult[] = [];
+  const liveSchoolIds = new Set((input.schools ?? []).map((school) => school.id));
 
   // 1. Schulen: Name, Stadt, Schulnummer und Schulform.
   const schoolResults = (input.schools ?? [])
@@ -98,6 +99,8 @@ export function searchMap(query: string, input: MapSearchInput, limit = 12): Map
 
   // 1b. Offizielles NRW-Schulverzeichnis: alle 5.327 Standorte durchsuchbar.
   const directoryResults = (input.directorySchools ?? [])
+    // Live-Schulen stehen bereits oben; keine doppelten Suchtreffer.
+    .filter((school) => !liveSchoolIds.has(school.id))
     .filter((school) =>
       matches(
         `${school.name} ${school.city} ${school.id} ${SCHOOL_FORM_LABELS[school.schoolForm]}`,
