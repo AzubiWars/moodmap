@@ -5,15 +5,15 @@
  *   https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice/items
  * Lizenz: Datenlizenz Deutschland – Namensnennung 2.0 (dl-de/by-2-0)
  *
- * Output: public/data/schools.real.json (Array von School)
+ * Output: public/data/schools.real.json (Array von DirectorySchool – bewusst ohne Join-Codes, #257)
  * Usage:  npm run data:schools:real
  *
  * Die synthetische public/data/schools.json bleibt vorerst für #8/#9 erhalten.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
-import type { School, SchoolForm } from '../src/types/domain.ts';
+import type { DirectorySchool, SchoolForm } from '../src/types/domain.ts';
 import { featureContains, type KreisCollection } from './lib/geo.ts';
-import { createRandom, serializeMinifiedSchools, serializeSchools } from './lib/schools.ts';
+import { serializeMinifiedSchools, serializeSchools } from './lib/schools.ts';
 
 const API_URL =
   'https://ogc-api.nrw.de/inspire-us-schule/v1/collections/governmentalservice/items?f=json&limit=10000';
@@ -21,11 +21,6 @@ const KREISE_PATH = new URL('../public/geo/nrw-kreise.geojson', import.meta.url)
 const OUT_PATH = new URL('../public/data/schools.real.json', import.meta.url);
 const MIN_PATH = new URL('../public/data/schools.min.json', import.meta.url);
 const META_PATH = new URL('../public/data/schools.real.meta.json', import.meta.url);
-
-// DEMO42 gehört der synthetischen Demo-Schule (schools.json) und wird hier nie vergeben (ADR-012).
-const RESERVED_JOIN_CODE = 'DEMO42';
-const JOIN_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-const JOIN_LENGTH = 6;
 
 const FORM_MAP: Record<string, SchoolForm> = {
   Grundschule: 'grundschule',
@@ -65,20 +60,6 @@ function schoolId(feature: OgcFeature): string | undefined {
   return id && /^\d+$/.test(id) ? id : undefined;
 }
 
-function makeJoinCode(schoolIdValue: string, used: Set<string>): string {
-  const random = createRandom(Number(schoolIdValue) || 20261021);
-  for (;;) {
-    const code = Array.from(
-      { length: JOIN_LENGTH },
-      () => JOIN_ALPHABET[Math.floor(random() * JOIN_ALPHABET.length)],
-    ).join('');
-    if (!used.has(code)) {
-      used.add(code);
-      return code;
-    }
-  }
-}
-
 async function main(): Promise<void> {
   const response = await fetch(API_URL);
   if (!response.ok) {
@@ -87,8 +68,7 @@ async function main(): Promise<void> {
   const collection = (await response.json()) as OgcCollection;
   const kreise = JSON.parse(readFileSync(KREISE_PATH, 'utf8')) as KreisCollection;
 
-  const schools: School[] = [];
-  const usedCodes = new Set<string>([RESERVED_JOIN_CODE]);
+  const schools: DirectorySchool[] = [];
   const skippedForms = new Map<string, number>();
   let skippedWithoutKreis = 0;
   let skippedWithoutGeometry = 0;
@@ -136,7 +116,6 @@ async function main(): Promise<void> {
       lat: point[1],
       lon: point[0],
       studentCount: numberOrNull(feature.properties.occupancy),
-      joinCode: makeJoinCode(id, usedCodes),
     });
   }
 

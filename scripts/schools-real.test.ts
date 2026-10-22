@@ -3,13 +3,13 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { SCHOOL_FORMS, type School } from '../src/types/domain.ts';
+import { SCHOOL_FORMS, type DirectorySchool } from '../src/types/domain.ts';
 import type { KreisCollection } from './lib/geo.ts';
 
 const readJson = <T>(name: string): T =>
   JSON.parse(readFileSync(fileURLToPath(new URL(`../public/data/${name}`, import.meta.url)), 'utf8')) as T;
 
-const schools = readJson<School[]>('schools.real.json');
+const schools = readJson<DirectorySchool[]>('schools.real.json');
 const meta = readJson<{ license: string; count: number; source: string; usage: string }>(
   'schools.real.meta.json',
 );
@@ -46,12 +46,8 @@ describe('public/data/schools.real.json', () => {
     expect(JSON.stringify(min)).not.toContain('joinCode');
   });
 
-  it('has unique school numbers and join codes', () => {
+  it('has unique school numbers', () => {
     expect(new Set(schools.map((school) => school.id)).size).toBe(schools.length);
-    expect(new Set(schools.map((school) => school.joinCode)).size).toBe(schools.length);
-    for (const school of schools) {
-      expect(school.joinCode, school.id).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{6}$/);
-    }
   });
 
   it('covers all supported school forms', () => {
@@ -75,8 +71,12 @@ describe('public/data/schools.real.json', () => {
     }
   });
 
-  it('never hands out the demo code reserved for the synthetic demo school (ADR-012)', () => {
-    expect(schools.some((school) => school.joinCode === 'DEMO42')).toBe(false);
+  it('never publishes join codes – the database draws them (#257)', () => {
+    const raw = readFileSync(
+      fileURLToPath(new URL('../public/data/schools.real.json', import.meta.url)),
+      'utf8',
+    );
+    expect(raw).not.toMatch(/joinCode|join_code/);
     expect(meta.usage).toContain('ADR-012');
   });
 });

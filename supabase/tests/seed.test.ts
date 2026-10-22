@@ -46,12 +46,41 @@ describe('supabase/seed.sql', () => {
     expect(await count('schools')).toBe(sources.schools.length);
   });
 
-  it('makes a real school reachable via its join code for anon', async () => {
+  it('commits no join codes for real schools (#257)', () => {
+    expect(seedSql).not.toMatch(/join_code/);
+  });
+
+  it('draws random, unique join codes in the database and keeps them on re-seed (#257)', async () => {
+    const codes = async () =>
+      (
+        await db.query<{ id: string; join_code: string }>(
+          'select id, join_code from public.schools where not is_test order by id',
+        )
+      ).rows;
+    const before = await codes();
+    expect(new Set(before.map((row) => row.join_code)).size).toBe(before.length);
+    for (const row of before) expect(row.join_code, row.id).toMatch(/^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]{8}$/);
+
+    await db.exec(seedSql);
+    expect(await codes()).toEqual(before);
+  });
+
+  it('makes a real school reachable via its drawn join code for anon', async () => {
     const school = sources.schools[0]!;
+    const { rows: stored } = await db.query<{ join_code: string }>(
+      'select join_code from public.schools where id = $1',
+      [school.id],
+    );
     const { rows } = await asRole(db, 'anon', () =>
-      db.query<{ id: string }>("select public.get_school_by_code($1) ->> 'id' as id", [school.joinCode]),
+      db.query<{ id: string }>("select public.get_school_by_code($1) ->> 'id' as id", [stored[0]!.join_code]),
     );
     expect(rows[0]!.id).toBe(school.id);
+  });
+
+  it('keeps the code generator private', async () => {
+    await expect(asRole(db, 'anon', () => db.query('select public.new_join_code()'))).rejects.toThrow(
+      /permission denied/,
+    );
   });
 
   it('stores choice options and weights like src/data/topics.ts', async () => {
@@ -65,7 +94,8 @@ describe('supabase/seed.sql', () => {
   });
 
   it('accepts generated survey answers through the public submit RPC, including duplicate protection', async () => {
-    const seed = generateSeedData([...sources.schools.slice(0, 5)], { waveCount: 1 });
+    const schools = sources.schools.slice(0, 5).map((school) => ({ ...school, joinCode: '' }));
+    const seed = generateSeedData(schools, { waveCount: 1 });
     const { rows } = await db.query<{ id: string }>(`select public.get_current_wave() ->> 'id' as id`);
     const inputs = seed.responses.map((response) => ({ ...response, waveId: rows[0]!.id }));
     expect(inputs.length).toBeGreaterThan(10);

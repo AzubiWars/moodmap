@@ -1,6 +1,6 @@
 import type { FeatureCollection, Point } from 'geojson';
 import { getDataSource } from '@/data';
-import type { School, SchoolForm } from '@/types';
+import type { DirectorySchool, School, SchoolForm } from '@/types';
 
 /**
  * Schulen mit Stimmungswerten. Im Mock-Modus nur die synthetischen Schulen aus #7 –
@@ -79,7 +79,9 @@ export async function loadSchoolDirectory(): Promise<School[]> {
     // Fallback für ältere Deployments/Caches ohne kompakte Datei.
     const response = await fetch('/data/schools.real.json');
     if (!response.ok) throw new Error(`Schulverzeichnis: HTTP ${response.status}`);
-    return (await response.json()) as School[];
+    // Das öffentliche Verzeichnis enthält bewusst keine Join-Codes (#257).
+    const schools = (await response.json()) as DirectorySchool[];
+    return schools.map((school) => ({ ...school, joinCode: '' }));
   }
 }
 

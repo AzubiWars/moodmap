@@ -6,17 +6,18 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { QUESTIONS, TOPICS } from '../../src/data/topics.ts';
-import type { Question, School, Topic } from '../../src/types/domain.ts';
+import type { DirectorySchool, Question, School, Topic } from '../../src/types/domain.ts';
 import type { KreisCollection } from './geo.ts';
 import { waveRange, type WaveSpec } from './waves.ts';
 
 /** School year 2026/27: from the start of the answer seed history (#8) to the summer holidays. */
 export const SEED_WAVES = { first: '2026-W34', last: '2027-W30' } as const;
 
-export interface SeedSources {
+export interface SeedSources<S extends School | DirectorySchool = School | DirectorySchool> {
   regbez: { type: 'FeatureCollection'; features: { properties: { id: string; name: string } }[] };
   kreise: KreisCollection;
-  schools: readonly School[];
+  /** Synthetic fixtures carry demo join codes; the real directory never does (#257). */
+  schools: readonly S[];
   topics: readonly Topic[];
   questions: readonly Question[];
   waves: readonly WaveSpec[];
@@ -25,6 +26,9 @@ export interface SeedSources {
 const repoPath = (relative: string) => fileURLToPath(new URL(`../../${relative}`, import.meta.url));
 const readJson = <T>(relative: string) => JSON.parse(readFileSync(repoPath(relative), 'utf8')) as T;
 
+/** Synthetic fixtures (with demo join codes) for tests; the real directory for production seeding. */
+export function loadSeedSources(options: { synthetic: true }): SeedSources<School>;
+export function loadSeedSources(options?: { synthetic?: boolean }): SeedSources;
 export function loadSeedSources(options: { synthetic?: boolean } = {}): SeedSources {
   return {
     regbez: readJson('public/geo/nrw-regbez.geojson'),
@@ -61,6 +65,25 @@ function upsert(table: string, columns: string[], key: string[], rows: SqlValue[
   ].join('\n');
 }
 
+/**
+ * Real schools get no join code from the repo: the column default (`public.new_join_code()`) draws a
+ * random one on first insert, and re-seeding never overwrites it (#257). Only synthetic fixtures
+ * (demo codes like DEMO42) write their codes.
+ */
+function schoolsUpsert(schools: SeedSources['schools']): string {
+  const columns = ['id', 'name', 'school_form', 'kreis_id', 'city', 'lat', 'lon', 'student_count'];
+  const withCodes = schools.every((s) => 'joinCode' in s && s.joinCode);
+  return upsert(
+    'schools',
+    withCodes ? [...columns, 'join_code'] : columns,
+    ['id'],
+    schools.map((s) => {
+      const row: SqlValue[] = [s.id, s.name, s.schoolForm, s.kreisId, s.city, s.lat, s.lon, s.studentCount];
+      return withCodes ? [...row, (s as School).joinCode] : row;
+    }),
+  );
+}
+
 export function buildSeedSql(sources: SeedSources): string {
   const sections = [
     [
@@ -79,22 +102,7 @@ export function buildSeedSql(sources: SeedSources): string {
       ['id'],
       sources.kreise.features.map(({ properties: p }) => [p.id, p.name, p.regbez_id, p.type]),
     ),
-    upsert(
-      'schools',
-      ['id', 'name', 'school_form', 'kreis_id', 'city', 'lat', 'lon', 'student_count', 'join_code'],
-      ['id'],
-      sources.schools.map((s) => [
-        s.id,
-        s.name,
-        s.schoolForm,
-        s.kreisId,
-        s.city,
-        s.lat,
-        s.lon,
-        s.studentCount,
-        s.joinCode,
-      ]),
-    ),
+    schoolsUpsert(sources.schools),
     upsert(
       'topics',
       ['slug', 'title', 'icon', 'audience', 'mandatory', 'sort', 'priority'],
