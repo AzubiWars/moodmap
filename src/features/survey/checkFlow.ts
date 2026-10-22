@@ -61,7 +61,7 @@ export function pickDeepQuestion(core: Question[], answers: Record<string, CardA
   for (const q of core) {
     const value = answers[q.id];
     const deep = QUESTIONS_BY_ID[`${q.topicSlug}.deep`];
-    if (typeof value !== 'number' || !deep || value > DEEP_MAX_VALUE) continue;
+    if (q.type === 'swipe' || typeof value !== 'number' || !deep || value > DEEP_MAX_VALUE) continue;
     if (!best || value < best.value) best = { question: deep, value };
   }
   return best?.question ?? null;

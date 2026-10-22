@@ -8,11 +8,11 @@ describe('selectQuestions', () => {
   it('returns 8–12 mood5 questions with the overall question first', () => {
     for (const token of tokens) {
       const qs = selectQuestions(token, '2026-W43');
-      expect(qs.length).toBe(CORE_QUESTION_COUNT);
-      expect(qs.length).toBeGreaterThanOrEqual(8);
-      expect(qs.length).toBeLessThanOrEqual(12);
+      expect(qs.length).toBe(CORE_QUESTION_COUNT + 2);
+      expect(qs.filter((q) => q.type === 'mood5')).toHaveLength(CORE_QUESTION_COUNT);
+      expect(qs.filter((q) => q.type === 'swipe')).toHaveLength(2);
       expect(qs[0]?.id).toBe('overall.core');
-      expect(qs.every((q) => q.type === 'mood5')).toBe(true);
+      expect(qs.slice(0, CORE_QUESTION_COUNT).every((q) => q.type === 'mood5')).toBe(true);
     }
   });
 

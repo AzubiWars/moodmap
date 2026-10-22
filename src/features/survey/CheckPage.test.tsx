@@ -39,9 +39,9 @@ const questions = () => selectQuestions(getDeviceToken(), WAVE);
 
 /** Beantwortet die aktuelle Karte mit dem Skalenwert (Auto-Weiter nach ~250 ms). */
 async function answerScale(text: string, label: string) {
-  fireEvent.click(
-    await screen.findByRole('heading', { name: text }).then(() => screen.getByRole('radio', { name: label })),
-  );
+  await screen.findByRole('heading', { name: text });
+  const scale = screen.queryAllByRole('radio', { name: label });
+  fireEvent.click(scale[0] ?? screen.getByRole('button', { name: 'Trifft zu' }));
 }
 
 /** Letzter Schritt: die Übersicht vor dem Absenden (#146). */
@@ -95,7 +95,7 @@ describe('CheckPage', () => {
     });
     expect(input.answers).toHaveLength(qs.length - 1);
     expect(input.answers.map((a) => a.questionId)).not.toContain(qs[1]?.id);
-    expect(input.answers.every((a) => 'value' in a && a.value === 4)).toBe(true);
+    expect(input.answers.every((a) => 'value' in a && (a.value === 4 || a.value === 5))).toBe(true);
     expect(localStorage.getItem(`moodmap:submitted:${WAVE}`)).toBe('1');
   });
 
@@ -261,7 +261,7 @@ describe('CheckPage', () => {
     expect(await screen.findByRole('heading', { name: 'Alles klar?' })).toBeInTheDocument();
     expect(screen.getByText(/Nach dem Absenden kannst du nichts mehr ändern/)).toBeInTheDocument();
     expect(submit).not.toHaveBeenCalled();
-    expect(screen.getAllByText(/eher gut/).length).toBe(qs.length - 1);
+    expect(screen.getAllByText(/eher gut/).length).toBe(qs.filter((q) => q.type !== 'swipe').length - 1);
     expect(screen.getAllByText(/keine Angabe/).length).toBe(1);
 
     // Zweite Frage (übersprungen) ändern: „keine Angabe" ist vorausgewählt, danach direkt zurück zur Übersicht.

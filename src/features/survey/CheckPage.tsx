@@ -13,6 +13,7 @@ import { useParticipantStore } from '@/store/participant';
 import type { Question } from '@/types';
 import { FreeTextCard } from './FreeTextCard';
 import { selectQuestions } from './selectQuestions';
+import type { CardAnswer } from './checkFlow';
 import { useCheckFlow } from './useCheckFlow';
 import { WithdrawResponse, type WithdrawnState } from './WithdrawResponse';
 
@@ -315,6 +316,78 @@ function ReviewCard({ cards, answers, freeText, isTeacher, onEdit, onBack, onSub
   );
 }
 
+function SwipeControls({ onAnswer, onSkip }: { onAnswer: (value: CardAnswer) => void; onSkip: () => void }) {
+  const [dx, setDx] = useState(0);
+  const start = useRef<number | null>(null);
+  const answered = useRef(false);
+
+  function answer(value: 1 | 5) {
+    if (answered.current) return;
+    answered.current = true;
+    onAnswer(value);
+  }
+
+  function end() {
+    if (start.current === null) return;
+    const delta = dx;
+    start.current = null;
+    setDx(0);
+    if (Math.abs(delta) >= 64) answer(delta > 0 ? 5 : 1);
+  }
+
+  return (
+    <div
+      className="space-y-4 touch-pan-y select-none"
+      role="group"
+      aria-label="Swipe-Aussage: links trifft nicht zu, rechts trifft zu"
+      onPointerDown={(event) => {
+        start.current = event.clientX;
+        (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        if (start.current === null) return;
+        setDx(Math.max(-120, Math.min(120, event.clientX - start.current)));
+      }}
+      onPointerUp={end}
+      onPointerCancel={end}
+    >
+      <div className="flex items-center justify-between text-xs font-medium text-muted">
+        <span>← Trifft nicht zu</span>
+        <span>Trifft zu →</span>
+      </div>
+      <div
+        className="card bg-subtle p-6 text-center text-sm font-semibold shadow-none transition-transform"
+        style={{ transform: `translateX(${dx}px) rotate(${dx / 20}deg)` }}
+      >
+        {dx < -20 ? 'Trifft nicht zu' : dx > 20 ? 'Trifft zu' : 'Wische nach links oder rechts'}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => answer(1)}
+          className="min-h-12 rounded-2xl bg-card px-3 font-medium ring-1 ring-border hover:bg-subtle"
+        >
+          Trifft nicht zu
+        </button>
+        <button
+          type="button"
+          onClick={() => answer(5)}
+          className="min-h-12 rounded-2xl bg-primary px-3 font-semibold text-primary-fg"
+        >
+          Trifft zu
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={onSkip}
+        className="min-h-11 w-full text-sm font-medium text-muted underline"
+      >
+        Überspringen
+      </button>
+    </div>
+  );
+}
+
 interface QuestionCardProps {
   question: Question;
   position: number;
@@ -440,6 +513,8 @@ function QuestionCard({
               Weiter
             </button>
           </div>
+        ) : question.type === 'swipe' ? (
+          <SwipeControls onAnswer={onAnswer} onSkip={onSkip} />
         ) : question.type === 'choice' ? (
           <div className="space-y-2">
             <div role="group" aria-label={question.text} className="flex flex-col gap-2">

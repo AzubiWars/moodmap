@@ -1,4 +1,10 @@
-import { MANDATORY_TOPIC_SLUGS, P0_TOPIC_SLUGS, getCoreQuestion, topicSlugsFor } from '@/data/topics';
+import {
+  MANDATORY_TOPIC_SLUGS,
+  P0_TOPIC_SLUGS,
+  QUESTIONS,
+  getCoreQuestion,
+  topicSlugsFor,
+} from '@/data/topics';
 import type { Question, Role } from '@/types';
 
 /** Anzahl der Kernfragen pro Durchlauf (8–10 laut Issue, damit < 60 s möglich bleiben). */
@@ -56,5 +62,12 @@ export function selectQuestions(deviceToken: string, waveId: string, role: Role 
   const rotating = new Set(shuffled(optional, random).slice(0, slots));
 
   const slugs = ['overall', ...mandatory, ...optional.filter((slug) => rotating.has(slug))];
-  return slugs.map(getCoreQuestion).filter(isQuestion);
+  // Zwei kurze Swipe-Aussagen (#31) am Ende; sie zählen mit Gewicht 0,5 in den Score.
+  const swipes = QUESTIONS.filter(
+    (question) =>
+      question.type === 'swipe' &&
+      question.audience === 'student' &&
+      ['ai.swipe.rules', 'voice.swipe.change'].includes(question.id),
+  );
+  return [...slugs.map(getCoreQuestion).filter(isQuestion), ...swipes];
 }
