@@ -164,9 +164,7 @@ function Content({ data }: { data: SchoolDashboardData }) {
               key={topic.slug}
               className="grid gap-2 py-3 sm:grid-cols-[minmax(0,14rem)_1fr_auto] sm:items-center sm:gap-4"
             >
-              <p className="font-medium">
-                <span aria-hidden>{topic.icon}</span> {topic.title}
-              </p>
+              <p className="font-medium">{topic.title}</p>
               <div className="space-y-1">
                 <ScoreBar score={topic.score} compare={topic.formScore} compareLabel={`Ø ${formLabel}`} />
                 <p className="text-xs text-muted">

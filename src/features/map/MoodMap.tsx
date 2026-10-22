@@ -18,12 +18,14 @@ import {
   TREND_FILL_EXPRESSION,
 } from './modes';
 import { TENSION_FILL_EXPRESSION, TENSION_INFO } from './radar';
+import { SCHOOL_FORM_LABELS } from './schools';
 import type {
   DirectoryPointProperties,
   SchoolCollection,
   SchoolDirectoryCollection,
   SchoolPointProperties,
 } from './schools';
+import type { School } from '@/types';
 
 /** `dim` = liegt außerhalb des fokussierten Regierungsbezirks (Drill-down #17) */
 type ScoredProperties = RegionProperties & { score: number; n: number; dim?: boolean };
@@ -42,6 +44,8 @@ interface MoodMapProps {
   schools?: SchoolCollection | null;
   /** Offizielles NRW-Schulverzeichnis: alle Standorte als neutrale Hintergrund-Punkte. */
   directorySchools?: SchoolDirectoryCollection | null;
+  /** Aus der Suche gewählter echter Schulstandort – mit Label und Pin markieren. */
+  focusSchool?: School | null;
   /** Clustern (Regierungsbezirk); im Kreis sind es wenige genug für Einzel-Marker */
   clusterSchools?: boolean;
   /** Kartenmodus (#42): im Frühwarn-Radar färben Flächen/Schulen nach Spannungs-Stufe (Property `tension`) */
@@ -212,6 +216,7 @@ export function MoodMap({
   detailOpen = false,
   schools,
   directorySchools,
+  focusSchool,
   clusterSchools = true,
   pulses = [],
   mode = 'mood',
@@ -661,6 +666,25 @@ export function MoodMap({
             }}
           />
         </Source>
+      )}
+      {focusSchool && (
+        <Marker
+          longitude={focusSchool.lon}
+          latitude={focusSchool.lat}
+          anchor="bottom"
+          offset={[0, -8]}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="flex flex-col items-center">
+            <div className="max-w-56 rounded-2xl bg-card px-3 py-2 text-center text-xs font-semibold shadow-xl ring-1 ring-border">
+              {focusSchool.name}
+              <span className="mt-0.5 block text-[10px] font-normal text-muted">
+                {SCHOOL_FORM_LABELS[focusSchool.schoolForm]} · {focusSchool.city}
+              </span>
+            </div>
+            <span className="mt-1 size-3 rounded-full border-2 border-white bg-accent shadow" />
+          </div>
+        </Marker>
       )}
       {pulses.map((pulse) => (
         <Marker

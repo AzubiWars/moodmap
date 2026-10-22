@@ -432,6 +432,7 @@ export function MapPage() {
           onPitchChange={setIs3d}
           // Auf NRW-Ebene keine grauen Verzeichnis-Cluster; erst ab Regierungsbezirk/Kreis.
           directorySchools={drill.level === 'nrw' && !directoryFocus ? null : directoryPoints}
+          focusSchool={directoryFocus}
           pulses={pulses}
           mode={mode}
         />

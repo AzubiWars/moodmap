@@ -74,10 +74,11 @@ export function Hotspots({ topics }: { topics: TopicStat[] }) {
   return (
     <section aria-labelledby="hotspots" className="card p-4 sm:p-5">
       <h2 id="hotspots" className="text-lg font-bold">
-        <span aria-hidden>🔥</span> Brennpunkt-Themen NRW
+        Brennpunkt-Themen NRW
       </h2>
       <p className="mt-1 text-sm text-muted">
-        Die meisten unzufriedenen Stimmen (😫 + 😕). Tippen Sie auf ein Thema, um zu sehen, wo es brennt.
+        Die meisten unzufriedenen Stimmen (sehr schlecht + schlecht). Wählen Sie ein Thema, um die Regionen zu
+        sehen.
       </p>
       {hot.length === 0 ? (
         <p className="mt-3 text-sm text-muted">Noch zu wenige Daten.</p>
@@ -90,9 +91,6 @@ export function Hotspots({ topics }: { topics: TopicStat[] }) {
                 className="flex min-h-14 items-center gap-3 rounded-xl px-1 py-2 hover:bg-subtle"
               >
                 <span className="w-5 text-sm font-bold text-muted tabular-nums">{i + 1}.</span>
-                <span className="text-2xl" aria-hidden>
-                  {topic.icon}
-                </span>
                 <span className="min-w-0 flex-1">
                   <span className="block leading-snug font-semibold">{topic.title}</span>
                   <span className="flex flex-wrap items-center gap-x-2 text-sm">
@@ -143,7 +141,11 @@ export function SegmentedControl<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <div role="group" aria-label={label} className="inline-flex rounded-2xl bg-subtle p-1">
+    <div
+      role="group"
+      aria-label={label}
+      className="inline-flex rounded-lg border border-border bg-subtle p-0.5"
+    >
       {options.map((option) => (
         <button
           key={option.id}
@@ -151,8 +153,10 @@ export function SegmentedControl<T extends string>({
           aria-pressed={value === option.id}
           onClick={() => onChange(option.id)}
           className={cn(
-            'min-h-11 rounded-xl px-3 text-sm font-semibold',
-            value === option.id ? 'bg-primary text-primary-fg' : 'text-muted hover:text-fg',
+            'min-h-9 rounded-md px-3 text-sm font-semibold transition-colors',
+            value === option.id
+              ? 'bg-card text-fg shadow-sm ring-1 ring-border/60'
+              : 'text-muted hover:text-fg',
           )}
         >
           {option.label}
@@ -184,9 +188,7 @@ export function TopicPercentList({ topics }: { topics: TopicStat[] }) {
         {sorted.map((topic) => (
           <li key={topic.slug}>
             <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-              <span className="font-semibold">
-                <span aria-hidden>{topic.icon}</span> {topic.title}
-              </span>
+              <span className="font-semibold">{topic.title}</span>
               <span className="text-sm tabular-nums">
                 {topic.sentiment ? (
                   <>
@@ -222,9 +224,7 @@ export function TopicRanking({ topics }: { topics: TopicStat[] }) {
             <span className="w-6 text-sm font-bold text-muted tabular-nums">
               {topic.score == null ? '–' : `${i + 1}.`}
             </span>
-            <span className="min-w-0 flex-1 truncate">
-              <span aria-hidden>{topic.icon}</span> {topic.title}
-            </span>
+            <span className="min-w-0 flex-1 truncate">{topic.title}</span>
             <Trend delta={topic.delta} />
             <MoodBadge score={topic.score} size="sm" showLabel={topic.score == null} />
           </li>

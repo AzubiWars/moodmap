@@ -50,7 +50,7 @@ export function GroupComparison({ topics }: { topics: TopicStat[] }) {
           >
             {selectable.map((t) => (
               <option key={t.slug} value={t.slug}>
-                {t.icon} {t.title}
+                {t.title}
               </option>
             ))}
           </select>
