@@ -7,3 +7,6 @@ scripts/data
 supabase/seed.sql
 supabase/.temp
 *.md
+
+test-results
+playwright-report

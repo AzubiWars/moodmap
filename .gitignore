@@ -10,3 +10,6 @@ dist/
 # Secrets niemals committen
 *token*.txt
 public/data/seed.json
+
+test-results/
+playwright-report/

@@ -18,6 +18,7 @@ function setup(schoolRow: AggregateRow) {
     getSchoolByCode: async () => ({ id: '900000', kreisId: '05111' }),
     getAggregates: async (query: AggregateQuery) =>
       query.level === 'nrw' ? [row('nrw', 500, 60)] : [schoolRow],
+    getPolicyAnswers: async () => [],
   } as unknown as DataSource);
   render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>

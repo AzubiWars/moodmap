@@ -5,6 +5,7 @@ import { getDataSource } from '@/data';
 import { K_MIN } from '@/lib/env';
 import { useRoleStore } from '@/store/role';
 import { GroupComparison } from './GroupComparison';
+import { PolicyPublishForm } from '@/features/dialog/PolicyPublishForm';
 import { AiReport } from './AiReport';
 import { Hotspots, KpiRow, TopicPercentList, TopicRanking } from './LagebildSections';
 import { loadLagebild } from './loadLagebild';
@@ -58,6 +59,8 @@ export function DashboardPage() {
           {demo && ' · Demo-Daten'}
         </p>
       </header>
+
+      {role === 'ministry' && <PolicyPublishForm />}
 
       {query.isError ? (
         <div className="card p-6 text-center">
