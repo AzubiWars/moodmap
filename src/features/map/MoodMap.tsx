@@ -145,42 +145,8 @@ const PLACE_DETAIL_FILTER = [
   ['literal', ['hamlet', 'suburb', 'quarter', 'neighbourhood']],
 ] as never;
 
-const POI_ICON = [
-  'match',
-  ['get', 'class'],
-  ['townhall', 'town_hall', 'courthouse', 'government'],
-  '🏛️',
-  ['hospital', 'clinic'],
-  '🏥',
-  'library',
-  '📚',
-  'police',
-  '🚓',
-  'fire_station',
-  '🚒',
-  'community_centre',
-  '🏘️',
-  'kindergarten',
-  '🧸',
-  ['college', 'university'],
-  '🎓',
-  'museum',
-  '🖼️',
-  'place_of_worship',
-  '⛪',
-  'station',
-  '🚉',
-  'post',
-  '📮',
-  '🏢',
-] as unknown as string;
-
-const POI_LABEL = [
-  'case',
-  ['has', 'name'],
-  ['concat', POI_ICON, ' ', ['coalesce', ['get', 'name'], ['get', 'name_de']]],
-  POI_ICON,
-] as unknown as string;
+// Keine Emoji-Glyphen: OpenFreeMap hostet nur Noto Sans (ohne Emoji-Range).
+const POI_LABEL = ['coalesce', ['get', 'name'], ['get', 'name_de']] as unknown as string;
 
 const PLACE_LABEL = ['coalesce', ['get', 'name'], ['get', 'name_de']] as unknown as string;
 
@@ -511,6 +477,9 @@ export function MoodMap({
             filter={PUBLIC_POI_FILTER}
             layout={{
               'text-field': POI_LABEL,
+              // OpenFreeMap liefert Noto Sans; ohne expliziten Font fragt MapLibre
+              // nach nicht vorhandenem „Open Sans/Arial Unicode“ und Labels fehlen.
+              'text-font': ['Noto Sans Bold'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 14, 10, 18, 12] as unknown as number,
               'text-anchor': 'top',
               'text-offset': [0, 0.8],
@@ -534,6 +503,7 @@ export function MoodMap({
             filter={PLACE_DETAIL_FILTER}
             layout={{
               'text-field': PLACE_LABEL,
+              'text-font': ['Noto Sans Regular'],
               'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 15, 12, 18, 13] as unknown as number,
               'text-max-width': 8,
               'text-allow-overlap': false,
