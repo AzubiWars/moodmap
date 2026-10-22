@@ -142,9 +142,9 @@ function visibleSchools(
   return inCity.filter((s) => kreisIds.has(s.kreisId) && inForm(s));
 }
 
-/** Ausschnitt um eine Schule (~ Zoom 14, Nachbarschaft bleibt erkennbar). */
+/** Ausschnitt um eine Schule: nahe genug für die 3D-Gebäudeansicht. */
 function schoolBounds(school: School): Bounds {
-  const d = 0.012;
+  const d = 0.0025;
   return [
     [school.lon - d * 1.6, school.lat - d],
     [school.lon + d * 1.6, school.lat + d],
@@ -359,6 +359,7 @@ export function MapPage() {
   }
 
   function navigate(target: DrillTarget) {
+    setDirectoryFocus(null);
     setSearchParams((previous) => drillParams(previous, target), { preventScrollReset: true });
   }
 
@@ -458,6 +459,7 @@ export function MapPage() {
               kreise={kreiseQuery.data}
               regbez={regbezQuery.data}
               onSelectSchool={(school) => {
+                setIs3d(true);
                 const kreis = kreiseQuery.data?.features.find(
                   (feature) => feature.properties.id === school.kreisId,
                 );
@@ -467,7 +469,10 @@ export function MapPage() {
                   school: school.id,
                 });
               }}
-              onSelectDirectorySchool={(school) => setDirectoryFocus(school)}
+              onSelectDirectorySchool={(school) => {
+                setIs3d(true);
+                setDirectoryFocus(school);
+              }}
               onSelectCity={selectCity}
               onSelectRegion={selectSearchRegion}
             />

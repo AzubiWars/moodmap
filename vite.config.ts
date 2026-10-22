@@ -9,7 +9,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // Kein automatisches Reload bei jedem neuen Deployment; Updates warten auf den nächsten Start.
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'favicon.ico', 'apple-touch-icon-180x180.png'],
       manifest: {
         name: 'Moodmap NRW',
@@ -51,8 +52,8 @@ export default defineConfig({
             options: { cacheName: 'moodmap-maplibre', expiration: { maxEntries: 8 } },
           },
         ],
-        skipWaiting: true,
-        clientsClaim: true,
+        skipWaiting: false,
+        clientsClaim: false,
       },
     }),
   ],
