@@ -385,6 +385,19 @@ export function MoodMap({
   // Auf schmalen Screens verdeckt die aufgeklappte Attribution die Legende – dauerhaft eingeklappt halten (#175).
   // Ab dem ersten `styledata`, nicht erst ab `load`: auf langsamem Netz dauert `load` Sekunden.
   const [mapReady, setMapReady] = useState(false);
+  // Beim Theme-Wechsel lädt MapLibre einen neuen Style. Eigene Layer mit `beforeId`
+  // dürfen erst wieder eingehängt werden, wenn die Ziel-Layer des neuen Styles da sind.
+  const styleToken = `${theme}:${basemapFailed ? 'fallback' : 'vector'}`;
+  const [readyStyleToken, setReadyStyleToken] = useState<string | null>(null);
+  const styleReady = basemapFailed || readyStyleToken === styleToken;
+  function syncStyleReady() {
+    const map = mapRef.current?.getMap();
+    if (!map) return;
+    // Erst einhängen, wenn die Ziel-Layer des aktuellen Styles wirklich existieren.
+    if (map.getLayer(LABEL_INSERT_BEFORE[theme]) && map.getLayer(FIRST_SYMBOL_LAYER_IDS[theme])) {
+      setReadyStyleToken(styleToken);
+    }
+  }
   useEffect(() => {
     const map = mapRef.current;
     if (!mapReady || !map) return;
@@ -427,7 +440,11 @@ export function MoodMap({
         mapApiRef.current = event.target as unknown as typeof mapApiRef.current;
         setLoaded(true);
       }}
-      onStyleData={() => setMapReady(true)}
+      onStyleData={() => {
+        setMapReady(true);
+        syncStyleReady();
+      }}
+      onIdle={syncStyleReady}
       interactiveLayerIds={[
         FILL_LAYER_ID,
         SCHOOL_LAYER_ID,
@@ -448,7 +465,7 @@ export function MoodMap({
       attributionControl={{ compact: true, customAttribution: BOUNDARY_ATTRIBUTION }}
       style={{ width: '100%', height: '100%' }}
     >
-      {is3d && !basemapFailed && (
+      {styleReady && is3d && !basemapFailed && (
         <Layer
           id={BUILDING_LAYER_ID}
           source={BUILDING_SOURCE}
@@ -464,7 +481,7 @@ export function MoodMap({
           }}
         />
       )}
-      {!basemapFailed && (
+      {styleReady && !basemapFailed && (
         <>
           <Layer
             id={`${POI_LAYER_ID}-dot`}
@@ -543,7 +560,7 @@ export function MoodMap({
         <Layer id="germany-mask-edge" type="line" paint={{ 'line-color': maskColor, ...MASK_EDGE_PAINT }} />
         <Layer id="germany-outline-line" type="line" paint={{ 'line-color': '#94a3b8', 'line-width': 1 }} />
       </Source>
-      {regions && (
+      {styleReady && regions && (
         <Source id="regions" type="geojson" data={regions} promoteId="id">
           <Layer
             id={FILL_LAYER_ID}
