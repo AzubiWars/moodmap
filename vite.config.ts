@@ -67,6 +67,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
+    exclude: ['e2e/**', 'node_modules/**', 'dist/**'],
     // PGlite-Seed-Tests und lange Survey-Flows brauchen unter voller Parallelität mehr Zeit.
     hookTimeout: 30_000,
     testTimeout: 30_000,
