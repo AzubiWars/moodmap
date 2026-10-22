@@ -2,11 +2,12 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import MapGL, { Layer, Marker, NavigationControl, Popup, Source } from 'react-map-gl/maplibre';
+import { cn } from '@/lib/utils';
+import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from '@/lib/colors';
 import { useTheme } from '@/lib/theme';
-import { type Bounds, GERMANY_MAX_BOUNDS, NRW_BOUNDS, type RegionProperties } from './geo';
+import { type Bounds, NRW_BOUNDS, type RegionProperties } from './geo';
 import { keepAttributionCollapsed } from './attribution';
 import { maplibre } from './maplibreSetup';
 import {
@@ -58,6 +59,12 @@ interface MoodMapProps {
   is3d?: boolean;
   /** Synchronisiert den Button, falls die Kameraneigung anderweitig geändert wurde. */
   onPitchChange?: (is3d: boolean) => void;
+  /** Breadcrumb-/Reset-Aktion aus der Kartensteuerung. */
+  onResetView?: () => void;
+  /** 2D/3D aus der Kartensteuerung umschalten. */
+  onToggle3d?: () => void;
+  /** Erzwingt einen erneuten Fit auf `focusBounds` (Reset auch ohne Parameterwechsel). */
+  viewResetKey?: number;
 }
 
 const BASEMAP_URLS = {
@@ -224,6 +231,9 @@ export function MoodMap({
   onSelectSchool,
   is3d = false,
   onPitchChange,
+  onResetView,
+  onToggle3d,
+  viewResetKey = 0,
 }: MoodMapProps) {
   const theme = useTheme();
   const dark = theme === 'dark';
@@ -299,7 +309,7 @@ export function MoodMap({
     map.fitBounds(focusBounds, { padding, duration: 800, pitch: is3d ? 50 : 0 });
     // boundsKey statt focusBounds: das Array ist bei jedem Render neu
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loaded, boundsKey, detailOpen]);
+  }, [loaded, boundsKey, detailOpen, viewResetKey]);
 
   const selectedFilter = useMemo(
     () => ['==', ['get', 'id'], selectedId ?? ''] as ['==', ['get', string], string],
@@ -430,15 +440,14 @@ export function MoodMap({
       onClick={handleClick}
       cursor={hover ? 'pointer' : 'grab'}
       // Ab Zoom 6: keine groben Europa-Kacheln; die NRW-Startansicht liegt auf allen Breiten darüber
-      minZoom={6}
+      // Freies Zoomen/Pannen auf dem Laptop; die Deutschland-Maske bleibt als Overlay.
+      minZoom={4}
       maxZoom={18}
-      maxBounds={GERMANY_MAX_BOUNDS}
       maxPitch={60}
       dragRotate={false}
       attributionControl={{ compact: true, customAttribution: BOUNDARY_ATTRIBUTION }}
       style={{ width: '100%', height: '100%' }}
     >
-      <NavigationControl position="top-right" showCompass={false} />
       {is3d && !basemapFailed && (
         <Layer
           id={BUILDING_LAYER_ID}
@@ -700,6 +709,50 @@ export function MoodMap({
           </span>
         </Marker>
       ))}
+      <div
+        className={cn(
+          'absolute top-3 right-3 z-10 flex flex-col overflow-hidden rounded-lg border border-border bg-card/95 shadow-md backdrop-blur',
+          detailOpen && 'md:right-[25rem]',
+        )}
+      >
+        <button
+          type="button"
+          aria-label="Hineinzoomen"
+          title="Hineinzoomen"
+          onClick={() => mapRef.current?.getMap().zoomIn()}
+          className="flex size-11 items-center justify-center border-b border-border text-lg font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          aria-label="Herauszoomen"
+          title="Herauszoomen"
+          onClick={() => mapRef.current?.getMap().zoomOut()}
+          className="flex size-11 items-center justify-center border-b border-border text-lg font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          aria-label="NRW-Ansicht"
+          title="NRW-Ansicht"
+          onClick={() => onResetView?.()}
+          className="flex min-h-11 items-center justify-center border-b border-border px-2 text-[11px] font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          NRW
+        </button>
+        <button
+          type="button"
+          aria-label="3D-Ansicht umschalten"
+          aria-pressed={is3d}
+          title={is3d ? 'Auf 2D umschalten' : 'Auf 3D umschalten'}
+          onClick={() => onToggle3d?.()}
+          className="flex min-h-11 items-center justify-center px-2 text-[11px] font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          {is3d ? '2D' : '3D'}
+        </button>
+      </div>
       {hover && (
         <Popup
           longitude={hover.lng}

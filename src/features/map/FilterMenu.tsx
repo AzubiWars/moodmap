@@ -151,7 +151,7 @@ export function FilterMenu({ filters, onChange }: FilterMenuProps) {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="min-h-10 rounded-full bg-primary px-4 text-sm font-semibold text-primary-fg"
+                className="min-h-10 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg"
               >
                 Fertig
               </button>

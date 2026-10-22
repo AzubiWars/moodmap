@@ -103,8 +103,13 @@ vi.mock('./MoodMap', () => ({
       <output data-testid="map-selected-school">{selectedSchoolId ?? ''}</output>
       <output data-testid="map-pulses">{(pulses ?? []).map((p) => p.id).join(',')}</output>
       <output data-testid="map-3d">{String(is3d ?? false)}</output>
-      <button type="button" onClick={() => onPitchChange?.(true)}>
-        Mock 3D
+      <button
+        type="button"
+        aria-label="3D-Ansicht umschalten"
+        aria-pressed={is3d ?? false}
+        onClick={() => onPitchChange?.(!is3d)}
+      >
+        {is3d ? '2D' : '3D'}
       </button>
       {schools?.features.map((f) => (
         <button key={f.properties.id} type="button" onClick={() => onSelectSchool(f.properties.id)}>

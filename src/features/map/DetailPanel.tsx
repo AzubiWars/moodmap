@@ -241,7 +241,7 @@ function RadarSection({
       )}
       <Link
         to={publishAnswerHref(publishScope, publishRegionId, tension.drivers[0])}
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-fg hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-fg hover:opacity-90 focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       >
         <Megaphone aria-hidden className="size-3.5" /> Antwort veröffentlichen
       </Link>
