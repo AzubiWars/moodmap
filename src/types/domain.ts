@@ -84,6 +84,9 @@ export interface School {
   isTest?: boolean;
 }
 
+/** Öffentliches Schulverzeichnis (`public/data/schools.real.json`): nie mit Join-Code (#257). */
+export type DirectorySchool = Omit<School, 'joinCode' | 'isTest'>;
+
 export interface Topic {
   slug: TopicSlug;
   title: string;
