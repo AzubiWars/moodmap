@@ -438,6 +438,7 @@ export function MapPage() {
           mode={mode}
           onResetView={() => {
             setDirectoryFocus(null);
+            setIs3d(false);
             setViewResetKey((value) => value + 1);
             navigate({});
           }}
