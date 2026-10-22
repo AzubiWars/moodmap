@@ -14,6 +14,7 @@ test('Mood-Check startet und Karte lädt', async ({ page }) => {
   await page.getByRole('button', { name: 'Herauszoomen' }).click();
   await page.getByRole('button', { name: 'Herauszoomen' }).click();
   await page.getByRole('button', { name: 'NRW-Ansicht' }).click();
+  await expect(page.getByRole('button', { name: 'Vollbild öffnen' })).toBeVisible();
 
   // Schul-Suche (#245): echter NRW-Standort zoomt bis in die 3D-Gebäudeansicht.
   await page.getByRole('searchbox', { name: 'Schule oder Stadt suchen' }).fill('Stettiner');

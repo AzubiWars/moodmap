@@ -402,7 +402,7 @@ export function MapPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] flex-col md:h-[calc(100dvh-5.1rem)]">
+    <div className="flex h-[calc(100dvh-8.5rem-env(safe-area-inset-bottom))] w-full flex-col md:h-[calc(100dvh-5.1rem)]">
       {/* Der Spannungs-Index nutzt feste Themen (TENSION_WEIGHTS) – Themenfilter nur im Stimmungsmodus */}
       {modeUsesTopic(mode) ? (
         <TopicFilter

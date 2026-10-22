@@ -1,6 +1,7 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
@@ -253,6 +254,18 @@ export function MoodMap({
   );
   const [hover, setHover] = useState<HoverInfo | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [fullscreen, setFullscreen] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', sync);
+    return () => document.removeEventListener('fullscreenchange', sync);
+  }, []);
+
+  async function toggleFullscreen() {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  }
 
   // Nicht bei jedem Tile-/Glyph-Fehler sofort auf den Raster-Fallback wechseln.
   // Der Vektor-Style bekommt Zeit zu laden; erst wenn die Karte gar nicht ready wird,
@@ -749,6 +762,19 @@ export function MoodMap({
           className="flex size-11 items-center justify-center border-b border-border text-lg font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           −
+        </button>
+        <button
+          type="button"
+          aria-label={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
+          title={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
+          onClick={() => void toggleFullscreen()}
+          className="flex min-h-11 items-center justify-center border-b border-border px-2 hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          {fullscreen ? (
+            <Minimize2 className="size-4" aria-hidden />
+          ) : (
+            <Maximize2 className="size-4" aria-hidden />
+          )}
         </button>
         <button
           type="button"
