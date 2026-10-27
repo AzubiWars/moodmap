@@ -62,3 +62,21 @@ it('boots the real seed lazily and shares saved votes across all aggregate level
     vi.unstubAllGlobals();
   }
 });
+
+it('seeds the mock with the current ISO week instead of a fixed W43', async () => {
+  vi.stubGlobal('crypto', webcrypto);
+  const fetchSchools = vi.fn(async () => ({ ok: true, json: async () => structuredClone(schools) }));
+  vi.stubGlobal('fetch', fetchSchools);
+  const source = createDefaultMockSource({
+    now: () => new Date('2026-10-27T12:00:00Z'),
+    storage: null,
+    channel: null,
+  });
+  try {
+    expect((await source.getCurrentWave()).id).toBe('2026-W44');
+    expect(await source.getSchoolByCode('DEMO42')).not.toBeNull();
+  } finally {
+    source.dispose();
+    vi.unstubAllGlobals();
+  }
+});
