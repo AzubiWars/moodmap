@@ -1,5 +1,6 @@
 import type { FeatureCollection, Point } from 'geojson';
 import { getDataSource } from '@/data';
+import { expandMinifiedSchools, type MinifiedSchools } from '@/data/schoolDirectory';
 import type { DirectorySchool, School, SchoolForm } from '@/types';
 
 /**
@@ -47,34 +48,13 @@ export interface DirectoryPointProperties {
 
 export type SchoolDirectoryCollection = FeatureCollection<Point, DirectoryPointProperties>;
 
-interface MinifiedSchools {
-  ids: string[];
-  names: string[];
-  forms: School['schoolForm'][];
-  kreisIds: string[];
-  cities: string[];
-  lats: number[];
-  lons: number[];
-  studentCounts: (number | null)[];
-}
-
 /** Lädt das offizielle, bereits importierte Schulverzeichnis NRW (5.327 Standorte). */
 export async function loadSchoolDirectory(): Promise<School[]> {
   try {
     const response = await fetch('/data/schools.min.json');
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const min = (await response.json()) as MinifiedSchools;
-    return min.ids.map((id, index) => ({
-      id,
-      name: min.names[index]!,
-      schoolForm: min.forms[index]!,
-      kreisId: min.kreisIds[index]!,
-      city: min.cities[index]!,
-      lat: min.lats[index]!,
-      lon: min.lons[index]!,
-      studentCount: min.studentCounts[index] ?? null,
-      joinCode: '',
-    }));
+    return expandMinifiedSchools(min);
   } catch {
     // Fallback für ältere Deployments/Caches ohne kompakte Datei.
     const response = await fetch('/data/schools.real.json');
