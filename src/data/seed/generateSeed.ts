@@ -38,17 +38,30 @@ export function isoWeekMonday(year: number, week: number): Date {
   return monday;
 }
 
-/** Generates ISO waves (Mo 00:00 – So 23:59:59 UTC) ending at LAST_WAVE_ID */
-export function generateWaves(count = DEFAULT_WAVE_COUNT): Wave[] {
+/** ISO-Wochen-ID (z. B. `2026-W44`) des Tages, in dem `date` liegt. */
+export function isoWeekId(date: Date): string {
+  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  const day = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
+}
+
+/** Generates ISO waves (Mo 00:00 – So 23:59:59 UTC) ending at `lastWaveId`. */
+export function generateWaves(count = DEFAULT_WAVE_COUNT, lastWaveId = LAST_WAVE_ID): Wave[] {
+  const match = /^(\d{4})-W(\d{2})$/.exec(lastWaveId);
+  if (!match) throw new Error(`Ungültige letzte Welle: ${lastWaveId}`);
+  const lastMonday = isoWeekMonday(Number(match[1]), Number(match[2]));
   const waves: Wave[] = [];
-  const lastWeek = 43;
-  for (let w = lastWeek - count + 1; w <= lastWeek; w++) {
-    const start = isoWeekMonday(2026, w);
+  for (let i = count - 1; i >= 0; i--) {
+    const start = new Date(lastMonday);
+    start.setUTCDate(lastMonday.getUTCDate() - i * 7);
     const end = new Date(start);
     end.setUTCDate(start.getUTCDate() + 6);
     end.setUTCHours(23, 59, 59, 0);
     waves.push({
-      id: `2026-W${w.toString().padStart(2, '0')}`,
+      id: isoWeekId(start),
       startsAt: start.toISOString(),
       endsAt: end.toISOString(),
     });
@@ -323,6 +336,8 @@ function generateAnswersForResponse(
 export interface GenerateSeedOptions {
   seed?: number;
   waveCount?: number;
+  /** Letzte erzeugte ISO-Woche; default ist der feste Demo-Stichtag `LAST_WAVE_ID`. */
+  lastWaveId?: string;
 }
 
 /**
@@ -332,8 +347,9 @@ export interface GenerateSeedOptions {
 export function generateSeedData(schools: School[], options: GenerateSeedOptions = {}): SeedData {
   const seed = options.seed ?? DEFAULT_SEED;
   const waveCount = options.waveCount ?? DEFAULT_WAVE_COUNT;
+  const lastWaveId = options.lastWaveId ?? LAST_WAVE_ID;
   const random = createRandom(seed);
-  const waves = generateWaves(waveCount);
+  const waves = generateWaves(waveCount, lastWaveId);
   const policyAnswers = generatePolicyAnswers();
 
   const responses: SeedResponse[] = [];
@@ -387,7 +403,7 @@ export function generateSeedData(schools: School[], options: GenerateSeedOptions
 
   return {
     seed,
-    generatedFor: LAST_WAVE_ID,
+    generatedFor: lastWaveId,
     waves,
     responses,
     policyAnswers,

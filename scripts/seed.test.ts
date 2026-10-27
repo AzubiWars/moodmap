@@ -11,6 +11,7 @@ import {
   HOTSPOT_TENSION_KREIS,
   generateSeedData,
   generateWaves,
+  isoWeekId,
 } from '../src/data/seed/generateSeed.ts';
 
 const path = (relative: string) => fileURLToPath(new URL(`../${relative}`, import.meta.url));
@@ -58,6 +59,23 @@ describe('seed generator (#8)', () => {
     expect(waves[9]!.startsAt).toBe('2026-10-19T00:00:00.000Z'); // ISO-Woche 43: Mo 19.10.
     expect(waves[9]!.endsAt).toBe('2026-10-25T23:59:59.000Z');
     expect(waves[0]!.startsAt).toBe('2026-08-17T00:00:00.000Z'); // ISO-Woche 34: Mo 17.08.
+  });
+
+  it('can end at the current ISO week and crosses the year boundary', () => {
+    const current = generateWaves(2, '2026-W44');
+    expect(current.map((wave) => wave.id)).toEqual(['2026-W43', '2026-W44']);
+    expect(current[1]!.startsAt).toBe('2026-10-26T00:00:00.000Z');
+    expect(current[1]!.endsAt).toBe('2026-11-01T23:59:59.000Z');
+
+    const boundary = generateWaves(2, '2027-W01');
+    expect(boundary.map((wave) => wave.id)).toEqual(['2026-W53', '2027-W01']);
+    expect(boundary[1]!.startsAt).toBe('2027-01-04T00:00:00.000Z');
+  });
+
+  it('maps calendar dates to ISO weeks', () => {
+    expect(isoWeekId(new Date('2026-10-27T12:00:00Z'))).toBe('2026-W44');
+    expect(isoWeekId(new Date('2026-12-31T12:00:00Z'))).toBe('2026-W53');
+    expect(isoWeekId(new Date('2027-01-04T12:00:00Z'))).toBe('2027-W01');
   });
 
   it('dates every response inside its own wave (day precision)', () => {
