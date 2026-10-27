@@ -11,11 +11,14 @@ import type {
 import { getDeviceToken } from '@/lib/device';
 import { K_MIN } from '@/lib/env';
 import type { DataSource, NewResponseEvent } from './api';
+import { expandMinifiedSchools, type MinifiedSchools } from './schoolDirectory';
 
 interface Options {
   url: string;
   anonKey: string;
   fetcher?: typeof fetch;
+  /** Static school directory from the app origin; separate from the Supabase REST fetcher. */
+  directoryFetcher?: typeof fetch;
   /** Supabase Auth JWT, when a future authenticated publisher is available. Never a service key. */
   accessToken?: () => string | undefined;
   channelFactory?: ((name: string) => BroadcastChannel) | null;
@@ -44,6 +47,8 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
     throw new Error('Ein service_role-Key darf nicht im Frontend verwendet werden.');
   }
   const fetcher = options.fetcher ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
+  const directoryFetcher =
+    options.directoryFetcher ?? ((...args: Parameters<typeof fetch>) => fetch(...args));
   const listeners = new Set<(event: NewResponseEvent) => void>();
   const channelFactory =
     options.channelFactory === undefined
@@ -131,22 +136,71 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
           }
         : row,
     );
+  const schoolSelect =
+    'id,name,schoolForm:school_form,kreisId:kreis_id,city,lat,lon,studentCount:student_count';
+  const withJoinCode = (rows: Omit<School, 'joinCode'>[]): School[] =>
+    rows.map((school) => ({ ...school, joinCode: '' }));
+
+  /** One cached static request instead of the previous ~11 sequential REST pages (#249). */
+  async function loadStaticSchools(): Promise<School[]> {
+    const response = await directoryFetcher('/data/schools.min.json', {
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw new Error(`Schulverzeichnis: HTTP ${response.status}`);
+    return expandMinifiedSchools((await response.json()) as MinifiedSchools);
+  }
+
+  async function loadSchoolsFromRest(): Promise<School[]> {
+    const page = async (offset: number, limit: number, count = false) => {
+      const params = new URLSearchParams({
+        select: schoolSelect,
+        order: 'id.asc',
+        limit: String(limit),
+        offset: String(offset),
+      });
+      const response = await request(
+        `schools?${params}`,
+        count ? { headers: { Prefer: 'count=exact' } } : {},
+      );
+      return {
+        rows: (await response.json()) as Omit<School, 'joinCode'>[],
+        total: response.headers.get('content-range')?.split('/')[1],
+      };
+    };
+
+    const first = await page(0, 1000, true);
+    if (first.rows.length === 0) return [];
+    const total = Number(first.total);
+
+    if (!Number.isFinite(total)) {
+      // No usable count header: keep paging until an empty page, using the real page size.
+      const rows = [...first.rows];
+      const step = rows.length;
+      for (;;) {
+        const next = await page(rows.length, step);
+        if (next.rows.length === 0) break;
+        rows.push(...next.rows);
+      }
+      return withJoinCode(rows);
+    }
+    if (total <= first.rows.length) return withJoinCode(first.rows);
+
+    // The server may cap a page below the requested limit. Use the actual first-page size as the
+    // offset step and fetch the remaining pages in parallel.
+    const pageSize = first.rows.length;
+    const offsets: number[] = [];
+    for (let offset = pageSize; offset < total; offset += pageSize) offsets.push(offset);
+    const pages = await Promise.all(offsets.map((offset) => page(offset, pageSize)));
+    return withJoinCode([...first.rows, ...pages.flatMap((page) => page.rows)]);
+  }
+
   const source: DataSource & { dispose(): void } = {
     async getSchools() {
-      const schools: School[] = [];
-      // Continue by the actual row count: the server can cap a page below the requested limit.
-      for (;;) {
-        const params = new URLSearchParams({
-          select: 'id,name,schoolForm:school_form,kreisId:kreis_id,city,lat,lon,studentCount:student_count',
-          order: 'id.asc',
-          limit: '500',
-          offset: String(schools.length),
-        });
-        const response = await request(`schools?${params}`, { headers: { Prefer: 'count=exact' } });
-        const page = (await response.json()) as Omit<School, 'joinCode'>[];
-        schools.push(...page.map((school) => ({ ...school, joinCode: '' })));
-        const total = response.headers.get('content-range')?.split('/')[1];
-        if (page.length === 0 || (total && total !== '*' && schools.length >= Number(total))) return schools;
+      try {
+        return await loadStaticSchools();
+      } catch {
+        // Older deployments/caches may not have the compact file; the REST API stays the fallback.
+        return loadSchoolsFromRest();
       }
     },
     getSchoolByCode: (code) => rpc('get_school_by_code', { code }),
