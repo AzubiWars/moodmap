@@ -12,7 +12,13 @@ concurrency:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # The official Playwright image ships Chromium and every system dependency,
+    # so there is no apt-get / `playwright install --with-deps` on the critical path.
+    # Keep this tag in sync with the @playwright/test version in package-lock.json.
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.1-jammy
+      options: --user 1001
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,7 +26,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - name: Preflight – verify Playwright browsers (infra)
+        run: |
+          npx playwright --version
+          test -d "${PLAYWRIGHT_BROWSERS_PATH:-/ms-playwright}" || {
+            echo "::error::Playwright browsers missing from the container image – infrastructure problem, not a code failure."
+            exit 1
+          }
       - run: npm run build
         env:
           VITE_DATA_MODE: mock
