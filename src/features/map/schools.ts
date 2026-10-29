@@ -1,6 +1,23 @@
 import type { FeatureCollection, Point } from 'geojson';
 import { getDataSource } from '@/data';
 import type { DirectorySchool, School, SchoolForm } from '@/types';
+import type { MapMode } from './modes';
+
+/**
+ * Schulen (Stammdaten) erst laden, wenn die Karte sie wirklich braucht (#250):
+ * Drill-down in der URL, Stadtfilter, Live-Modus, Beteiligungsmodus oder offene Suche.
+ * Die reine NRW-Startansicht kommt ohne den ~1,1-MB-Payload aus.
+ */
+export function needsSchoolData(params: URLSearchParams, mode: MapMode, searchOpen: boolean): boolean {
+  const drillParam = params.get('regbez') || params.get('kreis') || params.get('school');
+  return (
+    Boolean(drillParam) ||
+    Boolean(params.get('city')) ||
+    params.get('live') === '1' ||
+    mode === 'participation' ||
+    searchOpen
+  );
+}
 
 /**
  * Schulen mit Stimmungswerten. Im Mock-Modus nur die synthetischen Schulen aus #7 –

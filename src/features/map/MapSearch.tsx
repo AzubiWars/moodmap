@@ -13,6 +13,8 @@ interface MapSearchProps {
   onSelectDirectorySchool?: (school: School) => void;
   /** Lädt das große Schulverzeichnis erst beim ersten Suchen. */
   onRequestDirectory?: () => void;
+  /** Meldet, ob das Treffer-Panel offen ist – die Karte lädt dann die Schulen lazily (#250). */
+  onOpenChange?: (open: boolean) => void;
   onSelectCity: (city: string) => void;
   onSelectRegion: (region: RegionFeature) => void;
 }
@@ -35,6 +37,7 @@ export function MapSearch({
   onSelectSchool,
   onSelectDirectorySchool,
   onRequestDirectory,
+  onOpenChange,
   onSelectCity,
   onSelectRegion,
 }: MapSearchProps) {
@@ -50,6 +53,10 @@ export function MapSearch({
   );
   const tooShort = query.trim().length > 0 && query.trim().length < MIN_SEARCH_LENGTH;
   const showResults = open && query.trim().length >= MIN_SEARCH_LENGTH;
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     function onPointerDown(event: PointerEvent) {
