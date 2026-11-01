@@ -2,7 +2,7 @@
 
 > Autor: `claude-jonat-pc` (fe) · Stand: 2026-10-21, Basis `main` @ 4e61e42
 > Triage: 2026-10-22 → aufgeteilt in Issues; siehe unten.
-> Status: **Teilweise umgesetzt.** A ✅ (#219), B teilweise (statische Datei existiert, Supabase-Fallback offen), C teilweise (Directory ist lazy, Stammdaten noch nicht), D/E offen.
+> Status: **Teilweise umgesetzt.** A ✅ (#219), B teilweise (statische Datei existiert, Supabase-Fallback offen), C teilweise (Directory ist lazy, Stammdaten in Review #250), D ✅ (#251), E offen.
 
 ## Problem
 
@@ -44,8 +44,8 @@ Die Schul-Stammdaten ändern sich zur Laufzeit nicht. `getSchools()` (Supabase) 
 Stand 2026-10-22: `directoryQuery` (das 1,1-MB-Verzeichnis) ist bereits lazy (`MapPage.tsx:221`, `enabled: directoryRequested || drill.level !== 'nrw' || Boolean(city)`).
 **Offen:** `schoolsQuery` (`loadSchools`/`DataSource.getSchools`, `MapPage.tsx:208`) wird unbedingt geladen – auch in der NRW-Startansicht ohne Schulpunkte. `enabled` ergänzen: Drill ≠ `nrw`, Stadt gewählt, Live-Modus, Modus „Beteiligung", Suche geöffnet. Siehe Issue C.
 
-### D. Live-Modus
-Profitiert automatisch von A. Prüfen, dass das Polling im Hintergrund-Tab pausiert (TanStack-Default `refetchIntervalInBackground: false`).
+### D. Live-Modus — umgesetzt (#251)
+Profitiert automatisch von A. `useAggregates`/`useTension` setzen `refetchIntervalInBackground: false` jetzt explizit, damit die Absicht im Code steht (TanStack-Default ist bereits `false`). Gemessen im Supabase-Modus: 16 s Hintergrund-Tab → 0 Aggregate-Requests, nach Rückkehr läuft das Polling sofort wieder an. `PitchPage` pollt bewusst weiter (`refetchIntervalInBackground: true`), weil dort der Beamer-Bildschirm auch ohne Fokus aktuell bleiben soll.
 
 ### E. Dashboard-Lagebild
 `loadLagebild.ts:26` zählt nur aktive Schulen. Mit A reicht das. Optional später eine RPC `count_active_schools`, die nur eine Zahl liefert.

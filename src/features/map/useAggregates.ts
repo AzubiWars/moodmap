@@ -51,6 +51,9 @@ export function useAggregates(
     enabled,
     // Live-Modus (#24): pollen, auch wenn die Datenquelle kein Push-Event schickt
     refetchInterval,
+    // #251: Hintergrund-Tab pausieren (TanStack-Default, hier bewusst explizit) –
+    // kein Datenvolumen und keine Server-Last, während niemand hinschaut.
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -89,6 +92,8 @@ export function useTension(
     placeholderData: keepPreviousData,
     enabled,
     refetchInterval,
+    // #251: wie die Aggregate – im Hintergrund-Tab nicht pollen.
+    refetchIntervalInBackground: false,
   });
 }
 
