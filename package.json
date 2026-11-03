@@ -16,6 +16,7 @@
     "data:schools": "node scripts/generate-schools.ts",
     "data:schools:real": "node scripts/import-schools.ts",
     "data:seed": "node scripts/generate-seed.ts",
+    "data:import": "node scripts/import-survey.ts",
     "format:check": "prettier --check .",
     "pwa:icons": "npx --yes @vite-pwa/assets-generator@2.0.0",
     "supabase": "npx --yes supabase@2.120.0",
