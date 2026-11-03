@@ -10,7 +10,7 @@
 3. **Freitext nur mit KI-Moderation** (ADR-016, PRODUCT_SPEC §3.13): optional, max. 280 Zeichen. Eine serverseitige Moderation entfernt Namen/persönliche Angaben, Beleidigungen und unpassende Sprache. **Gespeichert wird nur der bereinigte Text mit Themen-Cluster, nie der Rohtext** (auch nicht in Logs). Angezeigt werden Cluster und bereinigte Beispiele erst ab K_MIN. Bei Krisensignalen: sofort Hilfsangebote anzeigen, keine Weiterleitung.
 4. **Zeitstempel grob:** auf Tag gerundet speichern (verhindert Zuordnung über Uhrzeit, z. B. „wer war gerade in Stunde 3 am Handy").
 5. **Nur Aggregate sichtbar** – nie Einzelantworten, in keiner Rolle, auch nicht im Ministerium.
-6. **Synthetische Daten im Hackathon.** Alle Umfrageergebnisse in der Demo sind generiert und als „Demo-Daten" gekennzeichnet.
+6. **Demo- und Echtdaten sind getrennt.** Der Mock-Modus und die Demo-Datenquelle enthalten ausschließlich synthetische Daten und sind als „Demo-Daten" gekennzeichnet. Live-Abgaben und später importierte Echtdaten werden nur als k-anonymisierte Aggregate angezeigt, getrennt von Demo-Daten ausgewiesen und nie mit erfundenen Werten an echten Schulnamen vermischt (ADR-012/013, ADR-017).
 
 ## 2. Mindestanzahl (k-Anonymität)
 
@@ -85,3 +85,5 @@ Das Frühwarn-Radar ist das sensibelste Feature. Es lebt vom Vertrauen der Schü
 - [ ] Geräte-Token nur gehasht serverseitig
 - [ ] Datenschutz-Erklärung in einfacher Sprache unter `/privacy`
 - [ ] Demo-Banner „Prototyp – Demo-Daten" sichtbar
+- [ ] Live- und Demo-Daten sind getrennt gekennzeichnet; ohne Supabase-Konfiguration gibt es keinen stillen Mock-Fallback (ADR-017)
+- [ ] Importierte Echtdaten: nur Service-Role-Import, keine Rohdaten in Client/Repo, `n` unter `K_MIN` wird ebenfalls unterdrückt (Epic #264, Issue #266)
