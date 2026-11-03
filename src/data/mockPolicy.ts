@@ -5,6 +5,7 @@ import { getDeviceToken, hashDeviceToken } from '@/lib/device';
 import { delta, tensionIndex } from '@/lib/score';
 import { aggregateRows, schoolInScope, summarize } from './mockAggregates';
 import type { MockDataset } from './mockRecords';
+import { defaultSourceId, defaultWaveIds, forSource, resolveSourceId } from './mockSources';
 import type { createMockStorage } from './mockStorage';
 import { TOPICS_BY_SLUG } from './topics';
 
@@ -139,7 +140,7 @@ export function createMockPolicyApi({
           return structuredClone({
             ...answer,
             resonance: { n, score },
-            topicDeltaSincePublished: policyDelta(data, answer, kMin),
+            topicDeltaSincePublished: policyDelta(forSource(data, defaultSourceId(data)), answer, kMin),
           });
         });
     },
@@ -191,13 +192,16 @@ export function createMockPolicyApi({
       return { ok: true };
     },
     async getTensionIndex(query) {
-      const data = await snapshot();
+      const all = await snapshot();
+      const data = forSource(all, resolveSourceId(all, query.sourceId));
       const time = now().getTime();
       const current = data.waves.find(
         (wave) => Date.parse(wave.startsAt) <= time && time < Date.parse(wave.endsAt),
       );
       if (!current && query.waveIds === undefined) throw new Error('Keine aktive Demo-Welle.');
-      return tensionRows(data, query, current?.id ?? '', kMin);
+      const sourceId = resolveSourceId(all, query.sourceId);
+      const waveIds = query.waveIds ?? defaultWaveIds(all, sourceId, current!.id);
+      return tensionRows(data, { ...query, waveIds }, current?.id ?? '', kMin);
     },
   };
 }

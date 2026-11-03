@@ -326,3 +326,83 @@ describe('mock live channel', () => {
     expect(remote).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('data sources (#270, #272)', () => {
+  const base = {
+    schools: [],
+    waves: [
+      { id: '2026-W41', startsAt: '2026-10-05T00:00:00Z', endsAt: '2026-10-12T00:00:00Z' },
+      { id: '2026-W42', startsAt: '2026-10-12T00:00:00Z', endsAt: '2026-10-19T00:00:00Z' },
+      { id: '2026-W43', startsAt: '2026-10-19T00:00:00Z', endsAt: '2026-10-26T00:00:00Z' },
+    ],
+    responses: [
+      { id: 'a', schoolId: 's', waveId: '2026-W43', role: 'student' as const, createdAt: '2026-10-20' },
+      {
+        id: 'b',
+        schoolId: 's',
+        waveId: '2026-W41',
+        role: 'student' as const,
+        createdAt: '2026-10-06',
+        sourceId: 'imp',
+      },
+    ],
+    answers: [
+      { responseId: 'a', questionId: 'overall.core', value: 4 },
+      { responseId: 'b', questionId: 'overall.core', value: 2 },
+    ],
+    sources: [
+      {
+        id: 'demo-seed',
+        label: 'Demo',
+        kind: 'demo' as const,
+        periodStart: null,
+        periodEnd: null,
+        visibility: 'public' as const,
+        isDefault: true,
+        aggregatedByProvider: false,
+      },
+      {
+        id: 'imp',
+        label: 'Import',
+        kind: 'import' as const,
+        periodStart: null,
+        periodEnd: null,
+        visibility: 'public' as const,
+        isDefault: false,
+        aggregatedByProvider: false,
+      },
+      {
+        id: 'hidden',
+        label: 'Ministerium',
+        kind: 'import' as const,
+        periodStart: null,
+        periodEnd: null,
+        visibility: 'ministry' as const,
+        isDefault: false,
+        aggregatedByProvider: false,
+      },
+    ],
+  };
+
+  it('lists public non-empty sources with their size, default first', async () => {
+    const source = createMockSource({ loadData: async () => base, storage: null, channel: null });
+    expect((await source.getDataSources()).map((s) => [s.id, s.n])).toEqual([
+      ['demo-seed', 1],
+      ['imp', 1],
+    ]);
+  });
+
+  it('rejects unknown and hidden sources instead of falling back', async () => {
+    const source = createMockSource({ loadData: async () => base, storage: null, channel: null });
+    for (const sourceId of ['nope', 'hidden'])
+      await expect(source.getAggregates({ level: 'nrw', topic: 'all', sourceId })).rejects.toThrow(
+        /Unbekannte Datenquelle/,
+      );
+  });
+
+  it('uses the latest wave with data of an import source when no waves are given', async () => {
+    const { defaultWaveIds } = await import('./mockSources');
+    expect(defaultWaveIds(base, 'imp', '2026-W43')).toEqual(['2026-W41']);
+    expect(defaultWaveIds(base, 'demo-seed', '2026-W43')).toEqual(['2026-W43']);
+  });
+});

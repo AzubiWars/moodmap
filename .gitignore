@@ -13,3 +13,9 @@ public/data/seed.json
 
 test-results/
 playwright-report/
+
+# Echte Umfragedaten nie committen (PRIVACY §9.3). Synthetische Fixtures liegen in scripts/fixtures/.
+imports/
+*.xlsx
+*.xls
+!scripts/fixtures/**/*.xlsx

@@ -18,23 +18,31 @@ export interface Lagebild {
 }
 
 /** Alle Kennzahlen für Gesamt-NRW in der aktuellen Welle. Testschulen filtert die DataSource (`is_test`). */
-export async function loadLagebild(source: DataSource, kMin: number): Promise<Lagebild> {
+export async function loadLagebild(source: DataSource, kMin: number, sourceId?: string): Promise<Lagebild> {
   // Das Lagebild zeigt die Schüler:innen-Themen; Lehrkräfte-Themen (`t_*`, #37) haben eine eigene Auswertung.
   const topics = (await source.getTopics())
     .filter((topic) => topic.audience.includes('student'))
     .sort((a, b) => a.sort - b.sort);
   // Einzelne langsame Abfragen dürfen das gesamte Lagebild nicht blockieren.
-  // Besonders die Schul-Ebene ist bei vielen Antworten teuer; sie wird für die Schulzahl gebraucht.
   const safe = <T>(promise: Promise<T[]>): Promise<T[]> => promise.catch(() => []);
   // `level: 'nrw'` liefert genau eine Zeile, direkt über alle Antworten aggregiert (#140).
-  const [allRows, schoolRows, ...topicRows] = await Promise.all([
-    safe(source.getAggregates({ level: 'nrw', topic: 'all' })),
-    safe(source.getAggregates({ level: 'school', topic: 'all' })),
-    ...topics.map((topic) => safe(source.getAggregates({ level: 'nrw', topic: topic.slug }))),
+  // #252: Die Schulzahl kommt als eine Zahl; die Schul-Ebene nur noch als Rückfall für alte Backends.
+  const schoolCount = Promise.resolve()
+    .then(() => source.countActiveSchools({ sourceId }))
+    .catch(() =>
+      source
+        .getAggregates({ level: 'school', topic: 'all', sourceId })
+        .then((rows) => rows.filter((row) => row.n > 0).length)
+        .catch(() => 0),
+    );
+  const [allRows, schools, ...topicRows] = await Promise.all([
+    safe(source.getAggregates({ level: 'nrw', topic: 'all', sourceId })),
+    schoolCount,
+    ...topics.map((topic) => safe(source.getAggregates({ level: 'nrw', topic: topic.slug, sourceId }))),
   ]);
   return {
     overall: combineRows(allRows, kMin),
-    schools: schoolRows.filter((row) => row.n > 0).length,
+    schools,
     topics: topics.map((topic, i) => topicStat(topic, topicRows[i]!, kMin)),
   };
 }
@@ -49,10 +57,13 @@ export async function loadComparison(
   source: DataSource,
   topic: TopicSlug,
   kMin: number,
+  sourceId?: string,
 ): Promise<Comparison> {
   const [regbezRows, ...formRows] = await Promise.all([
-    source.getAggregates({ level: 'regbez', topic }),
-    ...SCHOOL_FORMS.map((form) => source.getAggregates({ level: 'nrw', topic, schoolForm: [form] })),
+    source.getAggregates({ level: 'regbez', topic, sourceId }),
+    ...SCHOOL_FORMS.map((form) =>
+      source.getAggregates({ level: 'nrw', topic, schoolForm: [form], sourceId }),
+    ),
   ]);
   return {
     regbez: regbezComparison(regbezRows, kMin),

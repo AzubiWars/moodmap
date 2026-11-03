@@ -236,6 +236,9 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
         return { ok: false, reason: 'error' };
       }
     },
+    getDataSources: () => rpc('get_data_sources', {}),
+    countActiveSchools: (query) => rpc('count_active_schools', { query }),
+    getLiveCounts: (query) => rpc('get_live_counts', { query }),
     getAggregates: async (query) => protect(await rpc<AggregateRow[]>('get_aggregates', { query })),
     getTrend: async (query) => protect(await rpc<TrendPoint[]>('get_trend', { query })),
     async getChoiceDistribution(questionId, scope) {

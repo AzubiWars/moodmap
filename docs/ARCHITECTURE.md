@@ -250,11 +250,12 @@ policy_answer_ratings (answer_id uuid fk, device_hash text, value int, created_a
 - `rate_policy_answer(answer_id, value, device_token)` → `{ ok }`: eine Bewertung pro Gerät und Antwort (neue ersetzt alte). Gespeichert wird nur `sha256(token:policy:answerId)`.
 - Ebene `nrw` (seit #147 Teil von `AggregateQuery`): genau eine Zeile `{ id: 'nrw' }` über alle Antworten, `parentId` wird ignoriert. Gilt für `get_aggregates`, `get_trend` und `get_tension_index` und wird auch intern für NRW-weite Politik-Antworten genutzt (#158).
 
-**Aggregations-Views (Beispiele):**
-- `agg_school_topic_wave(school_id, topic_slug, wave_id, n, score)`
-- `agg_kreis_topic_wave(...)`, `agg_regbez_topic_wave(...)`
-- RPC `get_aggregates(level, topic, filters…)` → wendet `K_MIN` an.
-Für den Hackathon reichen normale Views; bei Performance-Problemen Materialized Views mit Refresh nach Insert (oder alle 30 s).
+**Datenquellen & Import (ADR-018, Epic #264):**
+- `data_sources (id text pk, label, kind demo|live|import, period_start, period_end, visibility public|ministry, status active|draft|archived, is_default)`. Jede Zeile in `responses` hat `source_id` (Default `live`), optional `import_run_id` und `external_key_hash`. `device_hash` ist nur für Live-Abgaben Pflicht.
+- Alle Aggregat-RPCs (`get_aggregates`, `get_trend`, `get_tension_index`) nehmen `sourceId` aus der Query. Ohne Angabe gilt die Default-Quelle. Unbekannte oder nicht sichtbare Quellen lösen einen Fehler aus.
+- Import: `npm run data:import` (CSV/XLSX → Mapping-Profil → kanonische Zeilen → Dry-Run/Commit/Rollback), Audit in `private.import_runs`. Anbieter-Aggregate in `private.imported_aggregates`.
+
+**Performance (ADR-019):** `aggregate_rows` summiert die additive Tabelle `private.response_rollup` (Schule × Welle × Quelle × Rolle × Stufe × Thema) statt Rohantworten. Trigger auf `answers`/`responses` halten sie aktuell. Ergebnisse bleiben bitgleich zum Mock.
 
 ## 5. Score-Berechnung (`src/lib/score.ts` + SQL identisch!)
 

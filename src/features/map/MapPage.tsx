@@ -1,5 +1,10 @@
+import { anchorWave } from '@/lib/dataSources';
+import { EmptySourceNotice, SourceSwitcher } from '@/components/SourceSwitcher';
+import { useSelectedSource } from '@/components/useSelectedSource';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { useId, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Link, useSearchParams } from 'react-router-dom';
 import { TOPICS } from '@/data/topics';
 import type { School } from '@/types';
@@ -35,9 +40,9 @@ import {
   weekLabel,
 } from './filters';
 import { LiveToggle } from './LiveToggle';
-import { LIVE_POLL_MS, useLivePulses } from './live';
+import { LIVE_POLL_MS, useLiveCounts, useLivePulses } from './live';
 import { MapModeSwitch } from './MapModeSwitch';
-import { type MapMode, modeUsesTopic, parseMapMode, studentsBy, trendValue } from './modes';
+import { MAP_MODES, type MapMode, modeUsesTopic, parseMapMode, studentsBy, trendValue } from './modes';
 import { type TensionMap, toTensionMap } from './radar';
 import { useRoleStore } from '@/store/role';
 import { MapBreadcrumb } from './MapBreadcrumb';
@@ -242,18 +247,25 @@ export function MapPage() {
   // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
   const filters = parseFilters(searchParams);
   const currentWave = useCurrentWave();
+  // Datenquelle (#272): Import-Befragungen beziehen Zeitachse und Zeiträume auf ihre letzte Woche
+  const source = useSelectedSource();
+  const anchor = anchorWave(source.selected, currentWave.data?.id);
   // Zeitachse (#34): eine gewählte Woche überschreibt den Zeitraum-Filter
-  const schoolYearWaves = periodWaveIds('year', currentWave.data?.id) ?? [];
+  const schoolYearWaves = periodWaveIds('year', anchor) ?? [];
   const requestedWave = searchParams.get('wave');
   const selectedWave = schoolYearWaves.find((w) => w === requestedWave);
   const [playing, setPlaying] = useState(false);
   const [is3d, setIs3d] = useState(false);
+  // Mobil: Ansichts-Optionen eingeklappt, damit die Kopfkarte nicht die halbe Karte verdeckt
+  const [viewOpen, setViewOpen] = useState(false);
+  const viewPanelId = useId();
   const [viewResetKey, setViewResetKey] = useState(0);
   const [directoryFocus, setDirectoryFocus] = useState<School | null>(null);
   const aggFilters: AggregateFilters = {
     schoolForm: filters.schoolForm,
     gradeBand: filters.gradeBand,
-    waveIds: selectedWave ? [selectedWave] : periodWaveIds(filters.period, currentWave.data?.id),
+    waveIds: selectedWave ? [selectedWave] : periodWaveIds(filters.period, anchor),
+    sourceId: source.sourceId,
   };
   const regionAggregates = useAggregates(regionLevel, topicSlug, {
     refetchInterval: poll,
@@ -266,8 +278,9 @@ export function MapPage() {
     filters: aggFilters,
   });
   // Live (#24): alle Schulen beobachten, damit neue Stimmen auch in der Landesansicht pulsieren
-  const liveSchoolAggregates = useAggregates('school', 'all', { enabled: live, refetchInterval: poll });
-  const { pulsing, added } = useLivePulses(liveSchoolAggregates.data, live, 'all');
+  // #253: schlanker Delta-Poll statt aller Schul-Aggregate NRW-weit alle 2,5 s
+  const liveCounts = useLiveCounts(live, source.sourceId);
+  const { pulsing, added } = useLivePulses(liveCounts, live, source.sourceId ?? 'default');
 
   const regionTension = useTension(regionLevel, {
     enabled: radar,
@@ -450,12 +463,16 @@ export function MapPage() {
           viewResetKey={viewResetKey}
         />
 
-        <div className="pointer-events-none absolute top-0 right-12 left-0 p-3">
+        <div className="pointer-events-none absolute top-0 right-12 left-0 z-10 p-3">
           <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl bg-card/95 px-4 py-2 shadow-md ring-1 ring-border">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <h1 className="text-base font-bold">Moodmap NRW</h1>
-              <LiveToggle live={live} added={added} onChange={setLive} />
+              {/* Live nur für Quellen, in die gerade abgestimmt wird */}
+              {source.selected?.kind !== 'import' && (
+                <LiveToggle live={live} added={added} onChange={setLive} />
+              )}
             </div>
+
             <MapSearch
               schools={schoolsQuery.data}
               directorySchools={directoryQuery.data}
@@ -482,7 +499,28 @@ export function MapPage() {
               onSelectRegion={selectSearchRegion}
             />
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
-            <MapModeSwitch mode={mode} onChange={setMode} />
+            <button
+              type="button"
+              aria-expanded={viewOpen}
+              aria-controls={viewPanelId}
+              onClick={() => setViewOpen((open) => !open)}
+              className="inline-flex min-h-9 w-fit items-center gap-1 rounded-lg border border-border bg-subtle px-2.5 text-xs font-medium text-fg focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none md:hidden"
+            >
+              Ansicht: {MAP_MODES.find((m) => m.value === mode)?.label}
+              {source.sourceId && source.selected ? ` · ${source.selected.label}` : ''}
+              <ChevronDown
+                className={cn(
+                  'size-3.5 transition-transform motion-reduce:transition-none',
+                  viewOpen && 'rotate-180',
+                )}
+                aria-hidden
+              />
+            </button>
+            <div id={viewPanelId} className={cn('flex-col gap-1 md:flex', viewOpen ? 'flex' : 'hidden')}>
+              <SourceSwitcher selection={source} />
+              <MapModeSwitch mode={mode} onChange={setMode} />
+            </div>
+            <EmptySourceNotice selection={source} />
             {city && citySchools.length > 0 && (
               <div className="flex flex-wrap items-center gap-1 text-xs">
                 <span className="rounded-full bg-subtle px-2 py-0.5">
@@ -503,7 +541,8 @@ export function MapPage() {
                 </button>
               </div>
             )}
-            <p className="text-xs text-fg" aria-live="polite">
+            {/* Mobil eingeklappt nur für Screenreader – die Ansage bleibt erhalten */}
+            <p className={cn('text-xs text-fg', !viewOpen && 'max-md:sr-only')} aria-live="polite">
               {MODE_CAPTION[mode] ?? `${topic.icon} ${topic.title}`} ·{' '}
               {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
               {city && ` · Stadt ${city}`}
@@ -528,10 +567,12 @@ export function MapPage() {
             playing={playing}
             onSelect={setWave}
             onPlayingChange={setPlaying}
+            latestLabel={source.selected?.kind === 'import' ? 'letzte Befragungswoche' : undefined}
           />
           <MapLegend mode={mode} />
           <p className="mt-1 max-w-[17rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
-            Werte: anonyme Live-Befragung · Schulen: Schulverzeichnis NRW ·{' '}
+            Werte: {source.selected ? source.selected.label : 'anonyme Live-Befragung'} · Schulen:
+            Schulverzeichnis NRW ·{' '}
             <Link to="/methodik" className="underline hover:text-fg">
               Methodik
             </Link>

@@ -1,6 +1,8 @@
 import type {
   AggregateQuery,
   AggregateRow,
+  DataSourceInfo,
+  LiveCounts,
   DeleteResult,
   Distribution,
   FreetextCluster,
@@ -45,10 +47,17 @@ export interface DataSource {
   /** Zieht die eigene Abgabe der aktuellen Welle zurück; danach ist eine neue Teilnahme möglich (#161). */
   deleteOwnResponse(input: OwnResponseInput): Promise<DeleteResult>;
 
+  // Datenquellen (ADR-018): nur aktive, für den Aufrufer sichtbare; Default zuerst
+  getDataSources(): Promise<DataSourceInfo[]>;
+
   // Aggregate (immer bereits k-anonymisiert)
   getAggregates(query: AggregateQuery): Promise<AggregateRow[]>;
   getTrend(query: TrendQuery): Promise<TrendPoint[]>;
   getChoiceDistribution(questionId: string, scope: Scope): Promise<Distribution | null>;
+  /** Schulen mit mindestens einer gewerteten Teilnahme in der Standardwelle der Quelle (#252). */
+  countActiveSchools(query: { sourceId?: string }): Promise<number>;
+  /** Schlanker Live-Poll (#253): Zähler je Schule nur, wenn sich seit `knownVersion` etwas geändert hat. */
+  getLiveCounts(query: { sourceId?: string; knownVersion?: string }): Promise<LiveCounts>;
 
   // Frühwarn-Radar
   getTensionIndex(query: AggregateQuery): Promise<TensionRow[]>;

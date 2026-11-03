@@ -5,6 +5,7 @@ import { K_MIN } from '@/lib/env';
 import type { DataSource, NewResponseEvent } from './api';
 import { aggregateRows, schoolInScope, summarize } from './mockAggregates';
 import { createMockPolicyApi } from './mockPolicy';
+import { defaultWaveIds, forSource, listSources, resolveSourceId } from './mockSources';
 import type { MockDataset, StoredSubmission } from './mockRecords';
 import { browserStorage, createMockStorage } from './mockStorage';
 import { QUESTIONS_BY_ID, TOPICS } from './topics';
@@ -105,7 +106,8 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
     if (!wave) throw new Error('Keine Demo-Welle im Seed.');
     return wave;
   };
-  const waveIds = (data: MockDataset, query: AggregateQuery) => query.waveIds ?? [currentWave(data).id];
+  const waveIds = (data: MockDataset, query: AggregateQuery) =>
+    query.waveIds ?? defaultWaveIds(data, resolveSourceId(data, query.sourceId), currentWave(data).id);
   const submissions = () =>
     storage
       .entries<StoredSubmission>('response')
@@ -132,7 +134,8 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
       : seed;
   };
   const rows = async (query: AggregateQuery) => {
-    const data = await snapshot();
+    const all = await snapshot();
+    const data = forSource(all, resolveSourceId(all, query.sourceId));
     const selected = waveIds(data, query);
     return aggregateRows(data, query, selected, previousWaves(data, selected), kMin);
   };
@@ -239,9 +242,33 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
         return { ok: false, reason: 'error' };
       }
     },
+    async countActiveSchools(query) {
+      const rows = await source.getAggregates({ level: 'school', topic: 'all', sourceId: query.sourceId });
+      return rows.filter((row) => row.n > 0).length;
+    },
+    async getLiveCounts(query) {
+      const all = await snapshot();
+      const wave = currentWave(all).id;
+      const rows = (
+        await source.getAggregates({
+          level: 'school',
+          topic: 'all',
+          sourceId: query.sourceId,
+          waveIds: [wave],
+        })
+      )
+        .filter((row) => row.n > 0)
+        .map(({ id, n }) => ({ id, n }));
+      const version = `${wave}:${rows.reduce((sum, row) => sum + row.n, 0)}:${rows.length}`;
+      return { version, rows: query.knownVersion === version ? null : rows };
+    },
+    async getDataSources() {
+      return listSources(await snapshot());
+    },
     getAggregates: rows,
     async getTrend(query) {
-      const data = await snapshot();
+      const all = await snapshot();
+      const data = forSource(all, resolveSourceId(all, query.sourceId));
       const selected = new Set(query.waveIds);
       return orderedWaves(data)
         .filter((wave) => selected.has(wave.id))
@@ -256,8 +283,9 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
     },
     async getChoiceDistribution(questionId, scope) {
       const question = QUESTIONS_BY_ID[questionId];
+      const all = await snapshot();
+      const data = forSource(all, resolveSourceId(all, scope.sourceId));
       if (!question || question.type !== 'choice') return null;
-      const data = await snapshot();
       const schools = new Set(
         data.schools.filter((school) => schoolInScope(school, scope)).map((school) => school.id),
       );

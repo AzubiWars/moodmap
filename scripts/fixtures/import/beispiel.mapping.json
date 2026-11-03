@@ -1,0 +1,47 @@
+{
+  "id": "beispiel-anbieter",
+  "version": 1,
+  "format": { "delimiter": "auto", "sheet": "Antworten" },
+  "columns": {
+    "externalId": "Teilnahme-ID",
+    "school": { "column": "Schulnummer" },
+    "date": { "column": "Datum", "format": "DD.MM.YYYY" },
+    "role": { "column": "Rolle", "values": { "S": "student", "L": "teacher" }, "default": "student" },
+    "gradeBand": { "column": "Jahrgang", "fromGrade": true }
+  },
+  "questions": [
+    { "column": "F1_Gesamt", "questionId": "overall.core" },
+    { "column": "F2_Belastung", "questionId": "stress.core", "reverse": true },
+    { "column": "F3_Sicherheit", "questionId": "safety.core" },
+    { "column": "F4_Mitsprache", "questionId": "voice.core" },
+    {
+      "column": "F5_Stressquellen",
+      "questionId": "stress.deep",
+      "choice": {
+        "separator": ",",
+        "values": {
+          "Klausuren": "exams",
+          "Hausaufgaben": "homework",
+          "Noten/Zukunft": "grades_future",
+          "Eltern": "parents",
+          "Vergleich": "comparison"
+        }
+      }
+    },
+    { "column": "F6_Freizeit", "questionId": "stress.swipe.freetime", "values": { "ja": 1, "nein": 0 } },
+    {
+      "column": "F7_Beteiligung",
+      "questionId": "voice.deep",
+      "choice": {
+        "separator": ",",
+        "values": {
+          "Online": "online",
+          "SV": "sv",
+          "Politik in der Schule": "politicians_at_school",
+          "Jugendparlament": "youth_parliament"
+        }
+      }
+    }
+  ],
+  "drop": ["Klasse"]
+}

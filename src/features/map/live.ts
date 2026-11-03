@@ -1,5 +1,10 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import type { AggregateRow } from '@/types';
+import { getDataSource } from '@/data';
+import type { LiveCounts } from '@/types';
+
+/** Was der Puls braucht: Stimmen je Einheit. */
+type CountRow = { id: string; n: number };
 
 /** Beamer-Ansicht pollt alle 2–3 s (ADR-015) – zusätzlich zur Invalidierung per subscribeToNewResponses. */
 export const LIVE_POLL_MS = 2500;
@@ -12,7 +17,7 @@ export const PULSE_MS = 4000;
  */
 export function diffGrowth(
   previous: ReadonlyMap<string, number> | null,
-  rows: readonly AggregateRow[],
+  rows: readonly CountRow[],
 ): { grown: string[]; added: number } {
   if (!previous) return { grown: [], added: 0 };
   const grown: string[] = [];
@@ -33,7 +38,7 @@ export function diffGrowth(
  * Verfolgt neue Stimmen in einer Aggregat-Reihe. `resetKey` (z. B. Thema) setzt die Basis neu,
  * damit ein Themenwechsel keine Schein-Pulse auslöst.
  */
-export function useLivePulses(rows: readonly AggregateRow[] | undefined, active: boolean, resetKey: string) {
+export function useLivePulses(rows: readonly CountRow[] | undefined, active: boolean, resetKey: string) {
   const baseline = useRef<{ key: string; counts: Map<string, number> } | null>(null);
   const [pulsing, setPulsing] = useState<ReadonlyMap<string, number>>(new Map());
   const [added, setAdded] = useState(0);
@@ -73,4 +78,28 @@ export function useLivePulses(rows: readonly AggregateRow[] | undefined, active:
   }, [pulsing]);
 
   return active ? { pulsing: [...pulsing.keys()], added } : { pulsing: [], added: 0 };
+}
+
+/**
+ * Delta-Poll für den Live-Puls (#253, ADR-020): fragt alle 2,5 s nur die Version ab. Zähler je Schule
+ * kommen nur bei einer Änderung; sonst bleibt dasselbe Array-Objekt stehen, und es gibt kein Re-Render.
+ */
+export function useLiveCounts(active: boolean, sourceId: string | undefined) {
+  const queryClient = useQueryClient();
+  const key = ['aggregates', 'live-counts', sourceId ?? null] as const;
+  const query = useQuery({
+    queryKey: key,
+    queryFn: async (): Promise<LiveCounts> => {
+      const previous = queryClient.getQueryData<LiveCounts>(key);
+      const next = await getDataSource().getLiveCounts({ sourceId, knownVersion: previous?.version });
+      return next.rows === null && previous ? { ...next, rows: previous.rows } : next;
+    },
+    enabled: active,
+    refetchInterval: active ? LIVE_POLL_MS : false,
+    // #251: im Hintergrund-Tab nicht pollen.
+    refetchIntervalInBackground: false,
+    // Gleiche Version → strukturell gleiche Daten → TanStack behält die alte Referenz.
+    structuralSharing: true,
+  });
+  return query.data?.rows ?? undefined;
 }
