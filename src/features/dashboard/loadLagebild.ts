@@ -24,17 +24,25 @@ export async function loadLagebild(source: DataSource, kMin: number, sourceId?: 
     .filter((topic) => topic.audience.includes('student'))
     .sort((a, b) => a.sort - b.sort);
   // Einzelne langsame Abfragen dürfen das gesamte Lagebild nicht blockieren.
-  // Besonders die Schul-Ebene ist bei vielen Antworten teuer; sie wird für die Schulzahl gebraucht.
   const safe = <T>(promise: Promise<T[]>): Promise<T[]> => promise.catch(() => []);
   // `level: 'nrw'` liefert genau eine Zeile, direkt über alle Antworten aggregiert (#140).
-  const [allRows, schoolRows, ...topicRows] = await Promise.all([
+  // #252: Die Schulzahl kommt als eine Zahl; die Schul-Ebene nur noch als Rückfall für alte Backends.
+  const schoolCount = Promise.resolve()
+    .then(() => source.countActiveSchools({ sourceId }))
+    .catch(() =>
+      source
+        .getAggregates({ level: 'school', topic: 'all', sourceId })
+        .then((rows) => rows.filter((row) => row.n > 0).length)
+        .catch(() => 0),
+    );
+  const [allRows, schools, ...topicRows] = await Promise.all([
     safe(source.getAggregates({ level: 'nrw', topic: 'all', sourceId })),
-    safe(source.getAggregates({ level: 'school', topic: 'all', sourceId })),
+    schoolCount,
     ...topics.map((topic) => safe(source.getAggregates({ level: 'nrw', topic: topic.slug, sourceId }))),
   ]);
   return {
     overall: combineRows(allRows, kMin),
-    schools: schoolRows.filter((row) => row.n > 0).length,
+    schools,
     topics: topics.map((topic, i) => topicStat(topic, topicRows[i]!, kMin)),
   };
 }

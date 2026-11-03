@@ -104,3 +104,9 @@ export interface DataSourceInfo {
   /** Teilnahmen in der gesamten Quelle. */
   n: number;
 }
+
+/** Live-Zähler je Schule (#253): `rows` ist `null`, wenn sich seit `knownVersion` nichts geändert hat. */
+export interface LiveCounts {
+  version: string;
+  rows: { id: string; n: number }[] | null;
+}

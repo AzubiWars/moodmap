@@ -2,6 +2,7 @@ import type {
   AggregateQuery,
   AggregateRow,
   DataSourceInfo,
+  LiveCounts,
   DeleteResult,
   Distribution,
   FreetextCluster,
@@ -53,6 +54,10 @@ export interface DataSource {
   getAggregates(query: AggregateQuery): Promise<AggregateRow[]>;
   getTrend(query: TrendQuery): Promise<TrendPoint[]>;
   getChoiceDistribution(questionId: string, scope: Scope): Promise<Distribution | null>;
+  /** Schulen mit mindestens einer gewerteten Teilnahme in der Standardwelle der Quelle (#252). */
+  countActiveSchools(query: { sourceId?: string }): Promise<number>;
+  /** Schlanker Live-Poll (#253): Zähler je Schule nur, wenn sich seit `knownVersion` etwas geändert hat. */
+  getLiveCounts(query: { sourceId?: string; knownVersion?: string }): Promise<LiveCounts>;
 
   // Frühwarn-Radar
   getTensionIndex(query: AggregateQuery): Promise<TensionRow[]>;

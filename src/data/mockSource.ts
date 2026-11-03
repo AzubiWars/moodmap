@@ -242,6 +242,26 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
         return { ok: false, reason: 'error' };
       }
     },
+    async countActiveSchools(query) {
+      const rows = await source.getAggregates({ level: 'school', topic: 'all', sourceId: query.sourceId });
+      return rows.filter((row) => row.n > 0).length;
+    },
+    async getLiveCounts(query) {
+      const all = await snapshot();
+      const wave = currentWave(all).id;
+      const rows = (
+        await source.getAggregates({
+          level: 'school',
+          topic: 'all',
+          sourceId: query.sourceId,
+          waveIds: [wave],
+        })
+      )
+        .filter((row) => row.n > 0)
+        .map(({ id, n }) => ({ id, n }));
+      const version = `${wave}:${rows.reduce((sum, row) => sum + row.n, 0)}:${rows.length}`;
+      return { version, rows: query.knownVersion === version ? null : rows };
+    },
     async getDataSources() {
       return listSources(await snapshot());
     },

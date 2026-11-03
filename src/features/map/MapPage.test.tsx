@@ -19,6 +19,7 @@ const aggregateCalls: AggregateQuery[] = [];
 /** Zusätzliche Stimmen je Schule – simuliert neue Abgaben im Live-Modus */
 const extraVotes = new Map<string, number>();
 let liveCallback: (() => void) | null = null;
+let liveCountCalls = 0;
 
 vi.mock('@/data', () => ({
   getDataSource: () => ({
@@ -57,6 +58,13 @@ vi.mock('@/data', () => ({
         trend: 4,
         drivers: ['voice', 'safety'],
       }));
+    },
+    // #253: Delta-Poll – Zeilen nur, wenn sich die Version geändert hat
+    getLiveCounts: async ({ knownVersion }: { knownVersion?: string }) => {
+      liveCountCalls += 1;
+      const rows = ['900001', '900002'].map((id) => ({ id, n: 50 + (extraVotes.get(id) ?? 0) }));
+      const version = `2026-W43:${rows.reduce((sum, row) => sum + row.n, 0)}`;
+      return { version, rows: knownVersion === version ? null : rows };
     },
     getCurrentWave: async () => ({ id: '2026-W43', startsAt: '2026-10-19', endsAt: '2026-10-26' }),
     subscribeToNewResponses: (callback: () => void) => {
@@ -204,6 +212,7 @@ const crumbs = () => within(screen.getByRole('navigation', { name: 'Kartenebene'
 beforeEach(() => {
   aggregateCalls.length = 0;
   extraVotes.clear();
+  liveCountCalls = 0;
   Element.prototype.scrollIntoView = vi.fn();
 });
 
@@ -468,9 +477,9 @@ describe('live mode (#24)', () => {
 
   it('pulses a school and counts votes when its n grows, even on NRW level', async () => {
     openMap('/map?live=1');
-    await waitFor(() =>
-      expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', topic: 'all' })),
-    );
+    await waitFor(() => expect(liveCountCalls).toBeGreaterThan(0));
+    // Kein NRW-weiter Poll aller Schul-Aggregate mehr (#253)
+    expect(aggregateCalls).not.toContainEqual(expect.objectContaining({ level: 'school', topic: 'all' }));
     expect(screen.getByTestId('map-pulses')).toBeEmptyDOMElement();
     // Erst die Basis (n = 50) ankommen lassen – sonst sieht der Diff nur den Endstand
     await waitFor(() => expect(screen.getByTestId('map-data')).toHaveTextContent('"score"'));

@@ -38,7 +38,7 @@ import {
   weekLabel,
 } from './filters';
 import { LiveToggle } from './LiveToggle';
-import { LIVE_POLL_MS, useLivePulses } from './live';
+import { LIVE_POLL_MS, useLiveCounts, useLivePulses } from './live';
 import { MapModeSwitch } from './MapModeSwitch';
 import { type MapMode, modeUsesTopic, parseMapMode, studentsBy, trendValue } from './modes';
 import { type TensionMap, toTensionMap } from './radar';
@@ -273,12 +273,9 @@ export function MapPage() {
     filters: aggFilters,
   });
   // Live (#24): alle Schulen beobachten, damit neue Stimmen auch in der Landesansicht pulsieren
-  const liveSchoolAggregates = useAggregates('school', 'all', {
-    enabled: live,
-    refetchInterval: poll,
-    filters: { sourceId: source.sourceId },
-  });
-  const { pulsing, added } = useLivePulses(liveSchoolAggregates.data, live, 'all');
+  // #253: schlanker Delta-Poll statt aller Schul-Aggregate NRW-weit alle 2,5 s
+  const liveCounts = useLiveCounts(live, source.sourceId);
+  const { pulsing, added } = useLivePulses(liveCounts, live, source.sourceId ?? 'default');
 
   const regionTension = useTension(regionLevel, {
     enabled: radar,
