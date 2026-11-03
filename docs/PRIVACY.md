@@ -86,4 +86,48 @@ Das Frühwarn-Radar ist das sensibelste Feature. Es lebt vom Vertrauen der Schü
 - [ ] Datenschutz-Erklärung in einfacher Sprache unter `/privacy`
 - [ ] Demo-Banner „Prototyp – Demo-Daten" sichtbar
 - [ ] Live- und Demo-Daten sind getrennt gekennzeichnet; ohne Supabase-Konfiguration gibt es keinen stillen Mock-Fallback (ADR-017)
-- [ ] Importierte Echtdaten: nur Service-Role-Import, keine Rohdaten in Client/Repo, `n` unter `K_MIN` wird ebenfalls unterdrückt (Epic #264, Issue #266)
+- [ ] Importierte Echtdaten: nur Service-Role-Import, keine Rohdaten in Client/Repo, `n` unter `K_MIN` wird ebenfalls unterdrückt. Checkliste in §9 (ADR-018)
+
+## 9. Importierte Echtdaten (ADR-018, Epic #264)
+
+Bis hierhin gelten alle Regeln für Daten, die über die App erhoben werden. Echte Datensätze von Schulen oder Anbietern kommen auf einem zweiten Weg: per Import. Für sie gilt zusätzlich:
+
+### 9.1 Zulässigkeit (vor dem ersten Import klären, #269)
+- **Rechtsgrundlage:** Einwilligung bzw. Rechtsgrundlage der erhebenden Stelle ist dokumentiert. Bei Minderjährigen unter 16: Einwilligung der Erziehungsberechtigten oder schulrechtliche Grundlage.
+- **Anonymisierungsgrad:** Wir importieren nur Daten, die beim Anbieter **bereits anonymisiert oder pseudonymisiert** sind. Direkte Identifikatoren werden vor oder spätestens beim Import verworfen.
+- **Auftragsverarbeitung:** AVV mit Supabase und EU-Region des Projekts geprüft. Ohne AVV keine Echtdaten in das gehostete Projekt.
+
+### 9.2 Datenminimierung beim Import
+- **Nie übernommen:** Namen, E-Mail-Adressen, Klassen (nur grobe Stufe), Geräte-IDs, IP-Adressen, Geburtsdaten, Freitext. Das Mapping-Profil listet solche Spalten explizit unter `drop`. Unbekannte Spalten werden **verworfen**, nicht durchgereicht.
+- **Externe IDs** (z. B. Teilnahme-Nr. des Anbieters) werden nur als `sha256(salt + ':' + quelle + ':' + id)` gespeichert und dienen ausschließlich der Idempotenz. Das Salt liegt nur lokal beim Importeur bzw. als Secret.
+- **Datum** wird auf den Tag gerundet (§1.4), die Welle aus dem Datum abgeleitet.
+
+### 9.3 Speicherung & Aufbewahrung
+- Import-Rohdateien liegen nie im Repo (`imports/` und `*.xlsx`/`*.csv` außerhalb von `fixtures/` sind in `.gitignore`), nie im Client und nie in Supabase Storage.
+- **Empfehlung Aufbewahrung:** Rohdatei nach erfolgreichem Import und Plausibilitätsprüfung **löschen**. Der Audit-Eintrag enthält nur einen Datei-Hash, keine Inhalte.
+- Importierte Teilnahmen liegen in denselben gesperrten Tabellen wie Live-Abgaben (`responses`/`answers`, kein Zugriff für `anon`/`authenticated`). Anbieter-Aggregate und `import_runs` liegen im Schema `private`, das über die API nicht erreichbar ist.
+
+### 9.4 Sichtbarkeit
+- Jede Datenquelle hat `visibility`: `public` (aggregiert für alle) oder `ministry` (nur eingeloggte Konten mit Server-Rolle).
+- Die Prüfung passiert **serverseitig** in `get_data_sources()` und in jeder Aggregat-RPC. Der Rollen-Umschalter der Demo verleiht keine Rechte.
+- Echtdaten werden als eigene Quelle gekennzeichnet (Label, Zeitraum, Herkunft) und nie mit Demo- oder Live-Daten vermischt (§1.6, ADR-017).
+
+### 9.5 K-Anonymität
+- K_MIN = 10 und die Maskierung kleiner Choice-Häufigkeiten (§2) gelten unverändert.
+- Liefert ein Anbieter **fertige Aggregate**, werden Zellen mit `n < K_MIN` beim Import verworfen und zusätzlich bei der Abfrage unterdrückt. Fehlende Verteilungen oder Trends werden nicht geschätzt.
+- Der Dry-Run-Bericht zeigt, wie viele Zellen unter K_MIN fallen, damit niemand Daten importiert, die am Ende nirgends sichtbar sind.
+
+### 9.6 Löschen & Audit
+- **Rollback pro Import-Lauf:** `--rollback <import_run_id>` löscht genau die Teilnahmen dieses Laufs.
+- **Ganze Quelle löschen:** Archivieren (`status = archived`, nicht mehr abrufbar), endgültig löschen nur per Service Role.
+- `private.import_runs` protokolliert: Quelle, Datei-Hash, Mapping-Version, Zeilen gesamt/akzeptiert/abgelehnt, Fehlercodes (ohne Zellinhalte), Importeur-Kürzel, Zeitpunkt, Status.
+
+### 9.7 Checkliste für den ersten echten Import
+- [ ] Rechtsgrundlage, AVV und Region geklärt (#269)
+- [ ] Datenwörterbuch liegt vor, Mapping-Profil erstellt und reviewt (Lead)
+- [ ] Alle personenbezogenen Spalten im Profil unter `drop`
+- [ ] Datenquelle angelegt: Label, Zeitraum, `visibility`, `status = draft`
+- [ ] Dry-Run ohne kritische Fehler, Bericht im Issue (nur Zahlen, keine Zeilen)
+- [ ] Commit, dann Stichprobe der Aggregate gegen die Anbieter-Auswertung
+- [ ] Quelle auf `active` setzen
+- [ ] Rohdatei gelöscht, Löschung im Issue vermerkt
