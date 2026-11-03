@@ -42,9 +42,11 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         runtimeCaching: [
           {
+            // Netz zuerst: nach einem Deploy sonst eine Ladung lang veraltete Schul-/Geodaten (z. B. ohne
+            // gemeindeId, ADR-021). Offline oder bei langsamem Netz (> 3 s) springt der Cache ein.
             urlPattern: ({ url }) => url.pathname.startsWith('/geo/') || url.pathname.startsWith('/data/'),
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'moodmap-static-data' },
+            handler: 'NetworkFirst',
+            options: { cacheName: 'moodmap-static-data-v2', networkTimeoutSeconds: 3 },
           },
           {
             urlPattern: /\/assets\/maplibre-gl-/,

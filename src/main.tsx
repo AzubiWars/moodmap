@@ -8,8 +8,17 @@ import '@/index.css';
 
 initializeTheme();
 
+/** Lange offene Tabs (Beamer, Ministerium) sollen neue Versionen trotzdem bemerken. */
+const UPDATE_CHECK_MS = 30 * 60_000;
+
 const updateSW = registerSW({
   immediate: true,
+  onRegisteredSW(_url, registration) {
+    if (!registration) return;
+    const check = () => void registration.update().catch(() => undefined);
+    setInterval(check, UPDATE_CHECK_MS);
+    document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && check());
+  },
   onNeedRefresh() {
     if (document.getElementById('pwa-update-banner')) return;
     const button = document.createElement('button');
@@ -17,7 +26,8 @@ const updateSW = registerSW({
     button.type = 'button';
     button.textContent = 'Neue Version verfügbar – jetzt aktualisieren';
     button.className =
-      'fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-fg shadow-lg';
+      // Mobil über der unteren Navigation, sonst wäre der Hinweis verdeckt.
+      'fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-fg shadow-lg md:bottom-4';
     button.addEventListener('click', () => {
       button.disabled = true;
       void updateSW(true);
