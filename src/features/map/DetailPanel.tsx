@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useRoleStore } from '@/store/role';
 import type { AggregateRow, TensionRow } from '@/types';
 import { type GapAnalysis, gapAnalysis, nrwReference, type TopicGap } from './detailStats';
-import { type DrillState, kreisLabel, regbezLabel } from './drilldown';
+import { type DrillState, gemeindeLabel, kreisLabel, regbezLabel } from './drilldown';
 import type { MapMode } from './modes';
 import { publishAnswerHref, suggestionsFor, TENSION_INFO } from './radar';
 import { SCHOOL_FORM_LABELS } from './schools';
@@ -27,9 +27,20 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
   const detailsId = useId();
 
   const level = drill.level === 'nrw' ? 'regbez' : drill.level;
-  const unitId = drill.school?.id ?? drill.kreis?.properties.id ?? drill.regbez?.properties.id;
+  const unitId =
+    drill.school?.id ??
+    drill.gemeinde?.properties.id ??
+    drill.kreis?.properties.id ??
+    drill.regbez?.properties.id;
+  // Schulen einer Gemeinde bzw. Gemeinden eines Kreises; sonst ohne Eltern-Einschränkung.
+  const parentId =
+    level === 'school'
+      ? (drill.gemeinde?.properties.id ?? drill.kreis?.properties.id)
+      : level === 'gemeinde'
+        ? drill.kreis?.properties.id
+        : undefined;
   const unitQuery = useAggregates(level, 'all', {
-    parentId: level === 'school' ? drill.kreis?.properties.id : undefined,
+    parentId,
     enabled: drill.level !== 'nrw',
     filters,
   });
@@ -39,7 +50,7 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
   // Spannungs-Index pro Schule nur für das Ministerium (Spec §3.10)
   const tensionAllowed = level !== 'school' || ministry;
   const tensionQuery = useTension(level, {
-    parentId: level === 'school' ? drill.kreis?.properties.id : undefined,
+    parentId,
     enabled: radar && tensionAllowed && drill.level !== 'nrw',
     filters,
   });
@@ -58,16 +69,20 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
 
   const title = drill.school
     ? drill.school.name
-    : drill.kreis
-      ? kreisLabel(drill.kreis)
-      : regbezLabel(drill.regbez!);
+    : drill.gemeinde
+      ? gemeindeLabel(drill.gemeinde)
+      : drill.kreis
+        ? kreisLabel(drill.kreis)
+        : regbezLabel(drill.regbez!);
   const subtitle = drill.school
     ? `${SCHOOL_FORM_LABELS[drill.school.schoolForm]} · ${drill.school.city} · Schulnummer ${drill.school.id}`
-    : drill.kreis
-      ? drill.kreis.properties.type === 'kreisfreie_stadt'
-        ? 'Kreisfreie Stadt'
-        : 'Kreis'
-      : 'Regierungsbezirk';
+    : drill.gemeinde
+      ? `Stadt/Gemeinde · ${drill.kreis ? kreisLabel(drill.kreis) : ''}`
+      : drill.kreis
+        ? drill.kreis.properties.type === 'kreisfreie_stadt'
+          ? 'Kreisfreie Stadt'
+          : 'Kreis'
+        : 'Regierungsbezirk';
   const participation =
     drill.school?.studentCount && row
       ? Math.min(100, Math.round((row.n / drill.school.studentCount) * 100))

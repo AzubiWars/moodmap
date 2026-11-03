@@ -137,7 +137,7 @@ export function createSupabaseSource(options: Options): DataSource & { dispose()
         : row,
     );
   const schoolSelect =
-    'id,name,schoolForm:school_form,kreisId:kreis_id,city,lat,lon,studentCount:student_count';
+    'id,name,schoolForm:school_form,kreisId:kreis_id,gemeindeId:gemeinde_id,city,lat,lon,studentCount:student_count';
   const withJoinCode = (rows: Omit<School, 'joinCode'>[]): School[] =>
     rows.map((school) => ({ ...school, joinCode: '' }));
 

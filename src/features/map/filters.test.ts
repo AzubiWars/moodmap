@@ -14,13 +14,16 @@ describe('map filters (#20)', () => {
         schoolForm: ['gymnasium'],
         gradeBand: ['8-10'],
         period: 'month',
+        directory: true,
       },
     );
     expect(parseFilters(new URLSearchParams('period=decade'))).toEqual({
       schoolForm: [],
       gradeBand: [],
       period: 'week',
+      directory: true,
     });
+    expect(parseFilters(new URLSearchParams('standorte=aus')).directory).toBe(false);
   });
 
   it('writes only non-default filters and keeps other params', () => {
@@ -28,10 +31,16 @@ describe('map filters (#20)', () => {
       schoolForm: [],
       gradeBand: ['oberstufe'],
       period: 'week',
+      directory: true,
     });
     expect(next.toString()).toBe('topic=ai&grade=oberstufe');
     expect(
-      activeFilterCount({ schoolForm: ['gymnasium', 'realschule'], gradeBand: [], period: 'year' }),
+      activeFilterCount({
+        schoolForm: ['gymnasium', 'realschule'],
+        gradeBand: [],
+        period: 'year',
+        directory: true,
+      }),
     ).toBe(3);
   });
 

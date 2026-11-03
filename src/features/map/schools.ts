@@ -6,18 +6,13 @@ import type { MapMode } from './modes';
 
 /**
  * Schulen (Stammdaten) erst laden, wenn die Karte sie wirklich braucht (#250):
- * Drill-down in der URL, Stadtfilter, Live-Modus, Beteiligungsmodus oder offene Suche.
+ * Kreis/Gemeinde/Schule in der URL, Live-Modus, Beteiligungsmodus oder offene Suche.
  * Die reine NRW-Startansicht kommt ohne den ~1,1-MB-Payload aus.
  */
 export function needsSchoolData(params: URLSearchParams, mode: MapMode, searchOpen: boolean): boolean {
-  const drillParam = params.get('regbez') || params.get('kreis') || params.get('school');
-  return (
-    Boolean(drillParam) ||
-    Boolean(params.get('city')) ||
-    params.get('live') === '1' ||
-    mode === 'participation' ||
-    searchOpen
-  );
+  // Schulen erscheinen erst ab Ebene Stadt (Kreis → Gemeinde); der Regierungsbezirk braucht sie nicht.
+  const drillParam = params.get('kreis') || params.get('gemeinde') || params.get('school');
+  return Boolean(drillParam) || params.get('live') === '1' || mode === 'participation' || searchOpen;
 }
 
 /**

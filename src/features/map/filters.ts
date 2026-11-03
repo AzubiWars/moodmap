@@ -7,6 +7,8 @@ export interface MapFilters {
   schoolForm: SchoolForm[];
   gradeBand: GradeBand[];
   period: Period;
+  /** Graue Schulstandorte ohne Stimmungswerte (Schulverzeichnis) – erst ab Ebene Stadt, abschaltbar. */
+  directory: boolean;
 }
 
 export const PERIODS: { value: Period; label: string }[] = [
@@ -22,7 +24,7 @@ export const GRADE_LABELS: Record<GradeBand, string> = {
   berufskolleg: 'Berufskolleg',
 };
 
-export const FILTER_PARAMS = ['form', 'grade', 'period'] as const;
+export const FILTER_PARAMS = ['form', 'grade', 'period', 'standorte'] as const;
 
 function parseList<T extends string>(value: string | null, allowed: readonly T[]): T[] {
   if (!value) return [];
@@ -35,6 +37,7 @@ export function parseFilters(params: URLSearchParams): MapFilters {
     schoolForm: parseList(params.get('form'), SCHOOL_FORMS),
     gradeBand: parseList(params.get('grade'), GRADE_BANDS),
     period: period === 'month' || period === 'year' ? period : 'week',
+    directory: params.get('standorte') !== 'aus',
   };
 }
 
@@ -45,11 +48,17 @@ export function filterParams(previous: URLSearchParams, filters: MapFilters): UR
   set('form', filters.schoolForm.join(','));
   set('grade', filters.gradeBand.join(','));
   set('period', filters.period === 'week' ? '' : filters.period);
+  set('standorte', filters.directory ? '' : 'aus');
   return next;
 }
 
 export function activeFilterCount(filters: MapFilters): number {
-  return filters.schoolForm.length + filters.gradeBand.length + (filters.period === 'week' ? 0 : 1);
+  return (
+    filters.schoolForm.length +
+    filters.gradeBand.length +
+    (filters.period === 'week' ? 0 : 1) +
+    (filters.directory ? 0 : 1)
+  );
 }
 
 /** Montag (UTC) der ISO-Woche, z. B. `2026-W43`. */

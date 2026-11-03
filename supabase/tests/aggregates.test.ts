@@ -73,6 +73,10 @@ describe('parity with the MockDataSource', () => {
     { level: 'kreis', parentId: '053' },
     { level: 'school', parentId: '05111' },
     { level: 'school', parentId: KREIS_AT_K_MIN },
+    // Ebene Stadt/Gemeinde: alle Gemeinden, die eines Kreises, Schulen einer Gemeinde
+    { level: 'gemeinde' },
+    { level: 'gemeinde', parentId: KREIS_AT_K_MIN },
+    { level: 'school', parentId: schools.find((s) => s.kreisId === KREIS_AT_K_MIN)!.gemeindeId },
   ];
   // Every scope × topic × wave set; the filters rotate through them (PGlite is too slow for the full
   // cross product within the CI budget from #76).

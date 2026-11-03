@@ -5,7 +5,9 @@ export interface RegionProperties {
   id: string;
   name: string;
   regbez_id?: string;
-  type?: 'kreis' | 'kreisfreie_stadt';
+  /** Nur Gemeinden: Kreis, zu dem sie gehören. */
+  kreis_id?: string;
+  type?: 'kreis' | 'kreisfreie_stadt' | 'gemeinde';
 }
 
 export type RegionFeature = Feature<Geometry, RegionProperties>;
@@ -30,6 +32,18 @@ export const GEO_URLS = {
   regbez: '/geo/nrw-regbez.geojson',
   kreis: '/geo/nrw-kreise.geojson',
 } as const;
+
+/** Gemeindegrenzen eines Kreises (Ebene Stadt), mit `regbez_id` und `type`, damit Klick und Abblenden greifen. */
+export async function loadGemeinden(kreisId: string): Promise<RegionCollection> {
+  const collection = await loadRegions(`/geo/gemeinden/${kreisId}.geojson`);
+  return {
+    ...collection,
+    features: collection.features.map((feature) => ({
+      ...feature,
+      properties: { ...feature.properties, regbez_id: kreisId.slice(0, 3), type: 'gemeinde' as const },
+    })),
+  };
+}
 
 export async function loadRegions(url: string): Promise<RegionCollection> {
   const res = await fetch(url);

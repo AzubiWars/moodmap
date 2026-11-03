@@ -42,7 +42,18 @@ describe('public/data/schools.json', () => {
   it('matches the School type', () => {
     for (const s of schools) {
       expect(Object.keys(s).sort()).toEqual(
-        ['city', 'id', 'joinCode', 'kreisId', 'lat', 'lon', 'name', 'schoolForm', 'studentCount'].sort(),
+        [
+          'city',
+          'gemeindeId',
+          'id',
+          'joinCode',
+          'kreisId',
+          'lat',
+          'lon',
+          'name',
+          'schoolForm',
+          'studentCount',
+        ].sort(),
       );
       expect(s.id).toMatch(/^9\d{5}$/);
       expect(SCHOOL_FORMS).toContain(s.schoolForm);

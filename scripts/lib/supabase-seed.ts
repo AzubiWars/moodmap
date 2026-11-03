@@ -71,14 +71,34 @@ function upsert(table: string, columns: string[], key: string[], rows: SqlValue[
  * (demo codes like DEMO42) write their codes.
  */
 function schoolsUpsert(schools: SeedSources['schools']): string {
-  const columns = ['id', 'name', 'school_form', 'kreis_id', 'city', 'lat', 'lon', 'student_count'];
+  const columns = [
+    'id',
+    'name',
+    'school_form',
+    'kreis_id',
+    'gemeinde_id',
+    'city',
+    'lat',
+    'lon',
+    'student_count',
+  ];
   const withCodes = schools.every((s) => 'joinCode' in s && s.joinCode);
   return upsert(
     'schools',
     withCodes ? [...columns, 'join_code'] : columns,
     ['id'],
     schools.map((s) => {
-      const row: SqlValue[] = [s.id, s.name, s.schoolForm, s.kreisId, s.city, s.lat, s.lon, s.studentCount];
+      const row: SqlValue[] = [
+        s.id,
+        s.name,
+        s.schoolForm,
+        s.kreisId,
+        s.gemeindeId ?? null,
+        s.city,
+        s.lat,
+        s.lon,
+        s.studentCount,
+      ];
       return withCodes ? [...row, (s as School).joinCode] : row;
     }),
   );

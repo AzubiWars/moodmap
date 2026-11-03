@@ -31,7 +31,13 @@ const resolve = (search: string) => resolveDrill(new URLSearchParams(search), re
 
 describe('resolveDrill', () => {
   it('starts at NRW without drill params', () => {
-    expect(resolve('topic=ai')).toEqual({ level: 'nrw', regbez: null, kreis: null, school: null });
+    expect(resolve('topic=ai')).toEqual({
+      level: 'nrw',
+      regbez: null,
+      kreis: null,
+      gemeinde: null,
+      school: null,
+    });
   });
 
   it('resolves a regbez and a kreis', () => {
@@ -133,6 +139,50 @@ describe('breadcrumb', () => {
     expect(kreisLabel(rheinErft)).toBe('Rhein-Erft-Kreis');
     expect(kreisLabel(feature({ id: '05334', name: 'Städteregion Aachen', type: 'kreis' }))).toBe(
       'Städteregion Aachen',
+    );
+  });
+});
+
+describe('Ebene Stadt/Gemeinde', () => {
+  const gemeinden = {
+    type: 'FeatureCollection' as const,
+    features: [
+      {
+        type: 'Feature' as const,
+        properties: {
+          id: '05358008',
+          name: 'Düren',
+          kreis_id: '05358',
+          regbez_id: '053',
+          type: 'gemeinde' as const,
+        },
+        geometry: { type: 'Point' as const, coordinates: [6.4, 50.8] },
+      },
+    ],
+  };
+  const withGemeinden = (search: string) =>
+    resolveDrill(new URLSearchParams(search), regbez, kreise, [gym], gemeinden);
+
+  it('resolves a Gemeinde inside its Kreis and ignores one of another Kreis', () => {
+    expect(withGemeinden('kreis=05358&gemeinde=05358008')).toMatchObject({ level: 'gemeinde' });
+    expect(withGemeinden('kreis=05358&gemeinde=05358008').gemeinde?.properties.name).toBe('Düren');
+    expect(withGemeinden('kreis=05315&gemeinde=05358008')).toMatchObject({ level: 'kreis', gemeinde: null });
+  });
+
+  it('clicking a Gemeinde area drills into it; breadcrumb gets a step', () => {
+    const state = withGemeinden('kreis=05358');
+    expect(clickTarget(state, gemeinden.features[0]!)).toEqual({
+      regbez: '053',
+      kreis: '05358',
+      gemeinde: '05358008',
+    });
+    const labels = breadcrumb(withGemeinden('kreis=05358&gemeinde=05358008')).map((c) => c.label);
+    expect(labels.at(-1)).toBe('Düren');
+  });
+
+  it('drops legacy ?city= when navigating', () => {
+    expect(drillParams(new URLSearchParams('city=Köln&topic=ai'), { regbez: '053' }).toString()).toBe(
+      'topic=ai&regbez=053',
     );
   });
 });
