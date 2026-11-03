@@ -30,6 +30,7 @@ export function buildSyntheticAnswerSql(data: SeedData, schools: readonly School
         response.gradeBand,
         digest(`${response.deviceToken}:${response.waveId}`),
         response.submittedAt,
+        'demo-seed',
       ]
         .map(sqlLiteral)
         .join(', '),
@@ -65,8 +66,19 @@ export function buildSyntheticAnswerSql(data: SeedData, schools: readonly School
         raise exception 'synthetic school catalog does not match; import aborted';
       end if;
     end $$;`,
-    insert('responses', 'id, school_id, wave_id, role, grade_band, device_hash, created_at', responseRows),
+    insert(
+      'responses',
+      'id, school_id, wave_id, role, grade_band, device_hash, created_at, source_id',
+      responseRows,
+    ),
     insert('answers', 'response_id, question_id, value, choice', answerRows),
+    // Synthetic answers are their own source (ADR-018). In a pure demo database it becomes the default.
+    `do $$ begin
+      if not exists (select 1 from public.responses where source_id = 'live') then
+        update public.data_sources set is_default = false where is_default;
+        update public.data_sources set is_default = true where id = 'demo-seed';
+      end if;
+    end $$;`,
     'commit;',
     '',
   ].join('\n\n');

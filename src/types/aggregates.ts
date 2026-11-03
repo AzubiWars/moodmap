@@ -81,3 +81,22 @@ export interface PitchAggregate {
   score: number | null;
   topicScores: Record<TopicSlug, number | null>;
 }
+
+/** Art einer Datenquelle (ADR-018): synthetische Demo, Live-Abgaben aus der App oder ein Import. */
+export type DataSourceKind = 'demo' | 'live' | 'import';
+
+/** Eine auswählbare Datenquelle aus `get_data_sources()` – nur aktive, für den Aufrufer sichtbare. */
+export interface DataSourceInfo {
+  id: string;
+  label: string;
+  kind: DataSourceKind;
+  /** ISO-Datum (YYYY-MM-DD) oder `null`, wenn offen. */
+  periodStart: string | null;
+  periodEnd: string | null;
+  visibility: 'public' | 'ministry';
+  isDefault: boolean;
+  /** Anbieter hat nur fertige Aggregate geliefert (#274): keine eigenen Verteilungen/Trends. */
+  aggregatedByProvider: boolean;
+  /** Teilnahmen in der gesamten Quelle. */
+  n: number;
+}
