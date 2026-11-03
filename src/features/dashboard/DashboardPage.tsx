@@ -44,20 +44,22 @@ export function DashboardPage() {
     <div className="mx-auto max-w-5xl space-y-4 px-4 py-6 sm:py-8">
       <header>
         <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">Lagebild NRW</h1>
-        {role === 'school' && (
+        <div className="mt-2 flex flex-wrap gap-x-4">
+          {role === 'school' && (
+            <Link
+              to="/dashboard/school"
+              className="inline-flex min-h-11 items-center font-medium text-accent underline"
+            >
+              Zum Dashboard Ihrer Schule
+            </Link>
+          )}
           <Link
-            to="/dashboard/school"
-            className="mt-2 inline-flex min-h-11 items-center font-medium text-accent underline"
+            to="/methodik"
+            className="inline-flex min-h-11 items-center font-medium text-accent underline"
           >
-            Zum Dashboard Ihrer Schule
+            Methodik & Quellen
           </Link>
-        )}
-        <Link
-          to="/methodik"
-          className="mt-2 ml-3 inline-flex min-h-11 items-center font-medium text-accent underline"
-        >
-          Methodik & Quellen
-        </Link>
+        </div>
         <p className="mt-1 text-sm text-muted">
           {query.data && selection.selected?.kind !== 'import'
             ? `Woche ${query.data.wave.id.replace(/^\d{4}-W/, 'KW ')} · `
