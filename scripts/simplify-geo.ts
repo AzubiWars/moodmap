@@ -2,6 +2,8 @@
  * Builds the NRW geo base data from BKG open data (#6, #7):
  *   public/geo/nrw-kreise.geojson    – 53 Kreise & kreisfreie Städte { id (AGS), name, regbez_id, type }
  *   public/geo/nrw-regbez.geojson    – 5 Regierungsbezirke { id, name }
+ *   public/geo/gemeinden/<AGS>.geojson – Gemeindegrenzen je Kreis { id (AGS, 8-stellig), name, kreis_id }, lazy
+ *                                      beim Drill-down in einen Kreis geladen (Ebene Stadt/Gemeinde)
  *   scripts/data/nrw-gemeinden.json  – 396 Gemeinden { ags, name, kreisId, population, areaKm2, lon, lat }
  *                                      (input for scripts/generate-schools.ts, not shipped to the app)
  *
@@ -104,6 +106,23 @@ function buildBoundaries(zipPath: string): void {
   ]);
 }
 
+/** Gemeindegrenzen, ein File pro Kreis: die App lädt nur den Kreis, in den man hineinzoomt. */
+function buildGemeindeBoundaries(zipPath: string): void {
+  const dir = join(outDir, 'gemeinden');
+  mkdirSync(dir, { recursive: true });
+  runMapshaper([
+    ['-i', zipPath, 'encoding=utf8'],
+    ['-target', 'VG250_GEM'],
+    ['-filter', 'SN_L === "05" && GF === 4'],
+    ['-proj', 'wgs84'],
+    ['-each', 'id = AGS, name = GEN, kreis_id = AGS.slice(0, 5)'],
+    ['-filter-fields', 'id,name,kreis_id'],
+    ['-simplify', `interval=${SIMPLIFY_INTERVAL_M}`, 'keep-shapes'],
+    ['-split', 'kreis_id'],
+    ['-o', `${dir}/`, 'format=geojson', 'extension=.geojson', 'rfc7946', `precision=${COORD_PRECISION}`],
+  ]);
+}
+
 function buildGemeinden(zipPath: string): void {
   const round5 = (v: string) => `Math.round(${v} * 1e5) / 1e5`; // ~1 m
   runMapshaper([
@@ -130,6 +149,7 @@ const vg250Zip = await downloadBkg(VG250_URL, 'vg250.zip');
 const vg250EwZip = await downloadBkg(VG250_EW_URL, 'vg250-ew.zip');
 installMapshaper();
 buildBoundaries(vg250Zip);
+buildGemeindeBoundaries(vg250Zip);
 buildGemeinden(vg250EwZip);
 
 for (const path of [join(outDir, 'nrw-kreise.geojson'), join(outDir, 'nrw-regbez.geojson'), gemeindenPath]) {

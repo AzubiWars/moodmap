@@ -24,7 +24,7 @@ export type GradeBand = (typeof GRADE_BANDS)[number];
 export const SCOPE_LEVELS = ['regbez', 'kreis', 'school'] as const;
 export type ScopeLevel = (typeof SCOPE_LEVELS)[number];
 
-export const DATA_LEVELS = ['nrw', 'regbez', 'kreis', 'school'] as const;
+export const DATA_LEVELS = ['nrw', 'regbez', 'kreis', 'gemeinde', 'school'] as const;
 export type DataLevel = (typeof DATA_LEVELS)[number];
 
 /** `freetext` ist bewusst nicht Teil des Prototyps (docs/PRIVACY.md §1). */
@@ -74,6 +74,8 @@ export interface School {
   name: string;
   schoolForm: SchoolForm;
   kreisId: KreisId;
+  /** Gemeinde (AGS, 8-stellig) aus den amtlichen Grenzen; Ebene „Stadt“ nach dem Kreis. */
+  gemeindeId?: string;
   city: string;
   lat: number;
   lon: number;

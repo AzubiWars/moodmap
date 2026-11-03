@@ -9,6 +9,8 @@ export interface MinifiedSchools {
   names: string[];
   forms: School['schoolForm'][];
   kreisIds: string[];
+  /** Fehlt in älteren Dateien. */
+  gemeindeIds?: string[];
   cities: string[];
   lats: number[];
   lons: number[];
@@ -27,6 +29,7 @@ export function expandMinifiedSchools(min: MinifiedSchools): School[] {
     name: min.names[index]!,
     schoolForm: min.forms[index]!,
     kreisId: min.kreisIds[index]!,
+    ...(min.gemeindeIds?.[index] ? { gemeindeId: min.gemeindeIds[index] } : {}),
     city: min.cities[index]!,
     lat: min.lats[index]!,
     lon: min.lons[index]!,

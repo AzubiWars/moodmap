@@ -15,12 +15,14 @@ import {
   type DrillTarget,
   drillParams,
   levelCaption,
+  isCityKreis,
   resolveDrill,
   schoolTarget,
 } from './drilldown';
 import {
   type Bounds,
   featureBounds,
+  loadGemeinden,
   GEO_URLS,
   loadRegions,
   NRW_BOUNDS,
@@ -126,26 +128,30 @@ function withModeData(points: SchoolCollection, scores: ScoreMap, data: ModeData
   };
 }
 
-/** Schulen erscheinen ab Regierungsbezirk; im Kreis nur die des Kreises (#18). */
-function visibleSchools(
-  drill: DrillState,
-  schools: readonly School[],
-  kreise: RegionCollection | undefined,
-  city: string | null,
-  forms: readonly string[],
-) {
-  const inCity = city ? schools.filter((s) => s.city === city) : schools;
+/**
+ * Wo Schulen erscheinen: erst auf Ebene Stadt – in einer Gemeinde oder in einer kreisfreien Stadt
+ * (die Kreis und Stadt zugleich ist). Darüber zeigt die Karte nur Flächen. `null` = keine Schulen.
+ */
+type SchoolScope = { gemeindeId: string } | { kreisId: string } | null;
+
+function schoolScope(drill: DrillState): SchoolScope {
+  if (drill.gemeinde) return { gemeindeId: drill.gemeinde.properties.id };
+  if (drill.kreis && isCityKreis(drill.kreis)) return { kreisId: drill.kreis.properties.id };
+  // Schule in einer Gemeinde, deren Grenzen noch laden: Kreis als Rückfall
+  if (drill.school)
+    return drill.school.gemeindeId
+      ? { gemeindeId: drill.school.gemeindeId }
+      : { kreisId: drill.school.kreisId };
+  return null;
+}
+
+const inScope = (scope: SchoolScope) => (s: School) =>
+  scope != null && ('gemeindeId' in scope ? s.gemeindeId === scope.gemeindeId : s.kreisId === scope.kreisId);
+
+function visibleSchools(scope: SchoolScope, schools: readonly School[], forms: readonly string[]) {
   // Schulform-Filter (#20) blendet auch die Marker anderer Schulformen aus.
   const inForm = (s: School) => forms.length === 0 || forms.includes(s.schoolForm);
-  // Eine Stadt kann über Kreisgrenzen hinaus Schulen haben (z. B. Stadtteile) – dann alle zeigen.
-  if (city) return inCity.filter(inForm);
-  if (drill.kreis) return inCity.filter((s) => s.kreisId === drill.kreis!.properties.id && inForm(s));
-  if (!drill.regbez || !kreise) return [];
-  const regbezId = drill.regbez.properties.id;
-  const kreisIds = new Set(
-    kreise.features.filter((f) => f.properties.regbez_id === regbezId).map((f) => f.properties.id),
-  );
-  return inCity.filter((s) => kreisIds.has(s.kreisId) && inForm(s));
+  return scope ? schools.filter((s) => inScope(scope)(s) && inForm(s)) : [];
 }
 
 /** Ausschnitt um eine Schule: nahe genug für die 3D-Gebäudeansicht. */
@@ -154,18 +160,6 @@ function schoolBounds(school: School): Bounds {
   return [
     [school.lon - d * 1.6, school.lat - d],
     [school.lon + d * 1.6, school.lat + d],
-  ];
-}
-
-/** Ausschnitt um alle Schulen einer Stadt, mit etwas Rand. */
-function cityBounds(schools: readonly School[]): Bounds | null {
-  if (schools.length === 0) return null;
-  const lons = schools.map((school) => school.lon);
-  const lats = schools.map((school) => school.lat);
-  const pad = 0.012;
-  return [
-    [Math.min(...lons) - pad, Math.min(...lats) - pad],
-    [Math.max(...lons) + pad, Math.max(...lats) + pad],
   ];
 }
 
@@ -213,7 +207,6 @@ export function MapPage() {
 
   // #250: Stammdaten erst laden, wenn Drill, Stadt, Live, Beteiligung oder Suche sie brauchen.
   const [searchOpen, setSearchOpen] = useState(false);
-  const city = searchParams.get('city');
   const live = searchParams.get('live') === '1';
   const schoolsQuery = useQuery({
     queryKey: ['schools'],
@@ -222,30 +215,54 @@ export function MapPage() {
     staleTime: Infinity,
     retry: false,
   });
-  const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
+  // Kreis zuerst ohne Gemeinden auflösen, dann dessen Gemeindegrenzen nachladen (Ebene Stadt).
+  const kreisDrill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
+  const gemeindeKreisId =
+    kreisDrill.kreis && !isCityKreis(kreisDrill.kreis) ? kreisDrill.kreis.properties.id : null;
+  const gemeindenQuery = useQuery({
+    queryKey: ['geo', 'gemeinden', gemeindeKreisId],
+    queryFn: () => loadGemeinden(gemeindeKreisId!),
+    enabled: gemeindeKreisId != null,
+    staleTime: Infinity,
+    retry: false,
+  });
+  const gemeinden = gemeindeKreisId ? gemeindenQuery.data : undefined;
+  const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data, gemeinden);
   const focusRegbezId = drill.regbez?.properties.id ?? null;
-  const citySchools =
-    city && schoolsQuery.data ? schoolsQuery.data.filter((school) => school.city === city) : [];
-  // Das 1,1-MB-Verzeichnis erst laden, wenn es gebraucht wird: Drill-down oder Suche.
+  const scope = schoolScope(drill);
+  const filters = parseFilters(searchParams);
+  // Das 1,1-MB-Verzeichnis erst laden, wenn es gebraucht wird: Suche oder graue Standorte einer Stadt.
   const [directoryRequested, setDirectoryRequested] = useState(false);
   const directoryQuery = useQuery({
     queryKey: ['schools', 'directory'],
     queryFn: loadSchoolDirectory,
-    enabled: directoryRequested || drill.level !== 'nrw' || Boolean(city),
+    enabled: directoryRequested || (scope != null && filters.directory),
     staleTime: Infinity,
     retry: false,
   });
 
   // Landesansicht: Regierungsbezirke (Fallback: Kreise, falls die RegBez-Datei fehlt).
-  // Ab Regierungsbezirk: alle Kreise, die außerhalb des Bezirks werden abgeblendet.
+  // Ab Regierungsbezirk: alle Kreise, die außerhalb des Bezirks werden abgeblendet. Im Kreis ersetzen
+  // dessen Gemeinden die Kreisfläche (Ebene Stadt), die Nachbarkreise bleiben als Kontext.
   const regionLevel = drill.level === 'nrw' && regbezQuery.data ? 'regbez' : 'kreis';
-  const shown = regionLevel === 'regbez' ? regbezQuery.data : kreiseQuery.data;
+  const showGemeinden = Boolean(gemeinden && drill.kreis);
+  const shown =
+    regionLevel === 'regbez'
+      ? regbezQuery.data
+      : kreiseQuery.data && showGemeinden
+        ? {
+            ...kreiseQuery.data,
+            features: [
+              ...kreiseQuery.data.features.filter((f) => f.properties.id !== drill.kreis!.properties.id),
+              ...gemeinden!.features,
+            ],
+          }
+        : kreiseQuery.data;
 
   // Aggregate aus der DataSource (#68), bereits k-anonymisiert (score null unter K_MIN)
   useLiveAggregates();
   const poll = live ? LIVE_POLL_MS : false;
   // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
-  const filters = parseFilters(searchParams);
   const currentWave = useCurrentWave();
   // Datenquelle (#272): Import-Befragungen beziehen Zeitachse und Zeiträume auf ihre letzte Woche
   const source = useSelectedSource();
@@ -271,9 +288,16 @@ export function MapPage() {
     refetchInterval: poll,
     filters: aggFilters,
   });
-  const schoolAggregates = useAggregates('school', topicSlug, {
+  const scopeId = scope ? ('gemeindeId' in scope ? scope.gemeindeId : scope.kreisId) : undefined;
+  const gemeindeAggregates = useAggregates('gemeinde', topicSlug, {
     parentId: drill.kreis?.properties.id,
-    enabled: drill.level !== 'nrw',
+    enabled: showGemeinden,
+    refetchInterval: poll,
+    filters: aggFilters,
+  });
+  const schoolAggregates = useAggregates('school', topicSlug, {
+    parentId: scopeId,
+    enabled: scope != null,
     refetchInterval: poll,
     filters: aggFilters,
   });
@@ -287,24 +311,49 @@ export function MapPage() {
     refetchInterval: poll,
     filters: aggFilters,
   });
-  const schoolTension = useTension('school', {
+  const gemeindeTension = useTension('gemeinde', {
     parentId: drill.kreis?.properties.id,
-    enabled: radar && ministry && drill.level !== 'nrw',
+    enabled: radar && showGemeinden,
+    refetchInterval: poll,
+    filters: aggFilters,
+  });
+  const schoolTension = useTension('school', {
+    parentId: scopeId,
+    enabled: radar && ministry && scope != null,
     refetchInterval: poll,
     filters: aggFilters,
   });
 
   const allSchools = schoolsQuery.data ?? [];
+  // Kreis- und Gemeindewerte in einer Karte: die IDs (5- bzw. 8-stellig) überschneiden sich nie.
+  const merge = <V,>(a: ReadonlyMap<string, V>, b: ReadonlyMap<string, V> | null) =>
+    b ? new Map([...a, ...b]) : a;
   const scored = shown
-    ? scoreRegions(shown, toScoreMap(regionAggregates.data), focusRegbezId, {
-        tension: radar ? toTensionMap(regionTension.data) : null,
-        students: mode === 'participation' ? studentsBy(allSchools, regionLevel) : null,
-      })
+    ? scoreRegions(
+        shown,
+        merge(toScoreMap(regionAggregates.data), showGemeinden ? toScoreMap(gemeindeAggregates.data) : null),
+        focusRegbezId,
+        {
+          tension: radar
+            ? merge(
+                toTensionMap(regionTension.data),
+                showGemeinden ? toTensionMap(gemeindeTension.data) : null,
+              )
+            : null,
+          students:
+            mode === 'participation'
+              ? merge(
+                  studentsBy(allSchools, regionLevel),
+                  showGemeinden ? studentsBy(allSchools, 'gemeinde') : null,
+                )
+              : null,
+        },
+      )
     : null;
 
   const schoolsShown =
     schoolsQuery.data && (!radar || ministry)
-      ? visibleSchools(drill, schoolsQuery.data, kreiseQuery.data, city, filters.schoolForm)
+      ? visibleSchools(scope, schoolsQuery.data, filters.schoolForm)
       : [];
   const schoolScores = toScoreMap(schoolAggregates.data);
   const schoolPoints = schoolsShown.length
@@ -313,14 +362,21 @@ export function MapPage() {
         students: mode === 'participation' ? studentsBy(allSchools, 'school') : null,
       })
     : null;
-  const directoryPoints = directoryQuery.data ? directoryToGeoJSON(directoryQuery.data) : null;
+  // Graue Standorte ohne Werte: nur in der gewählten Stadt und nur, wenn im Filter eingeschaltet.
+  // Ein Suchtreffer aus dem Verzeichnis bleibt immer sichtbar.
+  const directoryShown = directoryQuery.data
+    ? directoryQuery.data.filter(
+        (s) => (filters.directory && inScope(scope)(s)) || s.id === directoryFocus?.id,
+      )
+    : [];
+  const directoryPoints = directoryShown.length ? directoryToGeoJSON(directoryShown) : null;
 
-  const focusFeature = drill.kreis ?? drill.regbez;
+  const focusFeature = drill.gemeinde ?? drill.kreis ?? drill.regbez;
   const focusBounds = directoryFocus
     ? schoolBounds(directoryFocus)
     : drill.school
       ? schoolBounds(drill.school)
-      : (cityBounds(citySchools) ?? (focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
+      : ((focusFeature && featureBounds(focusFeature)) ?? NRW_BOUNDS);
 
   const pulses = pulsing.flatMap((id) => {
     const school = schoolsQuery.data?.find((s) => s.id === id);
@@ -405,16 +461,18 @@ export function MapPage() {
     });
   }
 
-  /** Suchtreffer „Stadt“: auf den Kreis der ersten Schule springen und alle Schulen der Stadt zeigen. */
+  /** Suchtreffer „Stadt“: in die Gemeinde der ersten Schule dieser Stadt springen (Ebene Stadt). */
   function selectCity(value: string) {
     setDirectoryFocus(null);
-    const first = schoolsQuery.data?.find((school) => school.city === value);
+    const first =
+      schoolsQuery.data?.find((school) => school.city === value) ??
+      directoryQuery.data?.find((school) => school.city === value);
     if (!first) return;
     const kreis = kreiseQuery.data?.features.find((feature) => feature.properties.id === first.kreisId);
     navigate({
       regbez: kreis?.properties.regbez_id,
       kreis: first.kreisId,
-      city: value,
+      gemeinde: isCityKreis(kreis) ? undefined : first.gemeindeId,
     });
   }
 
@@ -437,19 +495,20 @@ export function MapPage() {
       <div className="relative min-h-0 flex-1">
         <MoodMap
           regions={scored}
-          selectedId={drill.kreis?.properties.id ?? null}
+          selectedId={drill.gemeinde?.properties.id ?? drill.kreis?.properties.id ?? null}
           focusBounds={focusBounds}
-          muted={drill.level === 'kreis' || drill.level === 'school'}
+          // Ab Ebene Stadt stehen die Schulen im Vordergrund, die Flächen treten zurück.
+          muted={scope != null}
           detailOpen={drill.level !== 'nrw'}
           onSelect={selectRegion}
           schools={schoolPoints}
-          clusterSchools={drill.level === 'regbez'}
+          clusterSchools={false}
           selectedSchoolId={drill.school?.id ?? null}
           onSelectSchool={selectSchool}
           is3d={is3d}
           onPitchChange={setIs3d}
           // Auf NRW-Ebene keine grauen Verzeichnis-Cluster; erst ab Regierungsbezirk/Kreis.
-          directorySchools={drill.level === 'nrw' && !directoryFocus ? null : directoryPoints}
+          directorySchools={directoryPoints}
           focusSchool={directoryFocus}
           pulses={pulses}
           mode={mode}
@@ -488,6 +547,7 @@ export function MapPage() {
                 navigate({
                   regbez: kreis?.properties.regbez_id,
                   kreis: school.kreisId,
+                  gemeinde: isCityKreis(kreis) ? undefined : school.gemeindeId,
                   school: school.id,
                 });
               }}
@@ -521,34 +581,14 @@ export function MapPage() {
               <MapModeSwitch mode={mode} onChange={setMode} />
             </div>
             <EmptySourceNotice selection={source} />
-            {city && citySchools.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1 text-xs">
-                <span className="rounded-full bg-subtle px-2 py-0.5">
-                  Stadt {city} · {citySchools.length} {citySchools.length === 1 ? 'Schule' : 'Schulen'}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    navigate({
-                      regbez: drill.regbez?.properties.id,
-                      kreis: drill.kreis?.properties.id,
-                    })
-                  }
-                  aria-label="Stadtfilter entfernen"
-                  className="rounded-full px-1.5 py-0.5 text-muted hover:bg-subtle hover:text-fg"
-                >
-                  ×
-                </button>
-              </div>
-            )}
             {/* Mobil eingeklappt nur für Screenreader – die Ansage bleibt erhalten */}
             <p className={cn('text-xs text-fg', !viewOpen && 'max-md:sr-only')} aria-live="polite">
               {MODE_CAPTION[mode] ?? `${topic.icon} ${topic.title}`} ·{' '}
               {radar && !ministry && drill.kreis ? 'Kreis-Ansicht' : levelCaption(drill)}
-              {city && ` · Stadt ${city}`}
               {activeFilterCount(filters) > 0 && ' · gefiltert'}
               {selectedWave && ` · ${weekLabel(selectedWave)}`}
-              {directoryQuery.data && ` · ${directoryQuery.data.length} Schulstandorte`}
+              {scope && schoolsShown.length > 0 && ` · ${schoolsShown.length} mit Werten`}
+              {directoryShown.length > 0 && ` · ${directoryShown.length} ohne Daten`}
             </p>
           </div>
         </div>

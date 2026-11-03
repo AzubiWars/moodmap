@@ -88,6 +88,7 @@ vi.mock('./MoodMap', () => ({
     pulses,
     is3d,
     onPitchChange,
+    directorySchools,
   }: {
     regions: RegionCollection | null;
     selectedId: string | null;
@@ -99,8 +100,12 @@ vi.mock('./MoodMap', () => ({
     pulses?: { id: string }[];
     is3d?: boolean;
     onPitchChange?: (value: boolean) => void;
+    directorySchools?: { features: { properties: { id: string } }[] } | null;
   }) => (
     <div>
+      <output data-testid="map-directory">
+        {(directorySchools?.features ?? []).map((f) => f.properties.id).join(',')}
+      </output>
       <output data-testid="map-data">{JSON.stringify(regions)}</output>
       <output data-testid="map-focus">{JSON.stringify(focusBounds)}</output>
       <output data-testid="map-selected">{selectedId ?? ''}</output>
@@ -165,7 +170,22 @@ const regions: RegionCollection = {
       properties: { id: '05315', name: 'Köln', regbez_id: '053', type: 'kreisfreie_stadt' },
       geometry: square(6.9, 50.9),
     },
+    {
+      type: 'Feature',
+      properties: { id: '05358', name: 'Düren', regbez_id: '053', type: 'kreis' },
+      geometry: square(6.3, 50.7),
+    },
   ],
+};
+
+/** Gemeinden des Kreises Düren (Ebene Stadt), wie loadGemeinden sie liefert. */
+const dueren: RegionCollection = {
+  type: 'FeatureCollection',
+  features: ['05358008', '05358024'].map((id, i) => ({
+    type: 'Feature',
+    properties: { id, name: i ? 'Jülich' : 'Düren', kreis_id: '05358', regbez_id: '053', type: 'gemeinde' },
+    geometry: square(6.3 + i * 0.5, 50.7),
+  })),
 };
 
 const school = (id: string, kreisId: string, lon: number, lat: number): School => ({
@@ -180,13 +200,19 @@ const school = (id: string, kreisId: string, lon: number, lat: number): School =
   joinCode: `J${id}`,
 });
 
-const schools: School[] = [school('900001', '05111', 6.8, 51.25), school('900002', '05315', 6.95, 50.94)];
+const schools: School[] = [
+  school('900001', '05111', 6.8, 51.25),
+  school('900002', '05315', 6.95, 50.94),
+  { ...school('900003', '05358', 6.45, 50.8), gemeindeId: '05358008', city: 'Düren' },
+  { ...school('900004', '05358', 6.9, 50.8), gemeindeId: '05358024', city: 'Jülich' },
+];
 
 function openMap(url: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   client.setQueryData(['geo', 'regbez'], regbez);
   client.setQueryData(['geo', 'kreis'], regions);
   client.setQueryData(['schools'], schools);
+  client.setQueryData(['geo', 'gemeinden', '05358'], dueren);
   client.setQueryData(
     ['schools', 'directory'],
     [
@@ -195,6 +221,7 @@ function openMap(url: string) {
         name: 'Städtische Gesamtschule Stettiner Straße',
         city: 'Düsseldorf',
       },
+      { ...school('199917', '05358', 6.46, 50.81), gemeindeId: '05358008', city: 'Düren' },
     ],
   );
   const router = createMemoryRouter([{ path: '/map', element: <MapPage /> }], { initialEntries: [url] });
@@ -287,6 +314,7 @@ describe('map drill-down', () => {
       [
         ['05111', true],
         ['05315', false],
+        ['05358', false],
       ],
     );
     expect(focus()).toEqual([
@@ -330,12 +358,16 @@ describe('map drill-down', () => {
 describe('school markers (#18)', () => {
   const schoolButtons = () => screen.queryAllByRole('button', { name: /^Schule / }).map((b) => b.textContent);
 
-  it('shows no schools on NRW level and only the regbez schools after drilling in', async () => {
+  it('shows schools only from city level on: none on NRW or regbez, all of a kreisfreie Stadt', async () => {
     const router = openMap('/map');
     expect(schoolButtons()).toEqual([]);
 
     fireEvent.click(screen.getByRole('button', { name: 'Fläche 053' }));
     await waitFor(() => expect(router.state.location.search).toBe('?regbez=053'));
+    expect(schoolButtons()).toEqual([]);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Fläche 05315' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?regbez=053&kreis=05315'));
     expect(schoolButtons()).toEqual(['Schule 900002']);
   });
 
@@ -368,7 +400,8 @@ describe('aggregates from the DataSource (#68)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Fläche 053' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=stress&regbez=053'));
     await waitFor(() => expect(scoreOf('05315').score).toBe(fakeScore('05315', 'stress')));
-    expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', topic: 'stress' }));
+    // Auf Bezirksebene noch keine Schulen (erst ab Stadt)
+    expect(aggregateCalls).not.toContainEqual(expect.objectContaining({ level: 'school' }));
   });
 
   it('asks only for the schools of the kreis on kreis level', async () => {
@@ -441,13 +474,63 @@ describe('map search', () => {
 
     const cityGroup = await screen.findByRole('region', { name: 'Städte' });
     fireEvent.click(within(cityGroup).getByRole('button', { name: /Testort/ }));
-    await waitFor(() => expect(router.state.location.search).toBe('?regbez=051&kreis=05111&city=Testort'));
+    // Kreisfreie Stadt: Kreis = Stadt, die Schulen erscheinen direkt
+    await waitFor(() => expect(router.state.location.search).toBe('?regbez=051&kreis=05111'));
     expect(screen.getByTestId('map-selected')).toHaveTextContent('05111');
-    expect(screen.getByText(/Stadt Testort · 2 Schulen/)).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: /^Schule / }).map((button) => button.textContent)).toEqual([
       'Schule 900001',
-      'Schule 900002',
     ]);
+  });
+
+  it('jumps into the Gemeinde of a city in a Kreis', async () => {
+    const router = openMap('/map');
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Schule oder Stadt suchen' }), {
+      target: { value: 'Jülich' },
+    });
+    const cityGroup = await screen.findByRole('region', { name: 'Städte' });
+    fireEvent.click(within(cityGroup).getByRole('button', { name: /Jülich/ }));
+    await waitFor(() =>
+      expect(router.state.location.search).toBe('?regbez=053&kreis=05358&gemeinde=05358024'),
+    );
+    expect(screen.getAllByRole('button', { name: /^Schule / }).map((b) => b.textContent)).toEqual([
+      'Schule 900004',
+    ]);
+  });
+});
+
+describe('Ebene Stadt/Gemeinde', () => {
+  const schoolButtons = () => screen.queryAllByRole('button', { name: /^Schule / }).map((b) => b.textContent);
+
+  it('shows the Gemeinden of a Kreis with their own aggregates, without schools', async () => {
+    openMap('/map?regbez=053&kreis=05358');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Fläche 05358008' })).toBeInTheDocument());
+    expect(screen.queryByRole('button', { name: 'Fläche 05358' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Fläche 05315' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(aggregateCalls).toContainEqual(
+        expect.objectContaining({ level: 'gemeinde', parentId: '05358' }),
+      ),
+    );
+    expect(schoolButtons()).toEqual([]);
+    expect(screen.getByTestId('map-directory')).toBeEmptyDOMElement();
+  });
+
+  it('opens a Gemeinde: its schools, grey directory locations and a breadcrumb step', async () => {
+    const router = openMap('/map?regbez=053&kreis=05358');
+    fireEvent.click(await screen.findByRole('button', { name: 'Fläche 05358008' }));
+    await waitFor(() =>
+      expect(router.state.location.search).toBe('?regbez=053&kreis=05358&gemeinde=05358008'),
+    );
+    expect(schoolButtons()).toEqual(['Schule 900003']);
+    await waitFor(() => expect(screen.getByTestId('map-directory')).toHaveTextContent('199917'));
+    expect(aggregateCalls).toContainEqual(expect.objectContaining({ level: 'school', parentId: '05358008' }));
+    expect(crumbs().getByText('Düren', { selector: '[aria-current]' })).toBeInTheDocument();
+  });
+
+  it('hides the grey locations when switched off in the filter (?standorte=aus)', async () => {
+    openMap('/map?regbez=053&kreis=05358&gemeinde=05358008&standorte=aus');
+    await waitFor(() => expect(schoolButtons()).toEqual(['Schule 900003']));
+    expect(screen.getByTestId('map-directory')).toBeEmptyDOMElement();
   });
 });
 
@@ -627,14 +710,15 @@ describe('more filters (#20)', () => {
 describe('lazy school data (#250)', () => {
   it('keeps the plain NRW start view free of school requests', () => {
     expect(needsSchoolData(new URLSearchParams(''), 'mood', false)).toBe(false);
+    // Bezirksebene zeigt nur Kreisflächen (Schulen erst ab Stadt)
+    expect(needsSchoolData(new URLSearchParams('regbez=053'), 'mood', false)).toBe(false);
     expect(needsSchoolData(new URLSearchParams('topic=stress&period=month'), 'mood', false)).toBe(false);
   });
 
   const needed: [string, 'mood' | 'participation', boolean][] = [
-    ['regbez=053', 'mood', false],
     ['kreis=05315', 'mood', false],
+    ['regbez=053&kreis=05358&gemeinde=05358008', 'mood', false],
     ['school=900002&kreis=05315&regbez=053', 'mood', false],
-    ['city=Köln', 'mood', false],
     ['live=1', 'mood', false],
     ['', 'participation', false],
     ['', 'mood', true],

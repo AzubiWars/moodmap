@@ -134,6 +134,25 @@ export function FilterMenu({ filters, onChange }: FilterMenuProps) {
                 </div>
               </fieldset>
 
+              <fieldset>
+                <legend className="mb-2 text-xs font-semibold text-muted uppercase">Karte</legend>
+                <label className="flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-lg border border-border px-3 py-2 text-sm">
+                  <span>
+                    Schulen ohne Daten anzeigen
+                    <span className="block text-xs text-muted">
+                      Graue Standorte aus dem Schulverzeichnis, ab Ebene Stadt
+                    </span>
+                  </span>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={filters.directory}
+                    onChange={(event) => onChange({ ...filters, directory: event.target.checked })}
+                    className="size-5 shrink-0 accent-primary"
+                  />
+                </label>
+              </fieldset>
+
               <p className="text-xs text-muted">
                 Werte mit weniger als 10 Stimmen bleiben grau – je enger der Filter, desto mehr graue Flächen.
               </p>
@@ -143,7 +162,7 @@ export function FilterMenu({ filters, onChange }: FilterMenuProps) {
               <button
                 type="button"
                 disabled={count === 0}
-                onClick={() => onChange({ schoolForm: [], gradeBand: [], period: 'week' })}
+                onClick={() => onChange({ schoolForm: [], gradeBand: [], period: 'week', directory: true })}
                 className="text-sm font-medium text-accent disabled:text-muted"
               >
                 Zurücksetzen

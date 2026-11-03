@@ -79,13 +79,21 @@ export function formatRate(rate: number): string {
 
 /** Schülerzahl je Einheit aus den Schulen; Grundlage der Beteiligungsquote. */
 export function studentsBy(
-  schools: readonly { id: string; kreisId: string; studentCount: number | null }[],
-  level: 'regbez' | 'kreis' | 'school',
+  schools: readonly { id: string; kreisId: string; gemeindeId?: string; studentCount: number | null }[],
+  level: 'regbez' | 'kreis' | 'gemeinde' | 'school',
 ): Map<string, number> {
   const out = new Map<string, number>();
   for (const s of schools) {
     if (!s.studentCount) continue;
-    const id = level === 'school' ? s.id : level === 'kreis' ? s.kreisId : s.kreisId.slice(0, 3);
+    const id =
+      level === 'school'
+        ? s.id
+        : level === 'gemeinde'
+          ? s.gemeindeId
+          : level === 'kreis'
+            ? s.kreisId
+            : s.kreisId.slice(0, 3);
+    if (!id) continue;
     out.set(id, (out.get(id) ?? 0) + s.studentCount);
   }
   return out;

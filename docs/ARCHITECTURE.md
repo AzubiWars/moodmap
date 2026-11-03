@@ -179,6 +179,7 @@ Der Pitch-Beamer (#116) nutzt `getPitchAggregate()` (isolierter Teststandort, K_
 regbez        (id text pk, name text)                                   -- 5 Regierungsbezirke
 kreise        (id text pk /* AGS */, name text, regbez_id text fk, type text /* kreis|kreisfreie_stadt */)
 schools       (id text pk /* Schulnummer */, name text, school_form text, kreis_id text fk,
+               gemeinde_id text /* AGS 8-stellig, Ebene Stadt (ADR-021) */,
                city text, lat float8, lon float8, student_count int null,
                join_code text unique /* für QR-Links, nicht erratbar */)
 

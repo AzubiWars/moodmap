@@ -14,13 +14,22 @@ export function schoolInScope(school: School, scope: Scope): boolean {
   if (school.isTest) return false;
   if (scope.level === 'nrw') return scope.id === null;
   if (scope.level === 'school') return school.id === scope.id;
+  if (scope.level === 'gemeinde') return school.gemeindeId === scope.id;
   if (scope.level === 'kreis') return school.kreisId === scope.id;
   return school.kreisId.slice(0, 3) === scope.id;
 }
 
 export function schoolGroupId(school: School, level: AggregateQuery['level']): string {
   if (level === 'nrw') return 'nrw';
+  if (level === 'gemeinde') return school.gemeindeId!;
   return level === 'school' ? school.id : level === 'kreis' ? school.kreisId : school.kreisId.slice(0, 3);
+}
+
+/** `parent_of()` in SQL: Kreis für Gemeinden; Schulen per Kreis (5-stellig) oder Gemeinde (8-stellig). */
+function parentOf(school: School, query: AggregateQuery): string | undefined {
+  if (query.level === 'gemeinde') return school.kreisId;
+  if (query.level === 'school') return query.parentId?.length === 8 ? school.gemeindeId : school.kreisId;
+  return school.kreisId.slice(0, 3);
 }
 
 export function selectSchools(schools: School[], query: AggregateQuery): School[] {
@@ -28,11 +37,8 @@ export function selectSchools(schools: School[], query: AggregateQuery): School[
     (school) =>
       !school.isTest &&
       (!query.schoolForm?.length || query.schoolForm.includes(school.schoolForm)) &&
-      (!query.parentId ||
-        query.level === 'nrw' ||
-        (query.level === 'school'
-          ? school.kreisId === query.parentId
-          : school.kreisId.slice(0, 3) === query.parentId)),
+      (query.level !== 'gemeinde' || school.gemeindeId != null) &&
+      (!query.parentId || query.level === 'nrw' || parentOf(school, query) === query.parentId),
   );
 }
 
