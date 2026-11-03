@@ -9,7 +9,7 @@ test('Mood-Check startet und Karte lädt', async ({ page }) => {
 
   await page.goto('/map');
   await expect(page.getByRole('heading', { name: 'Moodmap NRW' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Gesamt-Mood' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: 'Thema: Gesamt-Mood' })).toBeVisible();
   await expect(page.locator('.maplibregl-canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Herauszoomen' }).click();
   await page.getByRole('button', { name: 'Herauszoomen' }).click();

@@ -79,7 +79,7 @@ describe('DashboardPage – Lagebild NRW', () => {
     expect(within(links[0]!).getByText('58 % unzufrieden')).toBeInTheDocument();
     expect(within(links[0]!).getByText('· 100 Stimmen')).toBeInTheDocument();
 
-    const percent = screen.getByRole('region', { name: 'Themen in Prozent' });
+    const percent = screen.getByRole('region', { name: 'Alle Themen' });
     expect(
       within(percent).getByRole('img', { name: '58 % unzufrieden, 21 % teils-teils, 21 % zufrieden' }),
     ).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe('DashboardPage – Lagebild NRW', () => {
 
   it('zeigt unter K_MIN keine Werte, sondern „zu wenige Daten“', async () => {
     renderPage();
-    const percent = await screen.findByRole('region', { name: 'Themen in Prozent' });
+    const percent = await screen.findByRole('region', { name: 'Alle Themen' });
     const food = within(percent).getByText('Mensa & Pausen').closest('li')!;
     expect(within(food).getByText('zu wenige Daten')).toBeInTheDocument();
     expect(within(food).queryByText(/%/)).toBeNull();

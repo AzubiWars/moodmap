@@ -244,14 +244,14 @@ beforeEach(() => {
 });
 
 function openTopicDialog() {
-  fireEvent.click(screen.getByRole('button', { name: 'Alle Themen' }));
+  fireEvent.click(screen.getByRole('button', { name: /^Thema: / }));
   return screen.getByRole('dialog', { name: 'Thema wählen' });
 }
 
 describe('map topic filter', () => {
   it('restores a shared topic URL and changes map data without reloading', async () => {
     const router = openMap('/map?topic=ai&mode=mood');
-    expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Thema: KI im Schulalltag' })).toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByTestId('map-data')).toHaveTextContent(`"score":${fakeScore('051', 'ai')}`),
     );
@@ -264,7 +264,7 @@ describe('map topic filter', () => {
     await waitFor(() => expect(screen.getByTestId('map-data').textContent).not.toBe(previousData));
 
     await act(() => router.navigate(-1));
-    expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Thema: KI im Schulalltag' })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId('map-data').textContent).toBe(previousData));
   });
 
@@ -280,22 +280,19 @@ describe('map topic filter', () => {
 
     fireEvent.click(within(dialog).getByRole('button', { name: /Stress & Leistungsdruck/ }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=stress&mode=mood'));
-    expect(screen.getByRole('button', { name: /Stress & Leistungsdruck/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(screen.getByRole('button', { name: 'Thema: Stress & Leistungsdruck' })).toBeInTheDocument();
   });
 
   it('resets to overall mood while retaining other filters', async () => {
     const router = openMap('/map?topic=ai&mode=mood');
-    fireEvent.click(screen.getByRole('button', { name: 'Gesamt-Mood' }));
+    fireEvent.click(within(openTopicDialog()).getByRole('button', { name: /Gesamt-Mood/ }));
     await waitFor(() => expect(router.state.location.search).toBe('?mode=mood'));
-    expect(screen.getByRole('button', { name: 'Gesamt-Mood' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Thema: Gesamt-Mood' })).toBeInTheDocument();
   });
 
   it('falls back to overall mood for an unknown topic', () => {
     openMap('/map?topic=unknown');
-    expect(screen.getByRole('button', { name: 'Gesamt-Mood' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Thema: Gesamt-Mood' })).toBeInTheDocument();
   });
 });
 
@@ -333,14 +330,15 @@ describe('map drill-down', () => {
     ]);
   });
 
-  it('navigates up via breadcrumb, „Zurück zu NRW“ and browser back', async () => {
+  it('navigates up via breadcrumb, the back arrow and browser back', async () => {
     const router = openMap('/map?topic=ai&regbez=053&kreis=05315');
     expect(crumbs().getByText('Stadt Köln')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Reg.-Bez. Köln' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&regbez=053'));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Zurück zu NRW' }));
+    // ← führt eine Ebene hoch: vom Regierungsbezirk nach NRW
+    fireEvent.click(screen.getByRole('button', { name: 'Eine Ebene zurück' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai'));
     expect(mapData().features.map((f) => f.properties.id)).toEqual(['051', '053']);
 
@@ -527,10 +525,18 @@ describe('Ebene Stadt/Gemeinde', () => {
     expect(crumbs().getByText('Düren', { selector: '[aria-current]' })).toBeInTheDocument();
   });
 
-  it('hides the grey locations when switched off in the filter (?standorte=aus)', async () => {
+  it('hides all schools without values when switched off in the filter (?standorte=aus)', async () => {
+    // 900003 hat im Fake keine Werte → mit dem Schalter aus bleibt die Stadt ohne Punkte
     openMap('/map?regbez=053&kreis=05358&gemeinde=05358008&standorte=aus');
-    await waitFor(() => expect(schoolButtons()).toEqual(['Schule 900003']));
+    await screen.findByRole('complementary', { name: 'Details: Düren' });
+    expect(schoolButtons()).toEqual([]);
     expect(screen.getByTestId('map-directory')).toBeEmptyDOMElement();
+  });
+
+  it('never shows a school twice (directory entry of a school that already has a marker)', async () => {
+    openMap('/map?regbez=053&kreis=05358&gemeinde=05358008');
+    await waitFor(() => expect(schoolButtons()).toEqual(['Schule 900003']));
+    expect(screen.getByTestId('map-directory')).not.toHaveTextContent('900003');
   });
 });
 
@@ -635,7 +641,7 @@ describe('trend and participation modes (#21)', () => {
     const router = openMap('/map?topic=ai');
     fireEvent.click(screen.getByRole('radio', { name: 'Trend' }));
     await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&mode=trend'));
-    expect(screen.getByRole('button', { name: 'KI im Schulalltag' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Thema: KI im Schulalltag' })).toBeInTheDocument();
     await waitFor(() => expect(props('053').tdelta).toBe(-6));
     expect(props('051').tdelta).toBe(-999);
     expect(screen.getByRole('group', { name: 'Legende Trend zur Vorwoche' })).toBeInTheDocument();
@@ -643,7 +649,7 @@ describe('trend and participation modes (#21)', () => {
 
   it('computes participation from votes and student counts and hides the topic filter', async () => {
     openMap('/map?mode=participation&regbez=053');
-    expect(screen.queryByRole('button', { name: 'KI im Schulalltag' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Thema: / })).not.toBeInTheDocument();
     // Kreis 05315: 50 Stimmen bei einer Schule mit 500 Schüler:innen → 10 %
     await waitFor(() => expect(props('05315').rate).toBe(10));
     expect(screen.getByRole('group', { name: 'Legende Beteiligung diese Woche' })).toBeInTheDocument();
@@ -657,11 +663,11 @@ describe('live data labelling (#160)', () => {
     expect(await within(live).findByText('Live-Stimmen')).toBeInTheDocument();
   });
 
-  it('shows the no-live-data badge and the source note without real votes', async () => {
+  it('shows no live badge and the source note without real votes', async () => {
     openMap('/map?regbez=053');
     const panel = await screen.findByRole('complementary', { name: 'Details: Reg.-Bez. Köln' });
-    expect(await within(panel).findByText('Noch keine Live-Stimmen')).toBeInTheDocument();
-    expect(screen.getByText(/anonyme Live-Befragung/)).toBeInTheDocument();
+    expect(within(panel).queryByText('Live-Stimmen')).not.toBeInTheDocument();
+    expect(screen.getByText(/Anonyme Live-Befragung/)).toBeInTheDocument();
   });
 });
 
@@ -748,12 +754,13 @@ describe('lazy school data (#250)', () => {
 
 describe('timeline (#34)', () => {
   it('queries a single week chosen on the timeline and keeps it in the URL', async () => {
-    const router = openMap('/map?topic=stress&period=month');
+    // Die Zeitachse gibt es im Trend-Modus (dort zählen Wochen)
+    const router = openMap('/map?topic=stress&period=month&mode=trend');
     const slider = await screen.findByRole('slider', { name: 'Woche wählen' });
     // Schuljahr ab KW 35 → Index 6 = KW 41
     fireEvent.change(slider, { target: { value: '6' } });
     await waitFor(() =>
-      expect(router.state.location.search).toBe('?topic=stress&period=month&wave=2026-W41'),
+      expect(router.state.location.search).toBe('?topic=stress&period=month&mode=trend&wave=2026-W41'),
     );
     expect(router.state.historyAction).toBe('REPLACE');
     await waitFor(() =>

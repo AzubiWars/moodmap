@@ -1,38 +1,24 @@
-import { Search, SlidersHorizontal, X } from 'lucide-react';
-import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { TopicChip } from '@/components/TopicChip';
+import { ChevronDown, Search, X } from 'lucide-react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { filterTopics, type FilterTopic } from './topicSearch';
-
-const QUICK_SLUGS = ['all', 'ai', 'stress', 'voice'] as const;
 
 interface TopicFilterProps {
   topics: readonly FilterTopic[];
   selectedSlug: string;
   onSelect: (slug: string) => void;
-  /** Weitere Bedienelemente rechts neben „Alle Themen“ (z. B. Filter #20) */
-  trailing?: ReactNode;
 }
 
-export function TopicFilter({ topics, selectedSlug, onSelect, trailing }: TopicFilterProps) {
+/**
+ * Themenwahl der Karte: ein Knopf mit dem aktuellen Thema, der die durchsuchbare Liste öffnet.
+ * Bewusst keine Chip-Reihe mehr – ein Bedienelement statt fünf.
+ */
+export function TopicFilter({ topics, selectedSlug, onSelect }: TopicFilterProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const panelId = useId();
   const searchRef = useRef<HTMLInputElement>(null);
-
-  const quickTopics = useMemo(() => {
-    const bySlug = new Map(topics.map((topic) => [topic.slug, topic]));
-    const quick = QUICK_SLUGS.flatMap((slug) => {
-      const topic = bySlug.get(slug);
-      return topic ? [topic] : [];
-    });
-    if (!quick.some((topic) => topic.slug === selectedSlug)) {
-      const selected = bySlug.get(selectedSlug);
-      if (selected) quick.unshift(selected);
-    }
-    return quick.slice(0, 5);
-  }, [topics, selectedSlug]);
-
+  const current = topics.find((topic) => topic.slug === selectedSlug) ?? topics[0]!;
   const result = useMemo(() => filterTopics(topics, query), [topics, query]);
 
   useEffect(() => {
@@ -66,27 +52,19 @@ export function TopicFilter({ topics, selectedSlug, onSelect, trailing }: TopicF
       ].filter((section) => section.items.length > 0);
 
   return (
-    <div className="relative flex shrink-0 items-center gap-2 border-b border-border bg-surface px-3 py-3">
-      <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5">
-        {quickTopics.map((topic) => (
-          <TopicChip key={topic.slug} topic={topic} selected={topic.slug === selectedSlug} onClick={choose} />
-        ))}
-      </div>
-
+    <div className="relative min-w-0">
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label="Alle Themen"
-        className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium text-fg transition-colors hover:border-muted/40 hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        aria-label={`Thema: ${current.title}`}
+        className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-fg transition-colors hover:border-muted/40 hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
       >
-        <SlidersHorizontal className="size-4" aria-hidden />
-        <span className="hidden sm:inline">Alle Themen</span>
-        <span className="sm:hidden">Themen</span>
+        <span aria-hidden>{current.icon}</span>
+        <span className="truncate">{current.title}</span>
+        <ChevronDown className="size-4 shrink-0 text-muted" aria-hidden />
       </button>
-      {trailing}
-
       {open && (
         <>
           <div
@@ -99,7 +77,7 @@ export function TopicFilter({ topics, selectedSlug, onSelect, trailing }: TopicF
             role="dialog"
             aria-modal="true"
             aria-label="Thema wählen"
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[75dvh] flex-col rounded-t-3xl bg-card shadow-2xl ring-1 ring-border md:absolute md:inset-auto md:top-full md:right-0 md:mt-2 md:max-h-[28rem] md:w-[28rem] md:rounded-2xl"
+            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[75dvh] flex-col rounded-t-3xl bg-card shadow-2xl ring-1 ring-border md:absolute md:inset-auto md:top-full md:left-0 md:mt-2 md:max-h-[28rem] md:w-[28rem] md:rounded-2xl"
           >
             <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
               <h2 className="text-sm font-semibold">Thema wählen</h2>

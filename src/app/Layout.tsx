@@ -44,8 +44,8 @@ export function Layout() {
           </nav>
           {/* Rollen-Umschalter (#30) und Theme-Toggle (#35) */}
           <div className="flex items-center gap-2" data-slot="header-actions">
-            <RoleSwitcher variant="segmented" className="hidden lg:inline-flex" />
-            <RoleSwitcher variant="compact" className="lg:hidden" />
+            {/* Eine kleine Auswahl statt drei großer Knöpfe: die meisten bleiben Schüler:in */}
+            <RoleSwitcher variant="compact" />
             <ThemeToggle />
           </div>
         </div>

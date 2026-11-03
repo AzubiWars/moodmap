@@ -9,7 +9,7 @@ import { useSelectedSource } from '@/components/useSelectedSource';
 import { GroupComparison } from './GroupComparison';
 import { PolicyPublishForm } from '@/features/dialog/PolicyPublishForm';
 import { AiReport } from './AiReport';
-import { Hotspots, KpiRow, TopicPercentList, TopicRanking } from './LagebildSections';
+import { Hotspots, KpiRow, TopicOverview } from './LagebildSections';
 import { loadLagebild } from './loadLagebild';
 
 /** Lagebild NRW (#25): KPIs, Brennpunkte, Themen in Prozent, Ranking und Vergleich. Sie-Form. */
@@ -100,9 +100,8 @@ export function DashboardPage() {
           <KpiRow overall={query.data.overall} schools={query.data.schools} />
           <Hotspots topics={query.data.topics} />
           <AiReport topics={query.data.topics} />
-          <TopicPercentList topics={query.data.topics} />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <TopicRanking topics={query.data.topics} />
+            <TopicOverview topics={query.data.topics} />
             <GroupComparison topics={query.data.topics} sourceId={sourceId} />
           </div>
         </>
