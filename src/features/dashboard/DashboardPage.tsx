@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { getDataSource } from '@/data';
 import { K_MIN } from '@/lib/env';
 import { useRoleStore } from '@/store/role';
+import { EmptySourceNotice, SourceSwitcher } from '@/components/SourceSwitcher';
+import { useSelectedSource } from '@/components/useSelectedSource';
 import { GroupComparison } from './GroupComparison';
 import { PolicyPublishForm } from '@/features/dialog/PolicyPublishForm';
 import { AiReport } from './AiReport';
@@ -15,10 +17,16 @@ export function DashboardPage() {
   const queryClient = useQueryClient();
   const role = useRoleStore((s) => s.role);
   const source = getDataSource();
+  // Datenquelle (#272): Wechsel lädt alle Kennzahlen neu, ohne Reload
+  const selection = useSelectedSource();
+  const { sourceId } = selection;
   const query = useQuery({
-    queryKey: ['aggregates', 'lagebild'],
+    queryKey: ['aggregates', 'lagebild', sourceId ?? null],
     queryFn: async () => {
-      const [wave, lagebild] = await Promise.all([source.getCurrentWave(), loadLagebild(source, K_MIN)]);
+      const [wave, lagebild] = await Promise.all([
+        source.getCurrentWave(),
+        loadLagebild(source, K_MIN, sourceId),
+      ]);
       return { wave, ...lagebild };
     },
   });
@@ -51,9 +59,16 @@ export function DashboardPage() {
           Methodik & Quellen
         </Link>
         <p className="mt-1 text-sm text-muted">
-          {query.data ? `Woche ${query.data.wave.id.replace(/^\d{4}-W/, 'KW ')} · ` : ''}
-          Live-Befragung · Alle Schulformen · Werte erst ab {K_MIN} Stimmen, darunter „zu wenige Daten“.
+          {query.data && selection.selected?.kind !== 'import'
+            ? `Woche ${query.data.wave.id.replace(/^\d{4}-W/, 'KW ')} · `
+            : ''}
+          {selection.selected?.kind === 'import' ? 'Letzte Woche der Befragung' : 'Live-Befragung'} · Alle
+          Schulformen · Werte erst ab {K_MIN} Stimmen, darunter „zu wenige Daten“.
         </p>
+        <SourceSwitcher selection={selection} className="mt-2" />
+        <div className="mt-2">
+          <EmptySourceNotice selection={selection} />
+        </div>
       </header>
 
       {role === 'ministry' && <PolicyPublishForm />}
@@ -86,7 +101,7 @@ export function DashboardPage() {
           <TopicPercentList topics={query.data.topics} />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <TopicRanking topics={query.data.topics} />
-            <GroupComparison topics={query.data.topics} />
+            <GroupComparison topics={query.data.topics} sourceId={sourceId} />
           </div>
         </>
       )}

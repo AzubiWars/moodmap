@@ -19,7 +19,7 @@ const DIMENSIONS: { id: Dimension; label: string }[] = [
 /** Story-Thema der Demo: Stress an Gymnasien. */
 const DEFAULT_TOPIC: TopicSlug = 'stress';
 
-export function GroupComparison({ topics }: { topics: TopicStat[] }) {
+export function GroupComparison({ topics, sourceId }: { topics: TopicStat[]; sourceId?: string }) {
   const selectable = topics.filter((t) => t.sentiment && t.slug !== 'overall');
   const [topic, setTopic] = useState<TopicSlug>(
     selectable.some((t) => t.slug === DEFAULT_TOPIC) ? DEFAULT_TOPIC : (selectable[0]?.slug ?? DEFAULT_TOPIC),
@@ -27,8 +27,8 @@ export function GroupComparison({ topics }: { topics: TopicStat[] }) {
   const [dimension, setDimension] = useState<Dimension>('schoolForms');
   const selectId = useId();
   const query = useQuery({
-    queryKey: ['aggregates', 'lagebild', 'comparison', topic],
-    queryFn: () => loadComparison(getDataSource(), topic, K_MIN),
+    queryKey: ['aggregates', 'lagebild', 'comparison', topic, sourceId ?? null],
+    queryFn: () => loadComparison(getDataSource(), topic, K_MIN, sourceId),
     placeholderData: keepPreviousData,
   });
   const groups = query.data?.[dimension] ?? [];

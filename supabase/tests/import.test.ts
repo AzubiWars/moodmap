@@ -296,6 +296,13 @@ describe('provider aggregates (#274)', () => {
     expect(both.find((r) => r.id === '05111')!.score).toBeNull();
   });
 
+  it('defaults to the latest delivered wave of an import source (#272), live stays on the current wave', async () => {
+    const rows = await anonAggregates({ level: 'kreis', topic: 'all', sourceId: 'anbieter-2026' });
+    expect(rows.find((r) => r.id === '05111')).toMatchObject({ n: 52, score: 52.5 });
+    const live = await anonAggregates({ level: 'kreis', topic: 'all' });
+    expect(live.every((r) => r.n === 0)).toBe(true);
+  });
+
   it('marks the source as provider-aggregated in the registry', async () => {
     const { rows } = await asRole(db, 'anon', () =>
       db.query<{ result: { id: string; aggregatedByProvider: boolean; n: number }[] }>(

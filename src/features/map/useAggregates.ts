@@ -6,7 +6,7 @@ import type { AggregateQuery, AggregateRow, DataLevel, TopicSlug } from '@/types
 export type MapTopic = TopicSlug | 'all';
 
 /** Weitere Filter (#20), werden 1:1 an die DataSource gereicht */
-export type AggregateFilters = Pick<AggregateQuery, 'schoolForm' | 'gradeBand' | 'waveIds'>;
+export type AggregateFilters = Pick<AggregateQuery, 'schoolForm' | 'gradeBand' | 'waveIds' | 'sourceId'>;
 
 /** Leere Filter weglassen, damit Query-Keys stabil bleiben und die DataSource ihre Standards nutzt */
 function cleanFilters(filters: AggregateFilters | undefined): AggregateFilters {
@@ -14,6 +14,8 @@ function cleanFilters(filters: AggregateFilters | undefined): AggregateFilters {
     ...(filters?.schoolForm?.length ? { schoolForm: filters.schoolForm } : {}),
     ...(filters?.gradeBand?.length ? { gradeBand: filters.gradeBand } : {}),
     ...(filters?.waveIds?.length ? { waveIds: filters.waveIds } : {}),
+    // Datenquelle (#272) gehört in den Query-Key: ein Quellenwechsel lädt alles neu, ohne Reload.
+    ...(filters?.sourceId ? { sourceId: filters.sourceId } : {}),
   };
 }
 

@@ -34,6 +34,24 @@ export function resolveSourceId(data: MockDataset, sourceId: string | undefined)
   return source.id;
 }
 
+/**
+ * `default_wave_ids()` in SQL: ohne `waveIds` die aktuelle Welle – bei einer Import-Quelle deren letzte
+ * Welle mit Daten (eine abgeschlossene Befragung soll nicht leer erscheinen).
+ */
+export function defaultWaveIds(data: MockDataset, sourceId: string, currentWaveId: string): string[] {
+  const source = sourcesOf(data).find((entry) => entry.id === sourceId);
+  if (source?.kind !== 'import') return [currentWaveId];
+  const fallback = defaultSourceId(data);
+  const answered = new Set(data.answers.map((answer) => answer.responseId));
+  const waves = new Set(
+    data.responses
+      .filter((response) => (response.sourceId ?? fallback) === sourceId && answered.has(response.id))
+      .map((response) => response.waveId),
+  );
+  const latest = [...waves].sort().at(-1);
+  return latest ? [latest] : [];
+}
+
 /** Nur die Teilnahmen einer Quelle; Antworten folgen über ihre `responseId`. */
 export function forSource(data: MockDataset, sourceId: string): MockDataset {
   const fallback = defaultSourceId(data);

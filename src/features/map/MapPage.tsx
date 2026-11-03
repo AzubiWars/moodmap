@@ -1,3 +1,6 @@
+import { anchorWave } from '@/lib/dataSources';
+import { EmptySourceNotice, SourceSwitcher } from '@/components/SourceSwitcher';
+import { useSelectedSource } from '@/components/useSelectedSource';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -242,8 +245,11 @@ export function MapPage() {
   // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
   const filters = parseFilters(searchParams);
   const currentWave = useCurrentWave();
+  // Datenquelle (#272): Import-Befragungen beziehen Zeitachse und Zeiträume auf ihre letzte Woche
+  const source = useSelectedSource();
+  const anchor = anchorWave(source.selected, currentWave.data?.id);
   // Zeitachse (#34): eine gewählte Woche überschreibt den Zeitraum-Filter
-  const schoolYearWaves = periodWaveIds('year', currentWave.data?.id) ?? [];
+  const schoolYearWaves = periodWaveIds('year', anchor) ?? [];
   const requestedWave = searchParams.get('wave');
   const selectedWave = schoolYearWaves.find((w) => w === requestedWave);
   const [playing, setPlaying] = useState(false);
@@ -253,7 +259,8 @@ export function MapPage() {
   const aggFilters: AggregateFilters = {
     schoolForm: filters.schoolForm,
     gradeBand: filters.gradeBand,
-    waveIds: selectedWave ? [selectedWave] : periodWaveIds(filters.period, currentWave.data?.id),
+    waveIds: selectedWave ? [selectedWave] : periodWaveIds(filters.period, anchor),
+    sourceId: source.sourceId,
   };
   const regionAggregates = useAggregates(regionLevel, topicSlug, {
     refetchInterval: poll,
@@ -266,7 +273,11 @@ export function MapPage() {
     filters: aggFilters,
   });
   // Live (#24): alle Schulen beobachten, damit neue Stimmen auch in der Landesansicht pulsieren
-  const liveSchoolAggregates = useAggregates('school', 'all', { enabled: live, refetchInterval: poll });
+  const liveSchoolAggregates = useAggregates('school', 'all', {
+    enabled: live,
+    refetchInterval: poll,
+    filters: { sourceId: source.sourceId },
+  });
   const { pulsing, added } = useLivePulses(liveSchoolAggregates.data, live, 'all');
 
   const regionTension = useTension(regionLevel, {
@@ -454,8 +465,13 @@ export function MapPage() {
           <div className="pointer-events-auto inline-flex max-w-full flex-col gap-1 rounded-2xl bg-card/95 px-4 py-2 shadow-md ring-1 ring-border">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <h1 className="text-base font-bold">Moodmap NRW</h1>
-              <LiveToggle live={live} added={added} onChange={setLive} />
+              {/* Live nur für Quellen, in die gerade abgestimmt wird */}
+              {source.selected?.kind !== 'import' && (
+                <LiveToggle live={live} added={added} onChange={setLive} />
+              )}
             </div>
+            <SourceSwitcher selection={source} />
+            <EmptySourceNotice selection={source} />
             <MapSearch
               schools={schoolsQuery.data}
               directorySchools={directoryQuery.data}
@@ -528,10 +544,12 @@ export function MapPage() {
             playing={playing}
             onSelect={setWave}
             onPlayingChange={setPlaying}
+            latestLabel={source.selected?.kind === 'import' ? 'letzte Befragungswoche' : undefined}
           />
           <MapLegend mode={mode} />
           <p className="mt-1 max-w-[17rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
-            Werte: anonyme Live-Befragung · Schulen: Schulverzeichnis NRW ·{' '}
+            Werte: {source.selected ? source.selected.label : 'anonyme Live-Befragung'} · Schulen:
+            Schulverzeichnis NRW ·{' '}
             <Link to="/methodik" className="underline hover:text-fg">
               Methodik
             </Link>

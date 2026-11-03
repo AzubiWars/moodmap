@@ -7,6 +7,8 @@ import { weekLabel, weekRange } from './filters';
 const TIMELINE_STEP_MS = 1200;
 
 interface TimelineProps {
+  /** Beschriftung ohne gewählte Woche; bei Import-Befragungen deren letzte Woche (#272). */
+  latestLabel?: string;
   waves: readonly WaveId[];
   /** `undefined` = keine Woche gewählt (Zeitraum-Filter gilt) */
   selected: WaveId | undefined;
@@ -16,7 +18,14 @@ interface TimelineProps {
 }
 
 /** Zeitachse (#34): Slider über die Wellen des Schuljahres + Play-Animation. */
-export function Timeline({ waves, selected, playing, onSelect, onPlayingChange }: TimelineProps) {
+export function Timeline({
+  waves,
+  selected,
+  playing,
+  onSelect,
+  onPlayingChange,
+  latestLabel = 'aktuelle Woche',
+}: TimelineProps) {
   const index = selected ? waves.indexOf(selected) : -1;
   const shown = index >= 0 ? index : waves.length - 1;
 
@@ -81,7 +90,7 @@ export function Timeline({ waves, selected, playing, onSelect, onPlayingChange }
         <div className="flex justify-between text-[10px] text-muted">
           <span>{weekLabel(waves[0]!)}</span>
           <span className="font-semibold text-fg" aria-live="polite">
-            {selected ? `${weekLabel(current)} · ${weekRange(current)}` : 'aktuelle Woche'}
+            {selected ? `${weekLabel(current)} · ${weekRange(current)}` : latestLabel}
           </span>
           <span>{weekLabel(waves.at(-1)!)}</span>
         </div>

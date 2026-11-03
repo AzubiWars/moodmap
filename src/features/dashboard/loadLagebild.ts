@@ -18,7 +18,7 @@ export interface Lagebild {
 }
 
 /** Alle Kennzahlen für Gesamt-NRW in der aktuellen Welle. Testschulen filtert die DataSource (`is_test`). */
-export async function loadLagebild(source: DataSource, kMin: number): Promise<Lagebild> {
+export async function loadLagebild(source: DataSource, kMin: number, sourceId?: string): Promise<Lagebild> {
   // Das Lagebild zeigt die Schüler:innen-Themen; Lehrkräfte-Themen (`t_*`, #37) haben eine eigene Auswertung.
   const topics = (await source.getTopics())
     .filter((topic) => topic.audience.includes('student'))
@@ -28,9 +28,9 @@ export async function loadLagebild(source: DataSource, kMin: number): Promise<La
   const safe = <T>(promise: Promise<T[]>): Promise<T[]> => promise.catch(() => []);
   // `level: 'nrw'` liefert genau eine Zeile, direkt über alle Antworten aggregiert (#140).
   const [allRows, schoolRows, ...topicRows] = await Promise.all([
-    safe(source.getAggregates({ level: 'nrw', topic: 'all' })),
-    safe(source.getAggregates({ level: 'school', topic: 'all' })),
-    ...topics.map((topic) => safe(source.getAggregates({ level: 'nrw', topic: topic.slug }))),
+    safe(source.getAggregates({ level: 'nrw', topic: 'all', sourceId })),
+    safe(source.getAggregates({ level: 'school', topic: 'all', sourceId })),
+    ...topics.map((topic) => safe(source.getAggregates({ level: 'nrw', topic: topic.slug, sourceId }))),
   ]);
   return {
     overall: combineRows(allRows, kMin),
@@ -49,10 +49,13 @@ export async function loadComparison(
   source: DataSource,
   topic: TopicSlug,
   kMin: number,
+  sourceId?: string,
 ): Promise<Comparison> {
   const [regbezRows, ...formRows] = await Promise.all([
-    source.getAggregates({ level: 'regbez', topic }),
-    ...SCHOOL_FORMS.map((form) => source.getAggregates({ level: 'nrw', topic, schoolForm: [form] })),
+    source.getAggregates({ level: 'regbez', topic, sourceId }),
+    ...SCHOOL_FORMS.map((form) =>
+      source.getAggregates({ level: 'nrw', topic, schoolForm: [form], sourceId }),
+    ),
   ]);
   return {
     regbez: regbezComparison(regbezRows, kMin),

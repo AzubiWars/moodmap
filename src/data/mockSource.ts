@@ -5,7 +5,7 @@ import { K_MIN } from '@/lib/env';
 import type { DataSource, NewResponseEvent } from './api';
 import { aggregateRows, schoolInScope, summarize } from './mockAggregates';
 import { createMockPolicyApi } from './mockPolicy';
-import { forSource, listSources, resolveSourceId } from './mockSources';
+import { defaultWaveIds, forSource, listSources, resolveSourceId } from './mockSources';
 import type { MockDataset, StoredSubmission } from './mockRecords';
 import { browserStorage, createMockStorage } from './mockStorage';
 import { QUESTIONS_BY_ID, TOPICS } from './topics';
@@ -106,7 +106,8 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
     if (!wave) throw new Error('Keine Demo-Welle im Seed.');
     return wave;
   };
-  const waveIds = (data: MockDataset, query: AggregateQuery) => query.waveIds ?? [currentWave(data).id];
+  const waveIds = (data: MockDataset, query: AggregateQuery) =>
+    query.waveIds ?? defaultWaveIds(data, resolveSourceId(data, query.sourceId), currentWave(data).id);
   const submissions = () =>
     storage
       .entries<StoredSubmission>('response')
