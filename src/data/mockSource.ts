@@ -97,10 +97,12 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
 
   const currentWave = (data: MockDataset) => {
     const time = now().getTime();
-    const wave = data.waves.find(
+    const active = data.waves.find(
       (wave) => Date.parse(wave.startsAt) <= time && time < Date.parse(wave.endsAt),
     );
-    if (!wave) throw new Error('Keine aktive Demo-Welle. Bitte den Demo-Seed aktualisieren.');
+    // Safety net for a tab left open across a week boundary: never break the demo.
+    const wave = active ?? orderedWaves(data).at(-1);
+    if (!wave) throw new Error('Keine Demo-Welle im Seed.');
     return wave;
   };
   const waveIds = (data: MockDataset, query: AggregateQuery) => query.waveIds ?? [currentWave(data).id];

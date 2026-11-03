@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { AggregateQuery, AggregateRow } from '@/types';
 import { useRoleStore } from '@/store/role';
 import { MapPage } from './MapPage';
+import { needsSchoolData } from './schools';
 import type { School } from '@/types';
 import type { Bounds, RegionCollection } from './geo';
 import type { SchoolCollection } from './schools';
@@ -611,6 +612,44 @@ describe('more filters (#20)', () => {
   it('offers the filter also in modes without topic bar', () => {
     openMap('/map?mode=radar');
     expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
+  });
+});
+
+describe('lazy school data (#250)', () => {
+  it('keeps the plain NRW start view free of school requests', () => {
+    expect(needsSchoolData(new URLSearchParams(''), 'mood', false)).toBe(false);
+    expect(needsSchoolData(new URLSearchParams('topic=stress&period=month'), 'mood', false)).toBe(false);
+  });
+
+  const needed: [string, 'mood' | 'participation', boolean][] = [
+    ['regbez=053', 'mood', false],
+    ['kreis=05315', 'mood', false],
+    ['school=900002&kreis=05315&regbez=053', 'mood', false],
+    ['city=Köln', 'mood', false],
+    ['live=1', 'mood', false],
+    ['', 'participation', false],
+    ['', 'mood', true],
+  ];
+  it.each(needed)('needs school data for %s (%s, search open: %s)', (search, mode, searchOpen) => {
+    expect(needsSchoolData(new URLSearchParams(search), mode, searchOpen)).toBe(true);
+  });
+
+  it('does not fetch schools on the plain NRW view', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['geo', 'regbez'], regbez);
+    client.setQueryData(['geo', 'kreis'], regions);
+    const router = createMemoryRouter([{ path: '/map', element: <MapPage /> }], {
+      initialEntries: ['/map'],
+    });
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+    await screen.findByText('Moodmap NRW');
+    // Die Query ist angelegt, aber deaktiviert: kein Request, kein Fehler trotz fehlendem getSchools-Mock.
+    expect(client.getQueryState(['schools'])?.status).toBe('pending');
+    expect(client.getQueryState(['schools'])?.fetchStatus).toBe('idle');
   });
 });
 

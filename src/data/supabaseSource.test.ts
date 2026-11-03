@@ -18,13 +18,22 @@ const query: AggregateQuery = {
 };
 const json = (body: unknown, status = 200, headers?: HeadersInit) =>
   new Response(JSON.stringify(body), { status, headers });
-const setup = (respond: (path: string, body: unknown) => Response = () => json([])) => {
+const setup = (
+  respond: (path: string, body: unknown) => Response = () => json([]),
+  directory: typeof fetch = async () => new Response('', { status: 404 }),
+) => {
   const fetcher = vi.fn<typeof fetch>(async (target, init) =>
     respond(new URL(String(target)).pathname, init?.body ? JSON.parse(String(init.body)) : undefined),
   );
   return {
     fetcher,
-    source: createSupabaseSource({ url, anonKey: 'public-anon-key', fetcher, channelFactory: null }),
+    source: createSupabaseSource({
+      url,
+      anonKey: 'public-anon-key',
+      fetcher,
+      directoryFetcher: directory,
+      channelFactory: null,
+    }),
   };
 };
 
@@ -118,7 +127,7 @@ describe('SupabaseDataSource', () => {
     source.dispose();
   });
 
-  it('loads all schools even when the server caps pages, without selecting join codes or raw data', async () => {
+  it('loads all schools from the parallel REST fallback when pages are capped, without join codes', async () => {
     const rows = [0, 1, 2].map((i) => ({
       id: String(900000 + i),
       name: `Testschule ${i}`,
@@ -135,7 +144,13 @@ describe('SupabaseDataSource', () => {
         'Content-Range': `${params.get('offset')}-2/3`,
       });
     });
-    const source = createSupabaseSource({ url, anonKey: 'public-key', fetcher, channelFactory: null });
+    const source = createSupabaseSource({
+      url,
+      anonKey: 'public-key',
+      fetcher,
+      directoryFetcher: async () => new Response('', { status: 404 }),
+      channelFactory: null,
+    });
     expect(await source.getSchools()).toEqual(rows.map((s) => ({ ...s, joinCode: '' })));
     expect(fetcher).toHaveBeenCalledTimes(2);
     for (const [target, init] of fetcher.mock.calls) {
@@ -147,7 +162,83 @@ describe('SupabaseDataSource', () => {
       expect(new Headers(init?.headers).get('apikey')).toBe('public-key');
       expect(init?.cache).toBe('no-store');
     }
+    const [, second] = fetcher.mock.calls;
+    expect(new URL(String(second![0])).searchParams.get('offset')).toBe('2');
+    expect(new URL(String(second![0])).searchParams.get('limit')).toBe('2');
   });
+
+  it('prefers the cached static school directory and makes no REST request', async () => {
+    const directory = vi.fn<typeof fetch>(async () =>
+      json({
+        ids: ['100010', '100011'],
+        names: ['Schule A', 'Schule B'],
+        forms: ['gymnasium', 'grundschule'],
+        kreisIds: ['05111', '05111'],
+        cities: ['Düsseldorf', 'Düsseldorf'],
+        lats: [51.1, 51.2],
+        lons: [6.7, 6.8],
+        studentCounts: [500, null],
+      }),
+    );
+    const { source, fetcher } = setup(undefined, directory);
+    expect(await source.getSchools()).toEqual([
+      {
+        id: '100010',
+        name: 'Schule A',
+        schoolForm: 'gymnasium',
+        kreisId: '05111',
+        city: 'Düsseldorf',
+        lat: 51.1,
+        lon: 6.7,
+        studentCount: 500,
+        joinCode: '',
+      },
+      {
+        id: '100011',
+        name: 'Schule B',
+        schoolForm: 'grundschule',
+        kreisId: '05111',
+        city: 'Düsseldorf',
+        lat: 51.2,
+        lon: 6.8,
+        studentCount: null,
+        joinCode: '',
+      },
+    ]);
+    expect(directory).toHaveBeenCalledOnce();
+    expect(String(directory.mock.calls[0]![0])).toBe('/data/schools.min.json');
+    expect(directory.mock.calls[0]![1]?.cache).toBeUndefined();
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+
+  it.each([404, 200])(
+    'falls back to REST when the static directory is missing or malformed (HTTP %i)',
+    async (status) => {
+      const rows = [
+        {
+          id: '100010',
+          name: 'Schule A',
+          schoolForm: 'gymnasium',
+          kreisId: '05111',
+          city: 'Düsseldorf',
+          lat: 51.1,
+          lon: 6.7,
+          studentCount: null,
+        },
+      ];
+      const fetcher = vi.fn<typeof fetch>(async () => json(rows, 206, { 'Content-Range': '0-0/1' }));
+      const source = createSupabaseSource({
+        url,
+        anonKey: 'public-key',
+        fetcher,
+        directoryFetcher: async () =>
+          status === 404 ? new Response('', { status }) : json({ ids: ['100010'] }),
+        channelFactory: null,
+      });
+      expect(await source.getSchools()).toEqual(rows.map((s) => ({ ...s, joinCode: '' })));
+      expect(fetcher).toHaveBeenCalledOnce();
+    },
+  );
 
   it('uses the exact RPC contracts and preserves filters, skipped answers and test flags', async () => {
     const { source, fetcher } = setup((path) =>
@@ -319,6 +410,7 @@ describe('SupabaseDataSource', () => {
       fetcher: async () => {
         throw new Error('private details');
       },
+      directoryFetcher: async () => new Response('', { status: 404 }),
       channelFactory: null,
     });
     expect(await broken.submitResponse(input)).toEqual({ ok: false, reason: 'error' });

@@ -48,6 +48,7 @@ import {
   directoryToGeoJSON,
   loadSchoolDirectory,
   loadSchools,
+  needsSchoolData,
   type SchoolCollection,
   schoolsToGeoJSON,
 } from './schools';
@@ -205,15 +206,19 @@ export function MapPage() {
     retry: false,
   });
 
+  // #250: Stammdaten erst laden, wenn Drill, Stadt, Live, Beteiligung oder Suche sie brauchen.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const city = searchParams.get('city');
+  const live = searchParams.get('live') === '1';
   const schoolsQuery = useQuery({
     queryKey: ['schools'],
     queryFn: () => loadSchools(),
+    enabled: needsSchoolData(searchParams, mode, searchOpen),
     staleTime: Infinity,
     retry: false,
   });
   const drill = resolveDrill(searchParams, regbezQuery.data, kreiseQuery.data, schoolsQuery.data);
   const focusRegbezId = drill.regbez?.properties.id ?? null;
-  const city = searchParams.get('city');
   const citySchools =
     city && schoolsQuery.data ? schoolsQuery.data.filter((school) => school.city === city) : [];
   // Das 1,1-MB-Verzeichnis erst laden, wenn es gebraucht wird: Drill-down oder Suche.
@@ -233,7 +238,6 @@ export function MapPage() {
 
   // Aggregate aus der DataSource (#68), bereits k-anonymisiert (score null unter K_MIN)
   useLiveAggregates();
-  const live = searchParams.get('live') === '1';
   const poll = live ? LIVE_POLL_MS : false;
   // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
   const filters = parseFilters(searchParams);
@@ -456,6 +460,7 @@ export function MapPage() {
               schools={schoolsQuery.data}
               directorySchools={directoryQuery.data}
               onRequestDirectory={() => setDirectoryRequested(true)}
+              onOpenChange={setSearchOpen}
               kreise={kreiseQuery.data}
               regbez={regbezQuery.data}
               onSelectSchool={(school) => {
