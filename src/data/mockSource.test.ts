@@ -112,6 +112,11 @@ describe('MockDataSource', () => {
     expect(localStorage.getItem('unrelated')).toBe('keep');
   });
 
+  it('falls back to the latest wave instead of breaking when now is past the seed', async () => {
+    const mock = source(fixture(), { now: () => new Date('2026-11-10T12:00:00Z') });
+    expect((await mock.getCurrentWave()).id).toBe('2026-W44');
+  });
+
   it('restores submitted votes after reload without persisting the raw device token', async () => {
     const first = source();
     expect((await first.getAggregates(query))[0]).toMatchObject({ n: 9, score: null });

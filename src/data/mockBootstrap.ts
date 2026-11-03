@@ -42,21 +42,22 @@ const PITCH_SCHOOL: School = {
   isTest: true,
 };
 
-async function loadData(): Promise<MockDataset> {
+async function loadData(now: () => Date = () => new Date()): Promise<MockDataset> {
   const response = await fetch('/data/schools.json');
   if (!response.ok) throw new Error(`Demo-Schulen konnten nicht geladen werden (${response.status}).`);
   const schools = (await response.json()) as School[];
-  const { generateSeedData } = await import('./seed/generateSeed');
+  const { generateSeedData, isoWeekId } = await import('./seed/generateSeed');
   // Der Pitch-Standort bekommt keine Seed-Antworten; er füllt sich nur durch echte Test-Abgaben.
   const withPitch = schools.some((school) => school.id === PITCH_SCHOOL.id)
     ? schools
     : [...schools, PITCH_SCHOOL];
-  return adaptSeed(withPitch, generateSeedData(schools));
+  // The demo must always have an active wave; a fixed seed end would break the mock every Monday.
+  return adaptSeed(withPitch, generateSeedData(schools, { lastWaveId: isoWeekId(now()) }));
 }
 
 // createMockSource memoiziert erst beim ersten Datenzugriff. Keine Netzwerk-Anfrage beim Import.
 export function createDefaultMockSource(options: Omit<MockSourceOptions, 'loadData'> = {}) {
-  return createMockSource({ ...options, loadData });
+  return createMockSource({ ...options, loadData: () => loadData(options.now) });
 }
 
 export const mockSource = createDefaultMockSource();
