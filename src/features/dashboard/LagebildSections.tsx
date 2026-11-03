@@ -166,21 +166,41 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-export function TopicPercentList({ topics }: { topics: TopicStat[] }) {
+type TopicView = 'percent' | 'ranking';
+const TOPIC_VIEWS: { id: TopicView; label: string }[] = [
+  { id: 'percent', label: 'Zufriedenheit' },
+  { id: 'ranking', label: 'Rangliste' },
+];
+
+/**
+ * Alle Themen in einer Karte statt in zwei: Zufriedenheit in Prozent oder Rangliste nach Score.
+ * Dieselben Themen, zwei Blickwinkel – umschaltbar statt untereinander.
+ */
+export function TopicOverview({ topics }: { topics: TopicStat[] }) {
+  const [view, setView] = useState<TopicView>('percent');
+  return (
+    <section aria-labelledby="topics-all" className="card p-4 sm:p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="topics-all" className="text-lg font-bold">
+          Alle Themen
+        </h2>
+        <SegmentedControl label="Darstellung" options={TOPIC_VIEWS} value={view} onChange={setView} />
+      </div>
+      {view === 'percent' ? <TopicPercentBody topics={topics} /> : <TopicRankingBody topics={topics} />}
+    </section>
+  );
+}
+
+function TopicPercentBody({ topics }: { topics: TopicStat[] }) {
   const [sort, setSort] = useState<TopicSort>('negative');
   const sorted = useMemo(() => sortTopics(topics, sort), [topics, sort]);
   const domain = divergingDomain(topics.map((t) => t.sentiment));
   return (
-    <section aria-labelledby="topics-percent" className="card p-4 sm:p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="topics-percent" className="text-lg font-bold">
-          Themen in Prozent
-        </h2>
+    <>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">Anteil der Antworten je Stufe. „Weiß nicht“ zählt nicht mit.</p>
         <SegmentedControl label="Sortieren nach" options={SORTS} value={sort} onChange={setSort} />
       </div>
-      <p className="mt-1 text-sm text-muted">
-        Anteil der Antworten je Stufe. „Weiß nicht“ wird nicht gezählt. Strich = Mitte der Skala.
-      </p>
       <div className="mt-2">
         <MoodLegend />
       </div>
@@ -204,18 +224,15 @@ export function TopicPercentList({ topics }: { topics: TopicStat[] }) {
           </li>
         ))}
       </ul>
-    </section>
+    </>
   );
 }
 
-export function TopicRanking({ topics }: { topics: TopicStat[] }) {
+function TopicRankingBody({ topics }: { topics: TopicStat[] }) {
   const ranked = rankTopics(topics);
   return (
-    <section aria-labelledby="ranking" className="card p-4 sm:p-5">
-      <h2 id="ranking" className="text-lg font-bold">
-        Themen-Ranking
-      </h2>
-      <p className="mt-1 text-sm text-muted">
+    <>
+      <p className="mt-2 text-sm text-muted">
         Score 0–100, Platz 1 = beste Stimmung. Pfeil = Veränderung zur Vorwoche.
       </p>
       <ol className="mt-3 divide-y divide-border">
@@ -230,6 +247,6 @@ export function TopicRanking({ topics }: { topics: TopicStat[] }) {
           </li>
         ))}
       </ol>
-    </section>
+    </>
   );
 }

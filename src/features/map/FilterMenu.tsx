@@ -1,5 +1,5 @@
 import { ListFilter, X } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { type ReactNode, useEffect, useId, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { GRADE_BANDS, SCHOOL_FORMS } from '@/types';
 import { activeFilterCount, GRADE_LABELS, type MapFilters, PERIODS } from './filters';
@@ -8,6 +8,8 @@ import { SCHOOL_FORM_LABELS } from './schools';
 interface FilterMenuProps {
   filters: MapFilters;
   onChange: (filters: MapFilters) => void;
+  /** Zusätzlicher Abschnitt oben, z. B. die Datenquelle (#272) – selten gebraucht, daher hier. */
+  extra?: ReactNode;
 }
 
 function toggle<T>(list: readonly T[], value: T): T[] {
@@ -15,7 +17,7 @@ function toggle<T>(list: readonly T[], value: T): T[] {
 }
 
 /** Weitere Filter (#20): Zeitraum, Schulform, Stufe. Desktop Popover, Mobile Bottom-Sheet – wie der Themen-Dialog. */
-export function FilterMenu({ filters, onChange }: FilterMenuProps) {
+export function FilterMenu({ filters, onChange, extra }: FilterMenuProps) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const count = activeFilterCount(filters);
@@ -82,6 +84,12 @@ export function FilterMenu({ filters, onChange }: FilterMenuProps) {
             </div>
 
             <div className="space-y-4 overflow-y-auto p-4">
+              {extra && (
+                <fieldset>
+                  <legend className="mb-2 text-xs font-semibold text-muted uppercase">Datenquelle</legend>
+                  {extra}
+                </fieldset>
+              )}
               <fieldset>
                 <legend className="mb-2 text-xs font-semibold text-muted uppercase">Zeitraum</legend>
                 <div role="radiogroup" aria-label="Zeitraum" className="flex flex-wrap gap-2">

@@ -14,9 +14,13 @@ export function RoleSwitcher({ variant = 'segmented', className }: RoleSwitcherP
     return (
       <select
         aria-label="Ansicht wechseln"
+        title="Für wen ist die Ansicht? Schule und Ministerium sehen mehr Details."
         value={role}
         onChange={(e) => setRole(e.target.value as ViewerRole)}
-        className={cn('min-h-10 rounded-lg border border-border bg-card px-3 text-sm font-medium', className)}
+        className={cn(
+          'min-h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-fg',
+          className,
+        )}
       >
         {VIEWER_ROLES.map((r) => (
           <option key={r.value} value={r.value}>

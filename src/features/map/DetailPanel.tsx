@@ -93,7 +93,8 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
       aria-label={`Details: ${title}`}
       className={cn(
         'pointer-events-auto absolute inset-x-0 bottom-0 z-10 flex flex-col rounded-t-2xl bg-card shadow-[0_-4px_16px_rgba(15,23,42,0.12)] ring-1 ring-border',
-        'md:inset-x-auto md:top-[4.5rem] md:right-3 md:bottom-3 md:w-[380px] md:rounded-2xl md:shadow-md',
+        // Desktop: so hoch wie der Inhalt, höchstens bis zum unteren Rand – kein leerer Kasten.
+        'md:inset-x-auto md:top-3 md:right-3 md:bottom-auto md:max-h-[calc(100%-1.5rem)] md:w-[360px] md:rounded-2xl md:shadow-md',
       )}
     >
       <header className="flex items-start gap-3 px-4 pt-3 pb-2">
@@ -164,9 +165,10 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
 
 /**
  * Kennzeichnung der Datenbasis (#160, ADR-012/013): „Live-Stimmen“, sobald mindestens K_MIN echte Abgaben
- * aus dem Mood-Check in der Einheit stecken (`liveN`), sonst „Noch keine Live-Stimmen“.
+ * aus dem Mood-Check in der Einheit stecken (`liveN`), sonst kein Kennzeichen.
  */
 function DataBadge({ live }: { live: boolean }) {
+  // Nur das Positive kennzeichnen; „noch keine Live-Stimmen“ sagt die Stimmenzahl schon.
   return live ? (
     <span
       className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-semibold text-accent"
@@ -174,14 +176,7 @@ function DataBadge({ live }: { live: boolean }) {
     >
       Live-Stimmen
     </span>
-  ) : (
-    <span
-      className="shrink-0 rounded-full bg-subtle px-2 py-0.5 text-[10px] text-muted"
-      title="Für diese Einheit liegen noch keine ausreichenden Live-Antworten vor"
-    >
-      Noch keine Live-Stimmen
-    </span>
-  );
+  ) : null;
 }
 
 /** Frühwarn-Radar (#42): Index, Trend, Treiber, Handlungsvorschläge und Weg zu „Antwort veröffentlichen“ (#43). */
@@ -267,9 +262,18 @@ function RadarSection({
 function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) {
   if (!hasData) {
     return (
-      <p className="rounded-xl bg-subtle p-3 text-sm text-muted">
-        Noch zu wenige Stimmen für eine Auswertung (mindestens 10). So bleibt niemand erkennbar.
-      </p>
+      <div className="rounded-xl bg-subtle p-3 text-sm text-muted">
+        <p>
+          Noch zu wenige Stimmen für eine Auswertung. Ab 10 Stimmen erscheinen hier die Werte – so bleibt
+          niemand erkennbar.
+        </p>
+        <Link
+          to="/check"
+          className="mt-2 inline-flex min-h-9 items-center font-semibold text-accent underline"
+        >
+          Jetzt mitmachen
+        </Link>
+      </div>
     );
   }
   return (
