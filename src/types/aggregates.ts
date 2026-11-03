@@ -11,6 +11,8 @@ export interface AggregateQuery {
   waveIds?: WaveId[];
   /** z. B. nur Schulen eines Kreises. */
   parentId?: string;
+  /** Datenquelle (ADR-018); ohne Angabe die Default-Quelle. Unbekannte Quellen sind ein Fehler. */
+  sourceId?: string;
 }
 
 export interface AggregateRow {
@@ -56,6 +58,8 @@ export interface Scope {
   level: DataLevel;
   /** `null` bei `level: 'nrw'`. */
   id: string | null;
+  /** Datenquelle (ADR-018); ohne Angabe die Default-Quelle. */
+  sourceId?: string;
 }
 
 export interface DistributionOption {

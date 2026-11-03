@@ -1,6 +1,7 @@
 import type {
   AggregateQuery,
   AggregateRow,
+  DataSourceInfo,
   DeleteResult,
   Distribution,
   FreetextCluster,
@@ -44,6 +45,9 @@ export interface DataSource {
   submitResponse(input: ResponseInput): Promise<SubmitResult>;
   /** Zieht die eigene Abgabe der aktuellen Welle zurück; danach ist eine neue Teilnahme möglich (#161). */
   deleteOwnResponse(input: OwnResponseInput): Promise<DeleteResult>;
+
+  // Datenquellen (ADR-018): nur aktive, für den Aufrufer sichtbare; Default zuerst
+  getDataSources(): Promise<DataSourceInfo[]>;
 
   // Aggregate (immer bereits k-anonymisiert)
   getAggregates(query: AggregateQuery): Promise<AggregateRow[]>;

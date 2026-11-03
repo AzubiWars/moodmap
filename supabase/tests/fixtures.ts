@@ -4,7 +4,7 @@
  * Deterministic, with deliberate K_MIN edge cases.
  */
 import type { PGlite } from '@electric-sql/pglite';
-import type { MockAnswer, MockDataset, MockResponse } from '../../src/data/mockRecords.ts';
+import type { MockAnswer, MockDataSource, MockDataset, MockResponse } from '../../src/data/mockRecords.ts';
 import type { GradeBand, Question, Role, School, Wave } from '../../src/types/index.ts';
 import { createRandom } from '../../scripts/lib/schools.ts';
 import { sqlLiteral } from '../../scripts/lib/supabase-seed.ts';
@@ -109,6 +109,8 @@ export function buildAggregateFixture(
 export async function insertAggregateFixture(
   db: PGlite,
   fixture: { responses: MockResponse[]; answers: MockAnswer[] },
+  /** Offset for the synthetic device hashes when a second fixture goes into the same database. */
+  hashOffset = 0,
 ): Promise<void> {
   const responseRows = fixture.responses.map(
     (r, i) =>
@@ -118,8 +120,9 @@ export async function insertAggregateFixture(
         r.waveId,
         r.role,
         r.gradeBand ?? null,
-        (i + 1).toString(16).padStart(64, '0'),
+        (i + 1 + hashOffset).toString(16).padStart(64, '0'),
         r.createdAt,
+        r.sourceId ?? 'live',
       ]
         .map(sqlLiteral)
         .join(', ')})`,
@@ -129,7 +132,7 @@ export async function insertAggregateFixture(
       `(${sqlLiteral(a.responseId)}, ${sqlLiteral(a.questionId)}, ${sqlLiteral(a.value ?? null)}, ${a.choice ? sqlLiteral(a.choice) : 'null'})`,
   );
   await db.exec(`
-    insert into public.responses (id, school_id, wave_id, role, grade_band, device_hash, created_at)
+    insert into public.responses (id, school_id, wave_id, role, grade_band, device_hash, created_at, source_id)
     values ${responseRows.join(',\n')};
     insert into public.answers (response_id, question_id, value, choice) values ${answerRows.join(',\n')};
   `);
@@ -149,5 +152,30 @@ export async function mockDatasetFrom(
     startsAt: w.starts_at.toISOString(),
     endsAt: w.ends_at.toISOString(),
   }));
-  return { schools: [...schools], waves, responses: fixture.responses, answers: fixture.answers };
+  // The registry as stored, so the mock resolves the same default source as SQL (ADR-018).
+  const sources = await db.query<{
+    id: string;
+    label: string;
+    kind: MockDataSource['kind'];
+    visibility: MockDataSource['visibility'];
+    is_default: boolean;
+    aggregated_by_provider: boolean;
+  }>(`select id, label, kind, visibility, is_default, aggregated_by_provider from public.data_sources
+      where status = 'active' and id <> 'live-pitch'`);
+  return {
+    schools: [...schools],
+    waves,
+    responses: fixture.responses,
+    answers: fixture.answers,
+    sources: sources.rows.map((s) => ({
+      id: s.id,
+      label: s.label,
+      kind: s.kind,
+      periodStart: null,
+      periodEnd: null,
+      visibility: s.visibility,
+      isDefault: s.is_default,
+      aggregatedByProvider: s.aggregated_by_provider,
+    })),
+  };
 }

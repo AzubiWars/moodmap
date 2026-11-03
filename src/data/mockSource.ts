@@ -5,6 +5,7 @@ import { K_MIN } from '@/lib/env';
 import type { DataSource, NewResponseEvent } from './api';
 import { aggregateRows, schoolInScope, summarize } from './mockAggregates';
 import { createMockPolicyApi } from './mockPolicy';
+import { forSource, listSources, resolveSourceId } from './mockSources';
 import type { MockDataset, StoredSubmission } from './mockRecords';
 import { browserStorage, createMockStorage } from './mockStorage';
 import { QUESTIONS_BY_ID, TOPICS } from './topics';
@@ -132,7 +133,8 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
       : seed;
   };
   const rows = async (query: AggregateQuery) => {
-    const data = await snapshot();
+    const all = await snapshot();
+    const data = forSource(all, resolveSourceId(all, query.sourceId));
     const selected = waveIds(data, query);
     return aggregateRows(data, query, selected, previousWaves(data, selected), kMin);
   };
@@ -239,9 +241,13 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
         return { ok: false, reason: 'error' };
       }
     },
+    async getDataSources() {
+      return listSources(await snapshot());
+    },
     getAggregates: rows,
     async getTrend(query) {
-      const data = await snapshot();
+      const all = await snapshot();
+      const data = forSource(all, resolveSourceId(all, query.sourceId));
       const selected = new Set(query.waveIds);
       return orderedWaves(data)
         .filter((wave) => selected.has(wave.id))
@@ -256,8 +262,9 @@ export function createMockSource(options: MockSourceOptions): DataSource & { dis
     },
     async getChoiceDistribution(questionId, scope) {
       const question = QUESTIONS_BY_ID[questionId];
+      const all = await snapshot();
+      const data = forSource(all, resolveSourceId(all, scope.sourceId));
       if (!question || question.type !== 'choice') return null;
-      const data = await snapshot();
       const schools = new Set(
         data.schools.filter((school) => schoolInScope(school, scope)).map((school) => school.id),
       );

@@ -45,6 +45,14 @@ const submit = (token: string, schoolId = '900000') =>
     ]),
   );
 
+/** One imported participation with one scored answer. */
+const importRow = (source: string, runId: string, key: number) =>
+  db.exec(`with r as (
+      insert into public.responses (school_id, wave_id, role, source_id, import_run_id, external_key_hash)
+      values ('900000', '${CURRENT_WAVE}', 'student', '${source}', '${runId}', '${fakeHash(key)}') returning id
+    )
+    insert into public.answers (response_id, question_id, value) select id, 'stress.core', 3 from r`);
+
 describe('data source registry', () => {
   it('seeds live (default), live-pitch and demo-seed', async () => {
     const { rows } = await db.query<{ id: string; is_default: boolean }>(
@@ -105,9 +113,7 @@ describe('data source registry', () => {
     } = await db.query<{ id: string }>(`insert into private.import_runs
       (source_id, file_sha256, mapping_id, mapping_version, rows_total, rows_accepted, rows_rejected, importer)
       values ('demo-seed', '${fakeHash(1)}', 'test', 1, 1, 1, 0, 'test') returning id`);
-    const insert = () =>
-      db.exec(`insert into public.responses (school_id, wave_id, role, source_id, import_run_id, external_key_hash)
-        values ('900000', '${CURRENT_WAVE}', 'student', 'demo-seed', '${run!.id}', '${fakeHash(9)}')`);
+    const insert = () => importRow('demo-seed', run!.id, 9);
     await insert();
     await expect(insert()).rejects.toThrow(/responses_source_external_key/);
   });
@@ -129,13 +135,8 @@ describe('visibility', () => {
     } = await db.query<{ id: string }>(`insert into private.import_runs
       (source_id, file_sha256, mapping_id, mapping_version, rows_total, rows_accepted, rows_rejected, importer)
       values ('restricted', '${fakeHash(2)}', 'test', 1, 1, 1, 0, 'test') returning id`);
-    for (const [source, key] of [
-      ['restricted', 11],
-      ['draft-src', 12],
-    ] as const) {
-      await db.exec(`insert into public.responses (school_id, wave_id, role, source_id, import_run_id, external_key_hash)
-        values ('900000', '${CURRENT_WAVE}', 'student', '${source}', '${run!.id}', '${fakeHash(key)}')`);
-    }
+    await importRow('restricted', run!.id, 11);
+    await importRow('draft-src', run!.id, 12);
     expect((await sources()).map((s) => s.id)).not.toContain('restricted');
     expect((await sources()).map((s) => s.id)).not.toContain('draft-src');
     expect((await sources({ app_metadata: { moodmap_role: 'ministerium' } })).map((s) => s.id)).toContain(
