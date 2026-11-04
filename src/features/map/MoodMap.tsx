@@ -1,6 +1,13 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
+import {
+  AUSFALL_FILL_EXPRESSION,
+  formatPct,
+  formatSozial,
+  KLASSEN_FILL_EXPRESSION,
+  SOZIAL_FILL_EXPRESSION,
+} from './facts';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -439,7 +446,15 @@ export function MoodMap({
   const radar = mode === 'radar';
   const modeProps =
     mode !== 'mood' && hover && (hover.kind === 'school' || hover.kind === 'region')
-      ? (hover.props as { tension?: string; tindex?: number; tdelta?: number; rate?: number })
+      ? (hover.props as {
+          tension?: string;
+          tindex?: number;
+          tdelta?: number;
+          rate?: number;
+          ausfall?: number;
+          sozial?: number;
+          klassen?: number;
+        })
       : null;
   const hoverTension = radar ? modeProps : null;
   const fillExpression = {
@@ -447,6 +462,9 @@ export function MoodMap({
     trend: TREND_FILL_EXPRESSION,
     participation: PARTICIPATION_FILL_EXPRESSION,
     radar: TENSION_FILL_EXPRESSION,
+    ausfall: AUSFALL_FILL_EXPRESSION,
+    sozial: SOZIAL_FILL_EXPRESSION,
+    klassen: KLASSEN_FILL_EXPRESSION,
   }[mode];
 
   // Ohne 3D-Layer darf nicht davor eingefügt werden, sonst schlägt MapLibre das Anlegen der Regions-Layer fehl.
@@ -849,7 +867,25 @@ export function MoodMap({
                 {hover.kind === 'school' && pulses.some((p) => p.id === hover.props.id) && (
                   <div className="text-xs font-semibold text-mood-1">● Live-aktiv: neue Stimme</div>
                 )}
-                {mode === 'trend' && modeProps ? (
+                {mode === 'ausfall' && modeProps ? (
+                  (modeProps.ausfall ?? -1) >= 0 ? (
+                    <div>{formatPct(modeProps.ausfall!)} ersatzlos ausgefallen</div>
+                  ) : (
+                    <div className="text-muted">keine Unterrichtsstatistik</div>
+                  )
+                ) : mode === 'sozial' && modeProps ? (
+                  (modeProps.sozial ?? -1) >= 0 ? (
+                    <div>Ø Sozialindexstufe {formatSozial(modeProps.sozial!)}</div>
+                  ) : (
+                    <div className="text-muted">kein Sozialindex</div>
+                  )
+                ) : mode === 'klassen' && modeProps ? (
+                  (modeProps.klassen ?? -1) >= 0 ? (
+                    <div>Ø {formatSozial(modeProps.klassen!)} Schüler:innen je Klasse</div>
+                  ) : (
+                    <div className="text-muted">nur auf Kreisebene veröffentlicht</div>
+                  )
+                ) : mode === 'trend' && modeProps ? (
                   hasTrend(modeProps.tdelta) ? (
                     <div>{formatTrend(modeProps.tdelta!)}</div>
                   ) : (

@@ -11,7 +11,8 @@ import { useRoleStore } from '@/store/role';
 import type { AggregateRow, TensionRow } from '@/types';
 import { type GapAnalysis, gapAnalysis, nrwReference, type TopicGap } from './detailStats';
 import { type DrillState, gemeindeLabel, kreisLabel, regbezLabel } from './drilldown';
-import type { MapMode } from './modes';
+import { FactsSection } from './FactsSection';
+import { isFactMode, type MapMode } from './modes';
 import { publishAnswerHref, suggestionsFor, TENSION_INFO } from './radar';
 import { SCHOOL_FORM_LABELS } from './schools';
 import { type AggregateFilters, useAggregates, useTension } from './useAggregates';
@@ -48,6 +49,7 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
   });
   const nrwQuery = useAggregates('nrw', 'all', { enabled: drill.level !== 'nrw', filters });
   const radar = mode === 'radar';
+  const factMode = isFactMode(mode);
   const ministry = useRoleStore((state) => state.role) === 'ministry';
   // Spannungs-Index pro Schule nur für das Ministerium (Spec §3.10)
   const tensionAllowed = level !== 'school' || ministry;
@@ -106,7 +108,7 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
             <DataBadge live={row?.liveN != null} />
           </div>
           <p className="truncate text-xs text-muted">{subtitle}</p>
-          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+          <div className={cn('mt-1.5 flex flex-wrap items-center gap-2', factMode && 'hidden')}>
             <MoodBadge score={row?.score ?? null} size="sm" />
             <span className="text-xs text-muted">
               {loading ? 'lädt …' : `${row?.n ?? 0} Stimmen`}
@@ -136,7 +138,12 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
           Spannungs-Index {Math.round(tension.index ?? 0)} · {TENSION_INFO[tension.level].label}
         </p>
       )}
-      {!expanded && !radar && gaps.weaknesses[0] && (
+      {!expanded && factMode && (
+        <p className="px-4 pb-3 text-xs text-fg md:hidden">
+          Amtliche Daten zu diesem Gebiet · <span className="font-semibold text-accent">Aufklappen</span>
+        </p>
+      )}
+      {!expanded && !radar && !factMode && gaps.weaknesses[0] && (
         <p className="px-4 pb-3 text-xs text-fg md:hidden">
           Größte Baustelle: {gaps.weaknesses[0].icon} {gaps.weaknesses[0].title} (
           {formatDelta(gaps.weaknesses[0].delta)} vs. NRW) ·{' '}
@@ -160,7 +167,16 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
             publishRegionId={(drill.kreis ?? drill.regbez)!.properties.id}
           />
         )}
-        <GapDetails gaps={gaps} hasData={row?.score != null} />
+        {factMode ? (
+          <FactsSection drill={drill} detailed />
+        ) : (
+          <>
+            <GapDetails gaps={gaps} hasData={row?.score != null} />
+            <div className="mt-4">
+              <FactsSection drill={drill} />
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );

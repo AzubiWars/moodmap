@@ -54,7 +54,13 @@ export function LandingPage() {
         Maßnahmenkatalog für Schulen
       </Link>
 
-      <footer className="mt-10 text-sm text-muted">
+      <footer className="mt-10 flex gap-4 text-sm text-muted">
+        <Link to="/quellen" className="inline-flex min-h-11 items-center underline">
+          Quellen & Daten
+        </Link>
+        <Link to="/methodik" className="inline-flex min-h-11 items-center underline">
+          Methodik
+        </Link>
         <Link to="/privacy" className="inline-flex min-h-11 items-center underline">
           Datenschutz
         </Link>

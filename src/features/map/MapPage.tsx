@@ -4,8 +4,10 @@ import { useSelectedSource } from '@/components/useSelectedSource';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { openDataset } from '@/data/openData';
 import { TOPICS } from '@/data/topics';
 import type { School } from '@/types';
+import type { FactsFile } from '@/types/facts';
 import {
   breadcrumb,
   clickTarget,
@@ -42,7 +44,16 @@ import {
 import { LiveToggle } from './LiveToggle';
 import { LIVE_POLL_MS, useLiveCounts, useLivePulses } from './live';
 import { MapModeSwitch } from './MapModeSwitch';
-import { type MapMode, modeUsesTopic, parseMapMode, studentsBy, trendValue } from './modes';
+import { areaFacts, type FactArea, useFacts } from './facts';
+import {
+  isFactMode,
+  type MapMode,
+  modeUsesTopic,
+  parseMapMode,
+  RELEASE_MODES,
+  studentsBy,
+  trendValue,
+} from './modes';
 import { type TensionMap, toTensionMap } from './radar';
 import { useRoleStore } from '@/store/role';
 import { MapBreadcrumb } from './MapBreadcrumb';
@@ -81,6 +92,21 @@ const MAP_TOPICS: FilterTopic[] = [
 interface ModeData {
   tension: TensionMap | null;
   students: ReadonlyMap<string, number> | null;
+  /** Amtliche Daten (#297); nur in den Fakten-Modi gesetzt */
+  facts?: FactsFile | null;
+}
+
+/** Gebietsebene aus der ID: Regierungsbezirk 3, Kreis 5, Gemeinde 8 Stellen (AGS). */
+function factArea(id: string): FactArea | null {
+  const level = ({ 3: 'regbez', 5: 'kreis', 8: 'gemeinde' } as const)[id.length as 3 | 5 | 8];
+  return level ? { level, id } : null;
+}
+
+function factProperties(id: string, facts: FactsFile | null | undefined) {
+  if (!facts) return {};
+  const area = factArea(id);
+  const values = area ? areaFacts(facts, area) : null;
+  return { ausfall: values?.ausfall ?? -1, sozial: values?.sozial ?? -1, klassen: values?.klassen ?? -1 };
 }
 
 function modeProperties(id: string, scores: ScoreMap, data: ModeData) {
@@ -88,6 +114,7 @@ function modeProperties(id: string, scores: ScoreMap, data: ModeData) {
   const t = data.tension?.get(id);
   const students = data.students?.get(id);
   return {
+    ...factProperties(id, data.facts),
     // Frühwarn-Radar: Stufe für die Einfärbung, 'none' unter K_MIN
     ...(data.tension ? { tension: t?.level ?? 'none', tindex: t?.index ?? -1 } : {}),
     tdelta: trendValue(s?.delta),
@@ -163,8 +190,9 @@ function schoolBounds(school: School): Bounds {
 
 /** Untertitel je Modus; `null` = gewähltes Thema anzeigen */
 /** Ein Satz, was man auf dieser Ebene tun kann – statt Fachbegriffen. */
-function levelHint(drill: DrillState, schoolsVisible: boolean): string {
+function levelHint(drill: DrillState, schoolsVisible: boolean, factMode = false): string {
   if (drill.school) return 'Schule ausgewählt – Details siehst du unten bzw. rechts.';
+  if (schoolsVisible && factMode) return 'Die Werte der einzelnen Schulen stehen im Detailbereich.';
   if (schoolsVisible) return 'Tippe auf eine Schule für ihre Werte.';
   if (drill.kreis) return 'Tippe auf eine Stadt oder Gemeinde.';
   if (drill.regbez) return 'Tippe auf einen Kreis oder eine kreisfreie Stadt.';
@@ -173,6 +201,9 @@ function levelHint(drill: DrillState, schoolsVisible: boolean): string {
 
 const MODE_CAPTION: Record<MapMode, string | null> = {
   mood: null,
+  ausfall: '📉 Unterrichtsausfall 2024/25 (amtlich)',
+  sozial: '🧭 Schulsozialindex 2025/26 (amtlich)',
+  klassen: '👥 Schüler:innen je Klasse 2025/26 (amtlich)',
   trend: null,
   participation: '🙋 Beteiligung diese Woche',
   radar: '📡 Spannungs-Index aus 6 Themen',
@@ -185,6 +216,8 @@ export function MapPage() {
   const topicSlug = topic.slug as MapTopic;
   const mode = parseMapMode(searchParams.get('mode'));
   const radar = mode === 'radar';
+  const factMode = isFactMode(mode);
+  const factsQuery = useFacts(factMode);
   // Spannungs-Index pro Schule nur für das Ministerium (Spec §3.10)
   const ministry = useRoleStore((state) => state.role) === 'ministry';
 
@@ -242,7 +275,7 @@ export function MapPage() {
   // erscheinen mit `?erweitert=1` – oder automatisch, sobald einer davon per URL aktiv ist.
   const advanced =
     searchParams.get('erweitert') === '1' ||
-    mode !== 'mood' ||
+    !RELEASE_MODES.includes(mode) ||
     live ||
     activeFilterCount(filters) > 0 ||
     searchParams.has('wave');
@@ -346,6 +379,7 @@ export function MapPage() {
         merge(toScoreMap(regionAggregates.data), showGemeinden ? toScoreMap(gemeindeAggregates.data) : null),
         focusRegbezId,
         {
+          facts: factMode ? factsQuery.data : null,
           tension: radar
             ? merge(
                 toTensionMap(regionTension.data),
@@ -363,8 +397,9 @@ export function MapPage() {
       )
     : null;
 
+  // Amtliche Daten hängen an echten Schulnummern; die Karte zeigt sie als Flächen, Schulen stehen im Panel.
   const schoolsShown =
-    schoolsQuery.data && (!radar || ministry)
+    schoolsQuery.data && !factMode && (!radar || ministry)
       ? visibleSchools(scope, schoolsQuery.data, filters.schoolForm)
       : [];
   const schoolScores = toScoreMap(schoolAggregates.data);
@@ -385,7 +420,9 @@ export function MapPage() {
   const directoryShown = directoryQuery.data
     ? directoryQuery.data.filter(
         (s) =>
-          !shownIds.has(s.id) && ((filters.directory && inScope(scope)(s)) || s.id === directoryFocus?.id),
+          !factMode &&
+          !shownIds.has(s.id) &&
+          ((filters.directory && inScope(scope)(s)) || s.id === directoryFocus?.id),
       )
     : [];
   const directoryPoints = directoryShown.length ? directoryToGeoJSON(directoryShown) : null;
@@ -504,12 +541,12 @@ export function MapPage() {
         {modeUsesTopic(mode) && (
           <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />
         )}
+        {/* Mobil: eigene zweite Zeile, damit Thema, Live und Filter oben in eine Zeile passen */}
+        <div className="order-last w-full sm:order-none sm:w-auto">
+          <MapModeSwitch mode={mode} onChange={setMode} modes={advanced ? undefined : RELEASE_MODES} />
+        </div>
         {advanced && (
           <>
-            {/* Mobil: eigene zweite Zeile, damit Thema, Live und Filter oben in eine Zeile passen */}
-            <div className="order-last w-full sm:order-none sm:w-auto">
-              <MapModeSwitch mode={mode} onChange={setMode} />
-            </div>
             <div className="ml-auto flex items-center gap-2">
               {/* Live nur für Quellen, in die gerade abgestimmt wird */}
               {source.selected?.kind !== 'import' && (
@@ -587,7 +624,7 @@ export function MapPage() {
               onSelectRegion={selectSearchRegion}
             />
             <MapBreadcrumb crumbs={breadcrumb(drill)} onNavigate={navigate} />
-            <p className="px-1 text-xs text-muted">{levelHint(drill, scope != null)}</p>
+            <p className="px-1 text-xs text-muted">{levelHint(drill, scope != null, factMode)}</p>
             {source.unknown && <SourceSwitcher selection={source} />}
             {/* Leere Woche: einladen statt nur grau zeigen */}
             {source.selected && source.selected.n === 0 && source.selected.kind !== 'import' && (
@@ -636,10 +673,30 @@ export function MapPage() {
           )}
           <MapLegend mode={mode} />
           <p className="max-w-[17rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
-            {source.selected ? source.selected.label : 'Anonyme Live-Befragung'} ·{' '}
-            <Link to="/methodik" className="underline hover:text-fg">
-              Wie wird gerechnet?
-            </Link>
+            {factMode ? (
+              <>
+                Amtliche Daten:{' '}
+                {
+                  openDataset(mode === 'ausfall' ? 'untstat' : mode === 'sozial' ? 'sozialindex' : 'eckdaten')
+                    .publisher
+                }{' '}
+                ·{' '}
+                <Link to="/quellen" className="underline hover:text-fg">
+                  Quellen & Lizenzen
+                </Link>
+              </>
+            ) : (
+              <>
+                {source.selected ? source.selected.label : 'Anonyme Live-Befragung'} ·{' '}
+                <Link to="/methodik" className="underline hover:text-fg">
+                  Wie wird gerechnet?
+                </Link>{' '}
+                ·{' '}
+                <Link to="/quellen" className="underline hover:text-fg">
+                  Quellen
+                </Link>
+              </>
+            )}
           </p>
         </div>
 

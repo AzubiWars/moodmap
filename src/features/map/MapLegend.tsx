@@ -1,4 +1,5 @@
 import { MOOD_LEVELS, NO_DATA } from '@/lib/colors';
+import { AUSFALL_STEPS, KLASSEN_STEPS, SOZIAL_STEPS } from './facts';
 import { type MapMode, PARTICIPATION_STEPS, type ScaleStep, TREND_STEPS } from './modes';
 import { TENSION_INFO, TENSION_ORDER } from './radar';
 
@@ -16,6 +17,18 @@ export function MapLegend({ mode = 'mood' }: { mode?: MapMode }) {
   if (mode === 'trend') return <StepLegend title="Trend zur Vorwoche" steps={TREND_STEPS} />;
   if (mode === 'participation')
     return <StepLegend title="Beteiligung diese Woche" steps={PARTICIPATION_STEPS} />;
+  if (mode === 'ausfall')
+    return (
+      <StepLegend
+        title="Ersatzloser Unterrichtsausfall 2024/25"
+        steps={AUSFALL_STEPS}
+        noData="keine Statistik"
+      />
+    );
+  if (mode === 'sozial')
+    return <StepLegend title="Ø Schulsozialindex (1–9)" steps={SOZIAL_STEPS} noData="kein Index" />;
+  if (mode === 'klassen')
+    return <StepLegend title="Ø Schüler:innen je Klasse" steps={KLASSEN_STEPS} noData="nur je Kreis" />;
   return (
     <div
       className="rounded-2xl bg-card/95 px-2.5 py-2 text-xs shadow-md ring-1 ring-border backdrop-blur"
@@ -83,7 +96,15 @@ function RadarLegend() {
 }
 
 /** Legende für stufige Skalen (Trend, Beteiligung – #21), höchste Stufe oben. */
-function StepLegend({ title, steps }: { title: string; steps: readonly ScaleStep[] }) {
+function StepLegend({
+  title,
+  steps,
+  noData = NO_DATA.label,
+}: {
+  title: string;
+  steps: readonly ScaleStep[];
+  noData?: string;
+}) {
   return (
     <div
       className="rounded-2xl bg-card/95 p-2 text-xs shadow-md ring-1 ring-border backdrop-blur md:p-3"
@@ -100,7 +121,7 @@ function StepLegend({ title, steps }: { title: string; steps: readonly ScaleStep
         ))}
         <li className="flex items-center gap-2">
           <span className="size-3.5 rounded-sm" style={NO_DATA_PATTERN} aria-hidden />
-          <span>{NO_DATA.label}</span>
+          <span>{noData}</span>
         </li>
       </ul>
     </div>

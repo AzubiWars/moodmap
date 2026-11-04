@@ -240,6 +240,13 @@ export function MethodologyPage() {
             </li>
           ))}
         </ol>
+        <p className="text-sm">
+          Amtliche Datensätze, Rohdaten und die Studien des Maßnahmenkatalogs:{' '}
+          <Link to="/quellen" className="text-accent underline">
+            Quellen & Daten
+          </Link>
+          .
+        </p>
         <p className="text-xs text-muted">
           Die Liste wird bei methodischen Änderungen aktualisiert. Berechnungen und Schwellen sind zusätzlich
           in `src/lib/score.ts` und den Supabase-Migrationen dokumentiert.
