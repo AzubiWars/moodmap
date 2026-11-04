@@ -15,6 +15,7 @@ const RAW_FILES = [
   { label: 'Abruf der Unterrichtsstatistik (Skript)', path: 'scripts/tools/fetch_untstat.py' },
   { label: 'Unterrichtsstatistik je Schule (Rohdaten, JSONL)', path: 'scripts/data/untstat-2024-25.jsonl' },
   { label: 'Schulsozialindex (CSV, UTF-8)', path: 'scripts/data/sozialindex-2025-26.csv' },
+  { label: 'Eckdaten der Amtlichen Schuldaten (CSV)', path: 'scripts/data/eckdaten-schuldaten-2025-26.csv' },
   { label: 'Aggregation auf Gemeinde, Kreis, Bezirk, NRW', path: 'scripts/lib/facts.ts' },
   { label: 'Ergebnisdatei der App', path: 'public/data/facts.json' },
   { label: 'Maßnahmenkatalog mit allen Quellen', path: 'src/features/actions/catalog.ts' },

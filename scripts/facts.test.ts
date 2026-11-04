@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import type { DirectorySchool } from '../src/types/domain.ts';
-import { buildFacts, parseSozialindexCsv, type UntstatRecord } from './lib/facts.ts';
+import { buildEckdaten, buildFacts, parseSozialindexCsv, type UntstatRecord } from './lib/facts.ts';
 
 const school = (id: string, kreisId: string, gemeindeId: string, schoolForm = 'gymnasium') =>
   ({ id, kreisId, gemeindeId, schoolForm, name: id, city: '', lat: 0, lon: 0 }) as DirectorySchool;
@@ -53,5 +53,24 @@ describe('buildFacts', () => {
     const facts = buildFacts(SCHOOLS, [], sozial, META);
     expect(facts.sozialindex.areas.kreis!['05158']).toEqual([6, 1]);
     expect(facts.sozialindex.areas.nrw!.nrw).toEqual([8, 2]);
+  });
+});
+
+describe('buildEckdaten', () => {
+  const CSV = [
+    'JAHR;SCHULFORM_Text;KREIS;SCHUELER_INNEN;KLASSEN;LEHRKRAEFTE;ERT_STUNDEN',
+    '2025;Grundschule;111;1000;40;80;1500',
+    '2025;Gymnasium;111;2000;70;160;3000,5',
+    '2025;Berufskolleg;111;9000;300;400;9000',
+    '2025;Grundschule;158;500;25;40;700',
+    '2024;Grundschule;111;9999;1;1;1',
+  ].join('\n');
+
+  it('sums general schools of one year per Kreis, Bezirk and NRW and skips vocational schools', () => {
+    const eck = buildEckdaten(CSV, '2025');
+    expect(eck.year).toBe('2025/26');
+    expect(eck.areas.kreis!['05111']).toEqual([3000, 110, 240, 4500.5]);
+    expect(eck.areas.regbez!['051']).toEqual([3500, 135, 280, 5200.5]);
+    expect(eck.areas.nrw!.nrw).toEqual([3500, 135, 280, 5200.5]);
   });
 });

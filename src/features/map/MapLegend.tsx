@@ -1,5 +1,5 @@
 import { MOOD_LEVELS, NO_DATA } from '@/lib/colors';
-import { AUSFALL_STEPS, SOZIAL_STEPS } from './facts';
+import { AUSFALL_STEPS, KLASSEN_STEPS, SOZIAL_STEPS } from './facts';
 import { type MapMode, PARTICIPATION_STEPS, type ScaleStep, TREND_STEPS } from './modes';
 import { TENSION_INFO, TENSION_ORDER } from './radar';
 
@@ -27,6 +27,8 @@ export function MapLegend({ mode = 'mood' }: { mode?: MapMode }) {
     );
   if (mode === 'sozial')
     return <StepLegend title="Ø Schulsozialindex (1–9)" steps={SOZIAL_STEPS} noData="kein Index" />;
+  if (mode === 'klassen')
+    return <StepLegend title="Ø Schüler:innen je Klasse" steps={KLASSEN_STEPS} noData="nur je Kreis" />;
   return (
     <div
       className="rounded-2xl bg-card/95 px-2.5 py-2 text-xs shadow-md ring-1 ring-border backdrop-blur"

@@ -4,7 +4,7 @@
  * Keine Hochrechnung, keine Schätzung: Gebiete ohne Schulen mit Werten fehlen einfach.
  */
 import type { DirectorySchool } from '../../src/types/domain.ts';
-import type { FactsFile, UntstatCell } from '../../src/types/facts.ts';
+import type { EckdatenCell, FactsFile, UntstatCell } from '../../src/types/facts.ts';
 
 export type Stage = 'primar' | 'sek1' | 'sek2';
 
@@ -105,4 +105,39 @@ export function buildFacts(
     }
   }
   return facts;
+}
+
+/** Berufliche Schulformen: zählen nicht zu Klassengröße und Betreuungsrelation der allgemeinbildenden Schulen. */
+const VOCATIONAL = new Set(['Berufskolleg', 'Weiterbildungskolleg', 'Förderschule BK']);
+
+/**
+ * „Eckdaten der Amtlichen Schuldaten“ (MSB/Open.NRW): eine Zeile je Jahr × Schulform × Kreis × Rechtsform.
+ * Summiert für das gewählte Jahr die allgemeinbildenden Schulen je Kreis, Regierungsbezirk und NRW.
+ */
+export function buildEckdaten(text: string, year: string): NonNullable<FactsFile['eckdaten']> {
+  const [header, ...lines] = text.split(/\r?\n/).filter((line) => line.trim());
+  const cols = header!.replace(/^\uFEFF/, '').split(';');
+  const at = (cells: string[], name: string) => cells[cols.indexOf(name)] ?? '';
+  const num = (value: string) => Number(value.replace(',', '.')) || 0;
+  const areas: NonNullable<FactsFile['eckdaten']>['areas'] = {};
+  for (const line of lines) {
+    const cells = line.split(';');
+    if (at(cells, 'JAHR') !== year || VOCATIONAL.has(at(cells, 'SCHULFORM_Text'))) continue;
+    const kreis = `05${at(cells, 'KREIS').padStart(3, '0')}`;
+    const values: EckdatenCell = [
+      num(at(cells, 'SCHUELER_INNEN')),
+      num(at(cells, 'KLASSEN')),
+      num(at(cells, 'LEHRKRAEFTE')),
+      num(at(cells, 'ERT_STUNDEN')),
+    ];
+    for (const [level, id] of [
+      ['nrw', 'nrw'],
+      ['regbez', kreis.slice(0, 3)],
+      ['kreis', kreis],
+    ] as const) {
+      const cell = ((areas[level] ??= {})[id] ??= [0, 0, 0, 0]);
+      values.forEach((v, i) => (cell[i] = Math.round((cell[i]! + v) * 100) / 100));
+    }
+  }
+  return { year: `${year}/${String(Number(year) + 1).slice(2)}`, areas };
 }

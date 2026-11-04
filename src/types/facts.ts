@@ -14,6 +14,9 @@ export type SozialCell = [sum: number, schools: number];
 
 export type FactLevel = 'nrw' | 'regbez' | 'kreis' | 'gemeinde';
 
+/** [Schüler:innen, Klassen, Lehrkräfte (Personen), erteilte Wochenstunden] – allgemeinbildende Schulen */
+export type EckdatenCell = [pupils: number, classes: number, teachers: number, hours: number];
+
 export interface FactsFile {
   untstat: {
     /** Schuljahr, z. B. „2024/25“ */
@@ -28,5 +31,10 @@ export interface FactsFile {
   sozialindex: {
     year: string;
     areas: Partial<Record<FactLevel, Record<string, SozialCell>>>;
+  };
+  /** Eckdaten der Amtlichen Schuldaten; nur bis Kreisebene veröffentlicht */
+  eckdaten?: {
+    year: string;
+    areas: Partial<Record<Exclude<FactLevel, 'gemeinde'>, Record<string, EckdatenCell>>>;
   };
 }

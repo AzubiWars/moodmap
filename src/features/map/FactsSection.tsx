@@ -25,7 +25,7 @@ function drillArea(drill: DrillState): FactArea | null {
   return null;
 }
 
-function SourceLink({ id }: { id: 'untstat' | 'sozialindex' }) {
+function SourceLink({ id }: { id: 'untstat' | 'sozialindex' | 'eckdaten' }) {
   const dataset = openDataset(id);
   return (
     <a
@@ -82,6 +82,8 @@ export function FactsSection({ drill, detailed = false }: { drill: DrillState; d
         )}
       </div>
 
+      <ClassSize facts={facts} drill={drill} />
+
       {values.sozial != null && (
         <div>
           <p className="text-xs text-muted">
@@ -117,11 +119,45 @@ export function FactsSection({ drill, detailed = false }: { drill: DrillState; d
         <span className="block">
           Quelle Sozialindex: <SourceLink id="sozialindex" />
         </span>
+        <span className="block">
+          Quelle Klassen: <SourceLink id="eckdaten" />
+        </span>
         <Link to="/quellen" className="block font-semibold text-accent underline">
           Alle Quellen, Lizenzen und Rechenwege
         </Link>
       </p>
     </section>
+  );
+}
+
+/** Klassengröße gibt es nur je Kreis; in einer Gemeinde zeigen wir den Kreiswert und sagen das. */
+function ClassSize({ facts, drill }: { facts: FactsFile; drill: DrillState }) {
+  const kreisArea: FactArea | null = drill.kreis
+    ? { level: 'kreis', id: drill.kreis.properties.id }
+    : drill.regbez
+      ? { level: 'regbez', id: drill.regbez.properties.id }
+      : null;
+  if (!kreisArea || !facts.eckdaten) return null;
+  const values = areaFacts(facts, kreisArea);
+  const nrw = areaFacts(facts, { level: 'nrw', id: 'nrw' });
+  if (values.klassen == null) return null;
+  return (
+    <div>
+      <p className="text-xs text-muted">
+        Ø Schüler:innen je Klasse {facts.eckdaten.year}
+        {drill.gemeinde && ' (Wert des Kreises)'}
+      </p>
+      <p className="flex items-baseline gap-2">
+        <span className="text-xl font-bold tabular-nums">{formatSozial(values.klassen)}</span>
+        {nrw.klassen != null && <span className="text-xs text-muted">NRW {formatSozial(nrw.klassen)}</span>}
+      </p>
+      {values.proLehrkraft != null && (
+        <p className="text-[11px] text-muted">
+          {formatSozial(values.proLehrkraft)} Schüler:innen je Lehrkraft (Personen, inkl. Teilzeit) ·
+          allgemeinbildende Schulen
+        </p>
+      )}
+    </div>
   );
 }
 

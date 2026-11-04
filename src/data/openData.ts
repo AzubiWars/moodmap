@@ -4,7 +4,7 @@
  */
 
 export type OpenDatasetId =
-  'untstat' | 'sozialindex' | 'schulverzeichnis' | 'vg250' | 'naturalearth' | 'openfreemap';
+  'untstat' | 'sozialindex' | 'eckdaten' | 'schulverzeichnis' | 'vg250' | 'naturalearth' | 'openfreemap';
 
 export interface OpenDataset {
   id: OpenDatasetId;
@@ -53,6 +53,20 @@ export const OPEN_DATASETS: readonly OpenDataset[] = [
       'CSV über die Schulnummer mit dem Schulverzeichnis verknüpft (4.146 von 4.157 Schulen). Schulen „ohne“ Stufe zählen nicht mit. Gezeigt werden nur Gebietsmittel, keine Einzelschulen.',
     caveat:
       'Der Index beschreibt die soziale Zusammensetzung der Schülerschaft (u. a. Kinder- und Jugendarmut) und dient der Verteilung von Ressourcen. Er bewertet ausdrücklich nicht die pädagogische Arbeit einer Schule. Förderschulen und Berufskollegs sind nicht enthalten.',
+  },
+  {
+    id: 'eckdaten',
+    title: 'Eckdaten der Amtlichen Schuldaten, Schuljahr 2025/26',
+    publisher: 'Ministerium für Schule und Bildung NRW (über Open.NRW)',
+    license: 'Datenlizenz Deutschland – Namensnennung – Version 2.0',
+    licenseUrl: DL_DE_BY,
+    stand: 'Amtliche Schuldaten 2025/26',
+    url: 'https://ckan.open.nrw.de/dataset/eckdaten_der_amtlichen_schuldaten_1567756447',
+    usage: 'Ø Schüler:innen je Klasse und je Lehrkraft für Kreise, Regierungsbezirke und NRW.',
+    processing:
+      'Summe aller allgemeinbildenden Schulen (öffentlich und privat) je Kreis; Berufskollegs, Weiterbildungskollegs und Förderschulen BK sind ausgenommen. Quotienten aus den Summen, keine Mittelwerte von Mittelwerten.',
+    caveat:
+      'Nur bis Kreisebene veröffentlicht. „Lehrkräfte“ sind Personen inklusive Teilzeit, keine Vollzeitstellen. Der Mix der Schulformen (z. B. viele Grund- oder Förderschulen) beeinflusst die Werte.',
   },
   {
     id: 'schulverzeichnis',

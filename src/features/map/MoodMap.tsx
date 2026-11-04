@@ -1,7 +1,13 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 import type { FeatureCollection, Geometry } from 'geojson';
 import type { GeoJSONSource, StyleSpecification } from 'maplibre-gl';
-import { AUSFALL_FILL_EXPRESSION, formatPct, formatSozial, SOZIAL_FILL_EXPRESSION } from './facts';
+import {
+  AUSFALL_FILL_EXPRESSION,
+  formatPct,
+  formatSozial,
+  KLASSEN_FILL_EXPRESSION,
+  SOZIAL_FILL_EXPRESSION,
+} from './facts';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -447,6 +453,7 @@ export function MoodMap({
           rate?: number;
           ausfall?: number;
           sozial?: number;
+          klassen?: number;
         })
       : null;
   const hoverTension = radar ? modeProps : null;
@@ -457,6 +464,7 @@ export function MoodMap({
     radar: TENSION_FILL_EXPRESSION,
     ausfall: AUSFALL_FILL_EXPRESSION,
     sozial: SOZIAL_FILL_EXPRESSION,
+    klassen: KLASSEN_FILL_EXPRESSION,
   }[mode];
 
   // Ohne 3D-Layer darf nicht davor eingefügt werden, sonst schlägt MapLibre das Anlegen der Regions-Layer fehl.
@@ -870,6 +878,12 @@ export function MoodMap({
                     <div>Ø Sozialindexstufe {formatSozial(modeProps.sozial!)}</div>
                   ) : (
                     <div className="text-muted">kein Sozialindex</div>
+                  )
+                ) : mode === 'klassen' && modeProps ? (
+                  (modeProps.klassen ?? -1) >= 0 ? (
+                    <div>Ø {formatSozial(modeProps.klassen!)} Schüler:innen je Klasse</div>
+                  ) : (
+                    <div className="text-muted">nur auf Kreisebene veröffentlicht</div>
                   )
                 ) : mode === 'trend' && modeProps ? (
                   hasTrend(modeProps.tdelta) ? (

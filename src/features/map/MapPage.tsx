@@ -106,7 +106,7 @@ function factProperties(id: string, facts: FactsFile | null | undefined) {
   if (!facts) return {};
   const area = factArea(id);
   const values = area ? areaFacts(facts, area) : null;
-  return { ausfall: values?.ausfall ?? -1, sozial: values?.sozial ?? -1 };
+  return { ausfall: values?.ausfall ?? -1, sozial: values?.sozial ?? -1, klassen: values?.klassen ?? -1 };
 }
 
 function modeProperties(id: string, scores: ScoreMap, data: ModeData) {
@@ -203,6 +203,7 @@ const MODE_CAPTION: Record<MapMode, string | null> = {
   mood: null,
   ausfall: '📉 Unterrichtsausfall 2024/25 (amtlich)',
   sozial: '🧭 Schulsozialindex 2025/26 (amtlich)',
+  klassen: '👥 Schüler:innen je Klasse 2025/26 (amtlich)',
   trend: null,
   participation: '🙋 Beteiligung diese Woche',
   radar: '📡 Spannungs-Index aus 6 Themen',
@@ -674,7 +675,12 @@ export function MapPage() {
           <p className="max-w-[17rem] rounded-lg bg-card/90 px-2 py-1 text-[10px] leading-snug text-muted ring-1 ring-border">
             {factMode ? (
               <>
-                Amtliche Daten: {openDataset(mode === 'ausfall' ? 'untstat' : 'sozialindex').publisher} ·{' '}
+                Amtliche Daten:{' '}
+                {
+                  openDataset(mode === 'ausfall' ? 'untstat' : mode === 'sozial' ? 'sozialindex' : 'eckdaten')
+                    .publisher
+                }{' '}
+                ·{' '}
                 <Link to="/quellen" className="underline hover:text-fg">
                   Quellen & Lizenzen
                 </Link>

@@ -33,12 +33,19 @@ export interface AreaFacts {
   /** Ø Sozialindexstufe 1–9 */
   sozial: number | null;
   sozialSchools: number;
+  /** Ø Schüler:innen je Klasse (allgemeinbildende Schulen; nur bis Kreisebene) */
+  klassen: number | null;
+  /** Schüler:innen je Lehrkraft (Personen, inkl. Teilzeit) */
+  proLehrkraft: number | null;
 }
 
 export function areaFacts(facts: FactsFile | undefined, area: FactArea): AreaFacts {
   const cell = facts?.untstat.areas[area.level]?.[area.id];
   const soz = facts?.sozialindex.areas[area.level]?.[area.id];
+  const eck = area.level === 'gemeinde' ? undefined : facts?.eckdaten?.areas[area.level]?.[area.id];
   return {
+    klassen: eck && eck[1] > 0 ? eck[0] / eck[1] : null,
+    proLehrkraft: eck && eck[2] > 0 ? eck[0] / eck[2] : null,
     ausfall: cell ? pct(cell[1], cell[0]) : null,
     regular: cell ? pct(cell[2], cell[0]) : null,
     untstatSchools: cell?.[3] ?? 0,
@@ -102,6 +109,15 @@ export const SOZIAL_STEPS: readonly ScaleStep[] = [
   { min: 6, color: '#134E48', label: 'Ø ab 6' },
 ];
 
+/** Klassengröße: neutrale Bernstein-Skala – größere Klassen sind Kontext, kein Urteil über Schulen. */
+export const KLASSEN_STEPS: readonly ScaleStep[] = [
+  { min: -Infinity, color: '#FEF3C7', label: 'unter 24,5' },
+  { min: 24.5, color: '#FCD34D', label: '24,5–25,5' },
+  { min: 25.5, color: '#F59E0B', label: '25,5–26,5' },
+  { min: 26.5, color: '#B45309', label: '26,5–27,5' },
+  { min: 27.5, color: '#78350F', label: 'ab 27,5' },
+];
+
 function stepExpression(property: string, steps: readonly ScaleStep[]) {
   return [
     'case',
@@ -113,6 +129,7 @@ function stepExpression(property: string, steps: readonly ScaleStep[]) {
 
 export const AUSFALL_FILL_EXPRESSION = stepExpression('ausfall', AUSFALL_STEPS);
 export const SOZIAL_FILL_EXPRESSION = stepExpression('sozial', SOZIAL_STEPS);
+export const KLASSEN_FILL_EXPRESSION = stepExpression('klassen', KLASSEN_STEPS);
 
 export const formatPct = (value: number) =>
   `${value.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;

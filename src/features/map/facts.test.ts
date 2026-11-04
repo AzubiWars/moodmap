@@ -10,6 +10,7 @@ const FACTS: FactsFile = {
     stateByForm: { 'gymnasium:sek1': [1000, 54, 800] },
   },
   sozialindex: { year: '2025/26', areas: { kreis: { '05111': [9, 2] } } },
+  eckdaten: { year: '2025/26', areas: { kreis: { '05111': [500, 20, 50, 700] } } },
 };
 
 describe('areaFacts', () => {
@@ -20,6 +21,8 @@ describe('areaFacts', () => {
       untstatSchools: 2,
       sozial: 4.5,
       sozialSchools: 2,
+      klassen: 25,
+      proLehrkraft: 10,
     });
   });
 
@@ -27,6 +30,7 @@ describe('areaFacts', () => {
     expect(areaFacts(FACTS, { level: 'gemeinde', id: '05111000' })).toMatchObject({
       ausfall: null,
       sozial: null,
+      klassen: null,
     });
   });
 });
