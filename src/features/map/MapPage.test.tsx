@@ -20,9 +20,27 @@ const aggregateCalls: AggregateQuery[] = [];
 const extraVotes = new Map<string, number>();
 let liveCallback: (() => void) | null = null;
 let liveCountCalls = 0;
+/** Teilnahmen der Live-Quelle; `null` = Quellenliste nicht verfügbar */
+let liveSourceN: number | null = null;
 
 vi.mock('@/data', () => ({
   getDataSource: () => ({
+    getDataSources: async () => {
+      if (liveSourceN == null) throw new Error('no sources');
+      return [
+        {
+          id: 'live',
+          label: 'Live-Abgaben',
+          kind: 'live',
+          visibility: 'public',
+          isDefault: true,
+          n: liveSourceN,
+          periodStart: null,
+          periodEnd: null,
+          aggregatedByProvider: false,
+        },
+      ];
+    },
     getAggregates: async (query: AggregateQuery): Promise<AggregateRow[]> => {
       aggregateCalls.push(query);
       const ids =
@@ -578,6 +596,29 @@ describe('release view (#295)', () => {
   it('keeps advanced controls visible while a mode is active via URL', () => {
     openMap('/map?mode=trend');
     expect(screen.getByRole('radio', { name: 'Trend' })).toBeChecked();
+  });
+});
+
+describe('empty live week (#301)', () => {
+  afterEach(() => {
+    liveSourceN = null;
+  });
+
+  it('opens with official data while nobody has voted yet, and Stimmung stays selectable', async () => {
+    liveSourceN = 0;
+    const router = openMap('/map');
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Unterrichtsausfall' })).toBeChecked());
+    expect(screen.queryByText('Noch keine Stimmen diese Woche')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: 'Stimmung' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?mode=mood'));
+    expect(screen.getByRole('radio', { name: 'Stimmung' })).toBeChecked();
+    expect(screen.getByText('Noch keine Stimmen diese Woche')).toBeInTheDocument();
+  });
+
+  it('keeps Stimmung as default once votes exist', async () => {
+    liveSourceN = 120;
+    openMap('/map');
+    await waitFor(() => expect(screen.getByRole('radio', { name: 'Stimmung' })).toBeChecked());
   });
 });
 
