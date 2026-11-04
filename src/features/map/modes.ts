@@ -1,14 +1,22 @@
 import { NO_DATA } from '@/lib/colors';
 
-/** Kartenmodi (PRODUCT_SPEC §3.4 „Kartenmodus“, #21, #42). */
-export type MapMode = 'mood' | 'trend' | 'participation' | 'radar';
+/** Kartenmodi (PRODUCT_SPEC §3.4 „Kartenmodus“, #21, #42); `ausfall`/`sozial` = amtliche Daten (#297). */
+export type MapMode = 'mood' | 'ausfall' | 'sozial' | 'trend' | 'participation' | 'radar';
 
-export const MAP_MODES: { value: MapMode; label: string }[] = [
+export const MAP_MODES: { value: MapMode; label: string; short?: string }[] = [
   { value: 'mood', label: 'Stimmung' },
+  { value: 'ausfall', label: 'Unterrichtsausfall', short: 'Ausfall' },
+  { value: 'sozial', label: 'Sozialindex' },
   { value: 'trend', label: 'Trend' },
   { value: 'participation', label: 'Beteiligung' },
-  { value: 'radar', label: 'Frühwarn-Radar' },
+  { value: 'radar', label: 'Frühwarn-Radar', short: 'Radar' },
 ];
+
+/** Release-Ansicht (#295/#297): Umfrage plus die beiden amtlichen Datensätze, der Rest nur erweitert. */
+export const RELEASE_MODES: readonly MapMode[] = ['mood', 'ausfall', 'sozial'];
+
+/** Modi mit amtlichen Daten statt Umfragewerten. */
+export const isFactMode = (mode: MapMode) => mode === 'ausfall' || mode === 'sozial';
 
 export function parseMapMode(value: string | null): MapMode {
   return MAP_MODES.some((m) => m.value === value) ? (value as MapMode) : 'mood';

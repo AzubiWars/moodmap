@@ -1,15 +1,23 @@
 import { cn } from '@/lib/utils';
 import { MAP_MODES, type MapMode } from './modes';
 
-/** Kartenmodus: Stimmung · Trend · Beteiligung (#21) · Frühwarn-Radar (#42). */
-export function MapModeSwitch({ mode, onChange }: { mode: MapMode; onChange: (mode: MapMode) => void }) {
+/** Kartenmodus: Stimmung · amtliche Daten (#297) · Trend · Beteiligung (#21) · Frühwarn-Radar (#42). */
+export function MapModeSwitch({
+  mode,
+  onChange,
+  modes = MAP_MODES.map((m) => m.value),
+}: {
+  mode: MapMode;
+  onChange: (mode: MapMode) => void;
+  modes?: readonly MapMode[];
+}) {
   return (
     <div
       role="radiogroup"
       aria-label="Kartenmodus"
       className="inline-flex w-fit max-w-full flex-wrap rounded-lg border border-border bg-subtle p-0.5 text-xs"
     >
-      {MAP_MODES.map((m) => (
+      {MAP_MODES.filter((m) => modes.includes(m.value)).map((m) => (
         <button
           key={m.value}
           type="button"
@@ -22,10 +30,10 @@ export function MapModeSwitch({ mode, onChange }: { mode: MapMode; onChange: (mo
             mode === m.value ? 'bg-card text-fg shadow-sm ring-1 ring-border/60' : 'text-muted hover:text-fg',
           )}
         >
-          {/* Auf schmalen Screens „Radar“ statt „Frühwarn-Radar“, damit alle vier Modi in eine Zeile passen */}
-          {m.value === 'radar' ? (
+          {/* Auf schmalen Screens Kurzform („Radar“, „Ausfall“), damit die Modi in eine Zeile passen */}
+          {m.short ? (
             <>
-              <span className="sm:hidden">Radar</span>
+              <span className="sm:hidden">{m.short}</span>
               <span className="hidden sm:inline">{m.label}</span>
             </>
           ) : (

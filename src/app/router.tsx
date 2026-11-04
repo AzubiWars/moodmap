@@ -10,6 +10,7 @@ import { DATA_MODE } from '@/lib/env';
 import { LandingPage } from '@/features/info/LandingPage';
 import { NotFoundPage } from '@/features/info/NotFoundPage';
 import { PrivacyPage } from '@/features/info/PrivacyPage';
+import { SourcesPage } from '@/features/info/SourcesPage';
 import { LazyMapPage } from '@/features/map/LazyMapPage';
 import { MethodologyPage } from '@/features/info/MethodologyPage';
 import { CheckPage } from '@/features/survey/CheckPage';
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: '/massnahmen', element: <ActionCatalogPage /> },
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/methodik', element: <MethodologyPage /> },
+      { path: '/quellen', element: <SourcesPage /> },
       { path: '/dashboard/school', element: <SchoolDashboardPage /> },
       { path: '/dashboard/school/poster', element: <SchoolPosterPage /> },
       { path: '/privacy', element: <PrivacyPage /> },

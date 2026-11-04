@@ -85,7 +85,10 @@ export function ActionCatalogPage() {
         <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">Maßnahmenkatalog</h1>
         <p className="mt-2 max-w-2xl text-base text-muted">
           {ACTION_MEASURES.length} Maßnahmen für Schulen. Jede beruht auf einer nachprüfbaren Quelle und ist
-          danach eingestuft, wie gut ihre Wirkung belegt ist.
+          danach eingestuft, wie gut ihre Wirkung belegt ist.{' '}
+          <Link to="/quellen#studies" className="text-accent underline">
+            Alle Studien auf einen Blick
+          </Link>
         </p>
         <dl className="mt-4 grid gap-2 sm:grid-cols-3" aria-label="Evidenzstufen">
           {(Object.keys(EVIDENCE_INFO) as EvidenceLevel[]).map((level) => (

@@ -566,6 +566,15 @@ describe('release view (#295)', () => {
     expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
   });
 
+  it('offers official data next to the survey without switching to the advanced view (#297)', async () => {
+    const router = openMap('/map');
+    fireEvent.click(screen.getByRole('radio', { name: 'Unterrichtsausfall' }));
+    await waitFor(() => expect(router.state.location.search).toBe('?mode=ausfall'));
+    expect(screen.queryByRole('radio', { name: 'Trend' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Thema: / })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Quellen & Lizenzen' })).toHaveAttribute('href', '/quellen');
+  });
+
   it('keeps advanced controls visible while a mode is active via URL', () => {
     openMap('/map?mode=trend');
     expect(screen.getByRole('radio', { name: 'Trend' })).toBeChecked();

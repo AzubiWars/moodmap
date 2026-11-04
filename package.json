@@ -18,6 +18,7 @@
     "data:seed": "node scripts/generate-seed.ts",
     "data:import": "node scripts/import-survey.ts",
     "data:gemeinden": "node scripts/assign-gemeinden.ts",
+    "data:facts": "node scripts/build-facts.ts",
     "format:check": "prettier --check .",
     "pwa:icons": "npx --yes @vite-pwa/assets-generator@2.0.0",
     "supabase": "npx --yes supabase@2.120.0",
