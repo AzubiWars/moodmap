@@ -238,6 +238,14 @@ export function MapPage() {
   const focusRegbezId = drill.regbez?.properties.id ?? null;
   const scope = schoolScope(drill);
   const filters = parseFilters(searchParams);
+  // Release-Ansicht (#295): nur Stimmung, Thema und Suche. Modi, Live, Filter und Kartenextras
+  // erscheinen mit `?erweitert=1` – oder automatisch, sobald einer davon per URL aktiv ist.
+  const advanced =
+    searchParams.get('erweitert') === '1' ||
+    mode !== 'mood' ||
+    live ||
+    activeFilterCount(filters) > 0 ||
+    searchParams.has('wave');
   // Das 1,1-MB-Verzeichnis erst laden, wenn es gebraucht wird: Suche oder graue Standorte einer Stadt.
   const [directoryRequested, setDirectoryRequested] = useState(false);
   const directoryQuery = useQuery({
@@ -496,19 +504,27 @@ export function MapPage() {
         {modeUsesTopic(mode) && (
           <TopicFilter topics={MAP_TOPICS} selectedSlug={topic.slug} onSelect={selectTopic} />
         )}
-        {/* Mobil: eigene zweite Zeile, damit Thema, Live und Filter oben in eine Zeile passen */}
-        <div className="order-last w-full sm:order-none sm:w-auto">
-          <MapModeSwitch mode={mode} onChange={setMode} />
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          {/* Live nur für Quellen, in die gerade abgestimmt wird */}
-          {source.selected?.kind !== 'import' && <LiveToggle live={live} added={added} onChange={setLive} />}
-          <FilterMenu
-            filters={filters}
-            onChange={setFilters}
-            extra={source.sources.length > 1 || source.unknown ? <SourceSwitcher selection={source} /> : null}
-          />
-        </div>
+        {advanced && (
+          <>
+            {/* Mobil: eigene zweite Zeile, damit Thema, Live und Filter oben in eine Zeile passen */}
+            <div className="order-last w-full sm:order-none sm:w-auto">
+              <MapModeSwitch mode={mode} onChange={setMode} />
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              {/* Live nur für Quellen, in die gerade abgestimmt wird */}
+              {source.selected?.kind !== 'import' && (
+                <LiveToggle live={live} added={added} onChange={setLive} />
+              )}
+              <FilterMenu
+                filters={filters}
+                onChange={setFilters}
+                extra={
+                  source.sources.length > 1 || source.unknown ? <SourceSwitcher selection={source} /> : null
+                }
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className="relative min-h-0 flex-1">
@@ -538,6 +554,7 @@ export function MapPage() {
           }}
           onToggle3d={() => setIs3d((value) => !value)}
           viewResetKey={viewResetKey}
+          extraControls={advanced}
         />
 
         {/* Orientierung: Suche + wo bin ich. Mehr nicht. */}

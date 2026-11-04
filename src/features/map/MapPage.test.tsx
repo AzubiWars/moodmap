@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import type { AggregateQuery, AggregateRow } from '@/types';
 import { useRoleStore } from '@/store/role';
@@ -554,11 +554,29 @@ describe('3D toggle (#153)', () => {
   });
 });
 
+describe('release view (#295)', () => {
+  it('shows only topic and search by default and reveals the rest with ?erweitert=1', () => {
+    openMap('/map');
+    expect(screen.queryByRole('radio', { name: 'Trend' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Live' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Filter' })).not.toBeInTheDocument();
+    cleanup();
+    openMap('/map?erweitert=1');
+    expect(screen.getByRole('radio', { name: 'Trend' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Filter' })).toBeInTheDocument();
+  });
+
+  it('keeps advanced controls visible while a mode is active via URL', () => {
+    openMap('/map?mode=trend');
+    expect(screen.getByRole('radio', { name: 'Trend' })).toBeChecked();
+  });
+});
+
 describe('live mode (#24)', () => {
   it('toggles via ?live=1 without a history entry', async () => {
-    const router = openMap('/map?topic=ai');
+    const router = openMap('/map?topic=ai&erweitert=1');
     fireEvent.click(screen.getByRole('button', { name: 'Live' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&live=1'));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&erweitert=1&live=1'));
     expect(router.state.historyAction).toBe('REPLACE');
     expect(screen.getByRole('button', { name: 'Live' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText('wartet auf Stimmen …')).toBeInTheDocument();
@@ -592,16 +610,16 @@ describe('early-warning radar mode (#42)', () => {
   });
 
   it('switches to radar via ?mode=radar, hides the topic filter and colors regions by tension level', async () => {
-    const router = openMap('/map?topic=ai');
+    const router = openMap('/map?topic=ai&erweitert=1');
     fireEvent.click(screen.getByRole('radio', { name: 'Frühwarn-Radar' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&mode=radar'));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&erweitert=1&mode=radar'));
     expect(screen.queryByRole('button', { name: 'KI im Schulalltag' })).not.toBeInTheDocument();
     await waitFor(() => expect(tensionOf('053')).toBe('talk'));
     expect(tensionOf('051')).toBe('stable');
     expect(screen.getByRole('group', { name: 'Legende Frühwarn-Radar' })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('radio', { name: 'Stimmung' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai'));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&erweitert=1'));
   });
 
   it('shows index, drivers and the publish-answer link in the panel', async () => {
@@ -638,9 +656,9 @@ describe('trend and participation modes (#21)', () => {
     )?.properties as unknown as { tdelta: number; rate: number };
 
   it('keeps the topic filter for trend and passes the delta to the map', async () => {
-    const router = openMap('/map?topic=ai');
+    const router = openMap('/map?topic=ai&erweitert=1');
     fireEvent.click(screen.getByRole('radio', { name: 'Trend' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&mode=trend'));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&erweitert=1&mode=trend'));
     expect(screen.getByRole('button', { name: 'Thema: KI im Schulalltag' })).toBeInTheDocument();
     await waitFor(() => expect(props('053').tdelta).toBe(-6));
     expect(props('051').tdelta).toBe(-999);
@@ -673,15 +691,17 @@ describe('live data labelling (#160)', () => {
 
 describe('more filters (#20)', () => {
   it('applies school form, grade and period to the queries and keeps them in the URL', async () => {
-    const router = openMap('/map?topic=ai');
+    const router = openMap('/map?topic=ai&erweitert=1');
     fireEvent.click(screen.getByRole('button', { name: 'Filter' }));
     const dialog = screen.getByRole('dialog', { name: 'Filter' });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Gymnasium' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&form=gymnasium'));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&erweitert=1&form=gymnasium'));
     fireEvent.click(within(dialog).getByRole('button', { name: 'Klasse 8–10' }));
     fireEvent.click(within(dialog).getByRole('radio', { name: 'Letzte 4 Wochen' }));
     await waitFor(() =>
-      expect(router.state.location.search).toBe('?topic=ai&form=gymnasium&grade=8-10&period=month'),
+      expect(router.state.location.search).toBe(
+        '?topic=ai&erweitert=1&form=gymnasium&grade=8-10&period=month',
+      ),
     );
     await waitFor(() =>
       expect(aggregateCalls).toContainEqual(
@@ -697,7 +717,7 @@ describe('more filters (#20)', () => {
     expect(screen.getByText(/gefiltert/)).toBeInTheDocument();
 
     fireEvent.click(within(dialog).getByRole('button', { name: 'Zurücksetzen' }));
-    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai'));
+    await waitFor(() => expect(router.state.location.search).toBe('?topic=ai&erweitert=1'));
   });
 
   it('hides school markers of other school forms', async () => {
