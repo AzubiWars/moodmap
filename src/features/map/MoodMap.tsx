@@ -64,6 +64,8 @@ interface MoodMapProps {
   onResetView?: () => void;
   /** 2D/3D aus der Kartensteuerung umschalten. */
   onToggle3d?: () => void;
+  /** Vollbild, NRW und 3D zusätzlich zu +/− (nur in der erweiterten Ansicht, #295) */
+  extraControls?: boolean;
   /** Erzwingt einen erneuten Fit auf `focusBounds` (Reset auch ohne Parameterwechsel). */
   viewResetKey?: number;
 }
@@ -234,6 +236,7 @@ export function MoodMap({
   onPitchChange,
   onResetView,
   onToggle3d,
+  extraControls = true,
   viewResetKey = 0,
 }: MoodMapProps) {
   const theme = useTheme();
@@ -766,11 +769,11 @@ export function MoodMap({
           aria-label="Herauszoomen"
           title="Herauszoomen"
           onClick={() => mapRef.current?.getMap().zoomOut()}
-          className="flex size-11 items-center justify-center border-b border-border text-lg font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          className="flex size-11 items-center justify-center border-b border-border text-lg last:border-b-0 font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
         >
           −
         </button>
-        {canFullscreen && (
+        {extraControls && canFullscreen && (
           <button
             type="button"
             aria-label={fullscreen ? 'Vollbild schließen' : 'Vollbild öffnen'}
@@ -785,25 +788,29 @@ export function MoodMap({
             )}
           </button>
         )}
-        <button
-          type="button"
-          aria-label="NRW-Ansicht"
-          title="NRW-Ansicht"
-          onClick={() => onResetView?.()}
-          className="flex min-h-11 items-center justify-center border-b border-border px-2 text-[11px] font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          NRW
-        </button>
-        <button
-          type="button"
-          aria-label="3D-Ansicht umschalten"
-          aria-pressed={is3d}
-          title={is3d ? 'Auf 2D umschalten' : 'Auf 3D umschalten'}
-          onClick={() => onToggle3d?.()}
-          className="flex min-h-11 items-center justify-center px-2 text-[11px] font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          {is3d ? '2D' : '3D'}
-        </button>
+        {extraControls && (
+          <>
+            <button
+              type="button"
+              aria-label="NRW-Ansicht"
+              title="NRW-Ansicht"
+              onClick={() => onResetView?.()}
+              className="flex min-h-11 items-center justify-center border-b border-border px-2 text-[11px] font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              NRW
+            </button>
+            <button
+              type="button"
+              aria-label="3D-Ansicht umschalten"
+              aria-pressed={is3d}
+              title={is3d ? 'Auf 2D umschalten' : 'Auf 3D umschalten'}
+              onClick={() => onToggle3d?.()}
+              className="flex min-h-11 items-center justify-center px-2 text-[11px] font-semibold hover:bg-subtle focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+            >
+              {is3d ? '2D' : '3D'}
+            </button>
+          </>
+        )}
       </div>
       {hover && (
         <Popup

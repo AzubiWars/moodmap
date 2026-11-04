@@ -38,6 +38,13 @@ Status-Werte (setzt der Lead): `🔴 neu` → `🟡 in Arbeit (#issue, #issue)` 
 
 ## Feedback-Einträge
 
+### FB-009 · Erster Release: weniger überladen, Maßnahmen studienbasiert sichtbar
+- **Von:** Team (im Chat beauftragt, durch Claude eingetragen) · **Datum/Zeit:** 2026-11-04
+- **Gerät/Ansicht:** /map, /massnahmen
+- **Feedback:** „Die Website ist sehr overwhelming, da es so viele verschiedene Filter gibt, aber auch im Lageplan so viele Optionen, und das ist zu viel für den ersten Release. Wir sollten das intuitiv machen, und den Maßnahmenkatalog, der aus Studien entstehen soll, also faktisch hinterlegt, soll man auch klarer sehen.“ Radikal vereinfachen, aber studienbasiert – „nichts aus dem Zauberhut“. Vorstellung Di 10.11. in Düsseldorf.
+- **Wichtigkeit:** 🔥
+- **Status:** 🟡 in Arbeit (#295)
+
 ### FB-008 · Mehr Demodaten für alle Standorte
 - **Von:** Louis · **Datum/Zeit:** 2026-10-21 14:30
 - **Gerät/Ansicht:** /map

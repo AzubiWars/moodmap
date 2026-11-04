@@ -1,9 +1,8 @@
-import { BarChart3, Home, Map, MessageCircleHeart } from 'lucide-react';
+import { BarChart3, Home, ListChecks, Map, MessageCircleHeart } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { AppLogo } from '@/components/brand/AppLogo';
 import { DemoBanner } from '@/components/DemoBanner';
 import { LoadingBar } from '@/components/LoadingBar';
-import { RoleSwitcher } from '@/components/RoleSwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { cn } from '@/lib/utils';
 
@@ -12,6 +11,7 @@ const NAV = [
   { to: '/check', label: 'Mood-Check', icon: MessageCircleHeart },
   { to: '/map', label: 'Karte', icon: Map },
   { to: '/dashboard', label: 'Lagebild', icon: BarChart3 },
+  { to: '/massnahmen', label: 'Maßnahmen', icon: ListChecks },
 ] as const;
 
 export function Layout() {
@@ -42,10 +42,8 @@ export function Layout() {
               </NavLink>
             ))}
           </nav>
-          {/* Rollen-Umschalter (#30) und Theme-Toggle (#35) */}
+          {/* Theme-Toggle (#35). Der Rollen-Umschalter (#30) lebt seit #295 nur noch auf /demo. */}
           <div className="flex items-center gap-2" data-slot="header-actions">
-            {/* Eine kleine Auswahl statt drei großer Knöpfe: die meisten bleiben Schüler:in */}
-            <RoleSwitcher variant="compact" />
             <ThemeToggle />
           </div>
         </div>
@@ -56,7 +54,7 @@ export function Layout() {
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-5 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
         aria-label="Hauptnavigation"
       >
         {NAV.map(({ to, label, icon: Icon }) => (

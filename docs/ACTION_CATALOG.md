@@ -4,7 +4,8 @@ Der Maßnahmenkatalog übersetzt die Moodmap-Themen in konkrete Handlungsoptione
 
 - **In der App:** `/massnahmen`
 - **Datenquelle:** `src/features/actions/catalog.ts`
-- **Filter:** Thema, Zielgruppe, Evidenzstufe, Freitextsuche
+- **Filter:** Thema und „Alle / nur A + B“ – bewusst schlank (#295). Sortierung immer A → B → C.
+- **Auf der Karte:** Das Detail-Panel zeigt zur größten Baustelle die zwei passendsten Maßnahmen mit Evidenzstufe und Kurzbeleg (`measuresForTopic`).
 - **Ziel:** Schulen bekommen nach der Moodmap-Auswertung einen schnellen, nachvollziehbaren Einstieg in Maßnahmen – inklusive Aufwand, Zeitrahmen, Indikatoren und Quellen.
 
 ## Evidenzsystematik
@@ -42,6 +43,9 @@ Neue Maßnahmen brauchen mindestens:
 - 3–5 Umsetzungsschritte,
 - messbare Indikatoren,
 - eine Evidenzeinstufung mit Begründung,
-- mindestens eine belastbare Quelle.
+- mindestens eine belastbare Quelle mit Kurzbeleg (`short`), Studientyp (`kind`) und – wo vorhanden – DOI.
+- Stufe A nur mit mindestens einer Meta-Analyse, einem Review oder einer Evidenz-Synthese (Test in `catalog.test.ts`).
+
+DOIs werden gegen Crossref geprüft (`https://api.crossref.org/works/<doi>`: Titel und Jahr müssen zur Zitation passen). Audit vom 2026-11-04 (#295): falsche DOI Beland & Murphy korrigiert, fehlende DOI Wargocki & Wyon ergänzt, themenfremde Quellen für Unterrichtsausfall und Berufsorientierung ersetzt (Miller et al. 2008; OECD 2021), Handy-Regeln um Goodyear et al. 2025 ergänzt und von B auf C gesenkt, Partizipation um den Review Mager & Nowak 2012 ergänzt.
 
 Die Quellen liegen direkt am Eintrag in `catalog.ts`. Wenn neue Studien auftauchen, wird die Evidenzstufe angepasst – nicht die Maßnahme „schöngeredet“.

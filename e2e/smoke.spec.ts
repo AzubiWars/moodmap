@@ -11,6 +11,12 @@ test('Mood-Check startet und Karte lädt', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Moodmap NRW' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Thema: Gesamt-Mood' })).toBeVisible();
   await expect(page.locator('.maplibregl-canvas')).toBeVisible();
+  // Release-Ansicht (#295): ohne ?erweitert=1 keine Modi, kein Filter, keine Kartenextras.
+  await expect(page.getByRole('radio', { name: 'Trend' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'NRW-Ansicht' })).toHaveCount(0);
+
+  await page.goto('/map?erweitert=1');
+  await expect(page.locator('.maplibregl-canvas')).toBeVisible();
   await page.getByRole('button', { name: 'Herauszoomen' }).click();
   await page.getByRole('button', { name: 'Herauszoomen' }).click();
   await page.getByRole('button', { name: 'NRW-Ansicht' }).click();

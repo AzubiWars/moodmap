@@ -16,7 +16,26 @@ export type EvidenceLevel = 'A' | 'B' | 'C';
 export type Effort = 'niedrig' | 'mittel' | 'hoch';
 export type Audience = 'schulleitung' | 'lehrkraefte' | 'schueler:innen' | 'schultraeger';
 
+/** Studientyp, damit sofort sichtbar ist, worauf eine Maßnahme beruht. */
+export type SourceKind =
+  'meta' | 'review' | 'synthesis' | 'study' | 'survey' | 'guideline' | 'report' | 'concept' | 'law';
+
+export const SOURCE_KIND_LABELS: Record<SourceKind, string> = {
+  meta: 'Meta-Analyse',
+  review: 'Review',
+  synthesis: 'Evidenz-Synthese',
+  study: 'Einzelstudie',
+  survey: 'Large-Scale-Studie',
+  guideline: 'Leitlinie',
+  report: 'Bericht',
+  concept: 'Fachartikel',
+  law: 'Rechtsrahmen',
+};
+
 export interface CatalogSource {
+  /** Kurzbeleg für Karten, z. B. „Durlak et al. 2011“ */
+  short: string;
+  kind: SourceKind;
   citation: string;
   doi?: string;
   url?: string;
@@ -73,160 +92,248 @@ export const EFFORT_LABELS: Record<Effort, string> = {
 };
 
 const HATTIE_FEEDBACK: CatalogSource = {
+  short: 'Hattie & Timperley 2007',
+  kind: 'review',
   citation:
     'Hattie, J., & Timperley, H. (2007). The power of feedback. Review of Educational Research, 77(1), 81–112.',
   doi: '10.3102/003465430298487',
 };
 const BLACK_WILIAM: CatalogSource = {
+  short: 'Black & Wiliam 1998',
+  kind: 'review',
   citation:
     'Black, P., & Wiliam, D. (1998). Assessment and classroom learning. Assessment in Education, 5(1), 7–74.',
   doi: '10.1080/0969595980050102',
 };
 const DIGNATH: CatalogSource = {
+  short: 'Dignath & Büttner 2008',
+  kind: 'meta',
   citation:
     'Dignath, C., & Büttner, G. (2008). Components of fostering self-regulated learning among students. Metacognition and Learning, 3, 231–264.',
   doi: '10.1007/s11409-008-9029-x',
 };
 const EEF_TOOLKIT: CatalogSource = {
+  short: 'EEF Toolkit',
+  kind: 'synthesis',
   citation:
     'Education Endowment Foundation. Teaching and Learning Toolkit (laufend aktualisierte Übersicht).',
   url: 'https://educationendowmentfoundation.org.uk/education-evidence/teaching-learning-toolkit',
 };
 const NICKOW: CatalogSource = {
+  short: 'Nickow et al. 2020',
+  kind: 'meta',
   citation:
     'Nickow, A., Oreopoulos, P., & Quan, V. (2020). The impressive effects of tutoring on preK-12 learning. NBER Working Paper 27476.',
   doi: '10.3386/w27476',
 };
 const VON_DER_EMBSE: CatalogSource = {
+  short: 'von der Embse et al. 2018',
+  kind: 'meta',
   citation:
     'von der Embse, N., Jester, D., Roy, D., & Post, J. (2018). Test anxiety effects, predictors, and correlates: A 30-year meta-analytic review. Journal of Affective Disorders, 227, 483–493.',
   doi: '10.1016/j.jad.2017.11.048',
 };
 const DONNELLY: CatalogSource = {
+  short: 'Donnelly et al. 2016',
+  kind: 'review',
   citation:
     'Donnelly, J. E., et al. (2016). Physical activity, fitness, cognitive function, and academic achievement in children: A systematic review. Medicine & Science in Sports & Exercise, 48(6), 1197–1222.',
   doi: '10.1249/MSS.0000000000000901',
 };
 const WHO_ACTIVITY: CatalogSource = {
+  short: 'WHO 2020',
+  kind: 'guideline',
   citation: 'World Health Organization (2020). WHO guidelines on physical activity and sedentary behaviour.',
   url: 'https://www.who.int/publications/i/item/9789240015128',
 };
 const DURLAK: CatalogSource = {
+  short: 'Durlak et al. 2011',
+  kind: 'meta',
   citation:
     'Durlak, J. A., Weissberg, R. P., Dymnicki, A. B., Taylor, R. D., & Schellinger, K. B. (2011). The impact of enhancing students’ social and emotional learning: A meta-analysis of school-based universal interventions. Child Development, 82(1), 405–432.',
   doi: '10.1111/j.1467-8624.2010.01564.x',
 };
 const TAYLOR: CatalogSource = {
+  short: 'Taylor et al. 2017',
+  kind: 'meta',
   citation:
     'Taylor, R. D., Oberle, E., Durlak, J. A., & Weissberg, R. P. (2017). Promoting positive youth development through school-based social and emotional learning interventions: A meta-analysis of follow-up effects. Child Development, 88(4), 1156–1171.',
   doi: '10.1111/cdev.12864',
 };
 const WHO_SCHOOLS: CatalogSource = {
+  short: 'WHO & UNESCO 2021',
+  kind: 'guideline',
   citation:
     'World Health Organization & UNESCO (2021). Making every school a health-promoting school: global standards and indicators.',
   url: 'https://www.who.int/initiatives/making-every-school-a-health-promoting-school',
 };
 const TTOFI: CatalogSource = {
+  short: 'Ttofi & Farrington 2011',
+  kind: 'meta',
   citation:
     'Ttofi, M. M., & Farrington, D. P. (2011). Effectiveness of school-based programs to reduce bullying: A systematic and meta-analytic review. Journal of Experimental Criminology, 7, 27–56.',
   doi: '10.1007/s11292-010-9109-1',
 };
 const GAFFNEY: CatalogSource = {
+  short: 'Gaffney et al. 2021',
+  kind: 'meta',
   citation:
     'Gaffney, H., Ttofi, M. M., & Farrington, D. P. (2021). Effectiveness of school-based programs to reduce bullying perpetration and victimization: An updated systematic review and meta-analysis. Campbell Systematic Reviews, 17(2), e1143.',
   doi: '10.1002/cl2.1143',
 };
 const UNESCO_BULLYING: CatalogSource = {
+  short: 'UNESCO 2017',
+  kind: 'report',
   citation: 'UNESCO (2017). School violence and bullying: Global status report.',
   url: 'https://unesdoc.unesco.org/ark:/48223/pf0000246970',
 };
 const ROORDA: CatalogSource = {
+  short: 'Roorda et al. 2011',
+  kind: 'meta',
   citation:
     'Roorda, D. L., Koomen, H. M. Y., Spilt, J. L., & Oort, F. J. (2011). The influence of affective teacher–student relationships on students’ school engagement and achievement: A meta-analytic approach. Review of Educational Research, 81(4), 493–529.',
   doi: '10.3102/0034654311421793',
 };
 const HATTIE_BOOK: CatalogSource = {
+  short: 'Hattie 2009',
+  kind: 'synthesis',
   citation:
     'Hattie, J. (2009). Visible Learning: A Synthesis of Over 800 Meta-Analyses Relating to Achievement. Routledge.',
 };
 const KYNDT: CatalogSource = {
+  short: 'Kyndt et al. 2013',
+  kind: 'meta',
   citation:
     'Kyndt, E., Raes, E., Lismont, B., Timmers, F., Cascallar, E., & Dochy, F. (2013). A meta-analysis of the effects of face-to-face cooperative learning. Educational Research Review, 10, 133–149.',
   doi: '10.1016/j.edurev.2013.02.002',
 };
 const LUNDY: CatalogSource = {
+  short: 'Lundy 2007',
+  kind: 'concept',
   citation:
     'Lundy, L. (2007). “Voice is not enough”: Conceptualising Article 12 of the United Nations Convention on the Rights of the Child. British Educational Research Journal, 33(6), 927–942.',
   doi: '10.1080/01411920701657033',
 };
+const MAGER_NOWAK: CatalogSource = {
+  short: 'Mager & Nowak 2012',
+  kind: 'review',
+  citation:
+    'Mager, U., & Nowak, P. (2012). Effects of student participation in decision making at school: A systematic review and synthesis of empirical research. Educational Research Review, 7(1), 38–61.',
+  doi: '10.1016/j.edurev.2011.11.001',
+};
 const UN_CRC: CatalogSource = {
+  short: 'UN-Kinderrechtskonvention Art. 12',
+  kind: 'law',
   citation:
     'Vereinte Nationen (1989). Übereinkommen über die Rechte des Kindes, Artikel 12 (Berücksichtigung des Kindeswillens).',
   url: 'https://www.ohchr.org/en/instruments-mechanisms/instruments/convention-rights-child',
 };
 const OECD_PISA: CatalogSource = {
+  short: 'OECD PISA 2018',
+  kind: 'survey',
   citation:
     'OECD (2019). PISA 2018 Results (Volume III): What School Life Means for Students’ Lives. OECD Publishing.',
   doi: '10.1787/acd78851-en',
 };
 const EEF_DIGITAL: CatalogSource = {
+  short: 'EEF Toolkit',
+  kind: 'synthesis',
   citation: 'Education Endowment Foundation. Digital Technology (Teaching and Learning Toolkit).',
   url: 'https://educationendowmentfoundation.org.uk/education-evidence/teaching-learning-toolkit/digital-technology',
 };
 const KMK_DIGITAL: CatalogSource = {
+  short: 'KMK 2021',
+  kind: 'guideline',
   citation:
     'Kultusministerkonferenz (2021). Bildung in der digitalen Welt: Strategie der Kultusministerkonferenz.',
   url: 'https://www.kmk.org/themen/bildung-in-der-digitalen-welt/strategie-bildung-in-der-digitalen-welt.html',
 };
 const UNESCO_AI: CatalogSource = {
+  short: 'UNESCO 2023',
+  kind: 'guideline',
   citation: 'UNESCO (2023). Guidance for generative AI in education and research. Paris: UNESCO.',
   url: 'https://unesdoc.unesco.org/ark:/48223/pf0000386693',
 };
 const EC_AI: CatalogSource = {
+  short: 'EU-Kommission 2022',
+  kind: 'guideline',
   citation:
     'Europäische Kommission (2022). Ethical guidelines on the use of artificial intelligence and data in teaching and learning for educators.',
 };
 const UNICEF_WASH: CatalogSource = {
+  short: 'UNICEF & WHO 2018',
+  kind: 'report',
   citation:
     'UNICEF & WHO (2018). Drinking water, sanitation and hygiene in schools: Global baseline report 2018. JMP.',
   url: 'https://data.unicef.org/resources/wash-in-schools',
 };
 const WHO_SANITATION: CatalogSource = {
-  citation: 'World Health Organization (2021). WHO guidelines on sanitation and health.',
+  short: 'WHO 2018',
+  kind: 'guideline',
+  citation: 'World Health Organization (2018). Guidelines on sanitation and health.',
   url: 'https://www.who.int/publications/i/item/9789241514705',
 };
 const HAVERINEN: CatalogSource = {
+  short: 'Haverinen-Shaughnessy et al. 2011',
+  kind: 'study',
   citation:
     'Haverinen-Shaughnessy, U., Moschandreas, D. J., & Shaughnessy, R. J. (2011). Association between substandard classroom ventilation rates and students’ academic achievement. Indoor Air, 21(2), 121–131.',
   doi: '10.1111/j.1600-0668.2010.00686.x',
 };
 const SHIELD: CatalogSource = {
+  short: 'Shield & Dockrell 2008',
+  kind: 'study',
   citation:
     'Shield, B. M., & Dockrell, J. E. (2008). The effects of environmental and classroom noise on the academic attainments of primary school children. Journal of the Acoustical Society of America, 123(1), 133–144.',
   doi: '10.1121/1.2812596',
 };
 const WARGOCKI: CatalogSource = {
+  short: 'Wargocki & Wyon 2007',
+  kind: 'study',
   citation:
     'Wargocki, P., & Wyon, D. P. (2007). The effects of moderately raised classroom temperatures and classroom ventilation rate on the performance of schoolwork by children. HVAC&R Research, 13(2), 193–220.',
+  doi: '10.1080/10789669.2007.10390951',
 };
 const WHO_FOOD: CatalogSource = {
+  short: 'WHO 2021',
+  kind: 'review',
   citation:
     'World Health Organization (2021). Implementing school food and nutrition policies: A review of contextual factors.',
   url: 'https://www.who.int/publications/i/item/9789240035072',
 };
 const FAO_FOOD: CatalogSource = {
+  short: 'FAO 2019',
+  kind: 'guideline',
   citation: 'FAO (2019). School food and nutrition framework. Rome: FAO.',
   url: 'https://www.fao.org/3/caaf20en/caaf20en.pdf',
 };
 const BELAND: CatalogSource = {
+  short: 'Beland & Murphy 2016',
+  kind: 'study',
   citation:
     'Beland, L.-P., & Murphy, R. (2016). Ill communication: Technology, distraction & student performance. Labour Economics, 41, 61–76.',
-  doi: '10.1016/j.labeco.2016.06.004',
+  doi: '10.1016/j.labeco.2016.04.004',
 };
-const OECD_CANCELLATION: CatalogSource = {
+const MILLER: CatalogSource = {
+  short: 'Miller et al. 2008',
+  kind: 'study',
   citation:
-    'OECD (2020). Education responses to COVID-19: Embracing digital learning and online collaboration.',
-  url: 'https://www.oecd.org/coronavirus/policy-responses/education-responses-to-covid-19-embracing-digital-learning-and-online-collaboration-d75eb0e8/',
+    'Miller, R. T., Murnane, R. J., & Willett, J. B. (2008). Do teacher absences impact student achievement? Longitudinal evidence from one urban school district. Educational Evaluation and Policy Analysis, 30(2), 181–200.',
+  doi: '10.3102/0162373708318019',
+};
+const GOODYEAR: CatalogSource = {
+  short: 'Goodyear et al. 2025',
+  kind: 'study',
+  citation:
+    'Goodyear, V. A., Randhawa, A., Adab, P., et al. (2025). School phone policies and their association with mental wellbeing, phone use, and social media use (SMART Schools): A cross-sectional observational study. The Lancet Regional Health – Europe, 51, 101211.',
+  doi: '10.1016/j.lanepe.2025.101211',
+};
+const OECD_CAREER: CatalogSource = {
+  short: 'OECD 2021',
+  kind: 'review',
+  citation:
+    'Covacevich, C., Mann, A., Santos, C., & Champaud, J. (2021). Indicators of teenage career readiness: An analysis of longitudinal data from eight countries. OECD Education Working Papers, No. 258.',
+  doi: '10.1787/cec854f8-en',
 };
 
 export const ACTION_MEASURES: readonly ActionMeasure[] = [
@@ -468,7 +575,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
     timeframe: 'laufend',
     evidence: 'C',
     evidenceNote:
-      'Partizipation ist kinderrechtlich verankert und plausibel wirksam; die empirische Wirkung hängt stark von echter Entscheidungsmacht und Verlässlichkeit ab.',
+      'Partizipation ist kinderrechtlich verankert (Art. 12 UN-KRK). Ein systematischer Review (Mager & Nowak 2012) findet überwiegend positive Effekte, u. a. auf Selbstwirksamkeit und das Verhältnis zu Erwachsenen – die Studien sind aber meist klein und nicht experimentell, daher Stufe C.',
     steps: [
       'Wöchentlichen festen Termin im Stundenplan verankern.',
       'Rotierende Rollen (Moderation, Protokoll, Zeit) einführen.',
@@ -480,7 +587,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
       'Umgesetzte Beschlüsse',
       'Beteiligung und Zufriedenheit im Moodmap-Thema „Mitbestimmung“',
     ],
-    sources: [LUNDY, UN_CRC],
+    sources: [MAGER_NOWAK, LUNDY, UN_CRC],
   },
   {
     id: 'feedback-loop',
@@ -505,7 +612,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
       'Sichtbarkeit der Rückmeldung',
       'Voice-Score im Moodmap-Thema „Gehört werden“',
     ],
-    sources: [LUNDY, OECD_PISA],
+    sources: [MAGER_NOWAK, LUNDY, OECD_PISA],
   },
   {
     id: 'digital',
@@ -641,9 +748,9 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
     audience: ['schulleitung', 'lehrkraefte'],
     effort: 'mittel',
     timeframe: '8 Wochen',
-    evidence: 'B',
+    evidence: 'C',
     evidenceNote:
-      'Studien zu Handyverboten zeigen gemischte, teils positive Effekte auf Leistung und Konzentration; entscheidend sind Konsistenz und pädagogische Begleitung.',
+      'Die Befundlage ist widersprüchlich: Beland & Murphy finden nach Handyverboten bessere Leistungen, die SMART-Schools-Studie (Goodyear et al. 2025) findet keinen Zusammenhang zwischen restriktiven Regeln und Wohlbefinden. Klare Regeln sind daher Praxisstandard, kein belegtes Allheilmittel.',
     steps: [
       'Regeln nach Zonen und Zeiten definieren (Unterricht, Pausen, Mensa).',
       'Regeln einheitlich und verhältnismäßig umsetzen.',
@@ -655,7 +762,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
       'Medienkompetenz-Selbsteinschätzung',
       'Stress-/Wohlbefindens-Score',
     ],
-    sources: [BELAND, KMK_DIGITAL],
+    sources: [BELAND, GOODYEAR, KMK_DIGITAL],
   },
   {
     id: 'career',
@@ -668,7 +775,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
     timeframe: '1 Schuljahr',
     evidence: 'C',
     evidenceNote:
-      'Die Befundlage zu Berufsorientierung ist positiv, aber heterogen; Praktika und Mentoring sind vielversprechend, ihre Wirkung hängt von Qualität und Anschluss ab.',
+      'Längsschnittdaten aus acht Ländern zeigen: Wer als Jugendliche:r Berufe erkundet und erlebt (Praktika, Gespräche mit Berufstätigen), ist später seltener arbeitslos. Das sind Zusammenhänge, keine kontrollierten Wirkungsstudien.',
     steps: [
       'Berufsorientierung spiralcurricular ab Klasse 8 aufbauen.',
       'Praktika, Berufsbörsen und Alumni-Netzwerke mit Unterricht verbinden.',
@@ -680,7 +787,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
       'Klarheit über den weiteren Bildungsweg',
       'Zufriedenheit im Moodmap-Thema „Zukunft & Berufsorientierung“',
     ],
-    sources: [OECD_PISA],
+    sources: [OECD_CAREER],
   },
   {
     id: 'cancellation',
@@ -693,7 +800,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
     timeframe: 'laufend',
     evidence: 'C',
     evidenceNote:
-      'Für Vertretungsplanung gibt es kaum kontrollierte Studien. Die Maßnahme ist ein organisatorischer Praxisstandard, der Lernzeit und Planbarkeit sichern soll.',
+      'Eine Längsschnittstudie zeigt, dass Fehltage von Lehrkräften die Mathematikleistung messbar senken (Miller et al. 2008). Zur Vertretungsplanung selbst gibt es kaum kontrollierte Studien – sie ist organisatorischer Praxisstandard.',
     steps: [
       'Vertretungsplan früh und digital veröffentlichen.',
       'Kernfächer priorisieren und Ausfallmuster auswerten.',
@@ -705,7 +812,7 @@ export const ACTION_MEASURES: readonly ActionMeasure[] = [
       'Anteil der Vertretungen mit klarer Aufgabe',
       'Lernfortschritt in Kernfächern',
     ],
-    sources: [OECD_CANCELLATION],
+    sources: [MILLER],
   },
 ];
 
@@ -742,4 +849,33 @@ export function filterMeasures(measures: readonly ActionMeasure[], filters: Cata
     );
     return query.split(/\s+/).every((word) => haystack.includes(word));
   });
+}
+
+const EVIDENCE_RANK: Record<EvidenceLevel, number> = { A: 0, B: 1, C: 2 };
+
+/** Katalog sortiert: am besten belegte Maßnahmen zuerst (A → C), sonst Katalogreihenfolge. */
+export function byEvidence(measures: readonly ActionMeasure[]): ActionMeasure[] {
+  return [...measures].sort((a, b) => EVIDENCE_RANK[a.evidence] - EVIDENCE_RANK[b.evidence]);
+}
+
+/**
+ * Passende Maßnahmen zu einem Thema für das Detail-Panel: Maßnahmen, die das Thema als Hauptthema
+ * führen, vor solchen, die es nur mit abdecken; innerhalb davon nach Evidenz.
+ */
+export function measuresForTopic(topic: string, limit = 2): ActionMeasure[] {
+  return ACTION_MEASURES.filter((measure) => measure.topics.includes(topic))
+    .map((measure, index) => ({ measure, index }))
+    .sort(
+      (a, b) =>
+        a.measure.topics.indexOf(topic) - b.measure.topics.indexOf(topic) ||
+        EVIDENCE_RANK[a.measure.evidence] - EVIDENCE_RANK[b.measure.evidence] ||
+        a.index - b.index,
+    )
+    .slice(0, limit)
+    .map(({ measure }) => measure);
+}
+
+export function sourceHref(source: { doi?: string; url?: string }): string | null {
+  if (source.doi) return `https://doi.org/${source.doi}`;
+  return source.url ?? null;
 }

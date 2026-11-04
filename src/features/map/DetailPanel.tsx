@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { MoodBadge } from '@/components/MoodBadge';
 import { ScoreBar } from '@/components/ScoreBar';
 import { TOPICS } from '@/data/topics';
+import { measuresForTopic } from '@/features/actions/catalog';
+import { EvidenceBadge, SourceLine } from '@/features/actions/Evidence';
 import { cn } from '@/lib/utils';
 import { useRoleStore } from '@/store/role';
 import type { AggregateRow, TensionRow } from '@/types';
@@ -137,7 +139,8 @@ export function DetailPanel({ drill, mode = 'mood', filters }: DetailPanelProps)
       {!expanded && !radar && gaps.weaknesses[0] && (
         <p className="px-4 pb-3 text-xs text-fg md:hidden">
           Größte Baustelle: {gaps.weaknesses[0].icon} {gaps.weaknesses[0].title} (
-          {formatDelta(gaps.weaknesses[0].delta)} vs. NRW)
+          {formatDelta(gaps.weaknesses[0].delta)} vs. NRW) ·{' '}
+          <span className="font-semibold text-accent">Was hilft? Aufklappen</span>
         </p>
       )}
       <div
@@ -284,15 +287,16 @@ function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) 
         items={gaps.weaknesses}
         empty="Keine Baustellen – alle Themen liegen auf oder über NRW-Niveau."
       />
+      {gaps.weaknesses[0] && <WhatHelps topic={gaps.weaknesses[0]} />}
       <GapList
         title="Top 3 Stärken"
         icon={<TrendingUp aria-hidden className="size-4 text-accent" />}
         items={gaps.strengths}
         empty="Kein Thema liegt deutlich über dem NRW-Schnitt."
       />
-      <section>
-        <h3 className="mb-2 text-sm font-semibold">Alle Themen vs. NRW</h3>
-        <ul className="space-y-2.5">
+      <details className="group">
+        <summary className="cursor-pointer text-sm font-semibold">Alle Themen vs. NRW</summary>
+        <ul className="mt-2 space-y-2.5">
           {gaps.topics.map((topic) => (
             <li key={topic.slug}>
               <div className="mb-1 flex items-baseline justify-between gap-2 text-xs">
@@ -312,17 +316,40 @@ function GapDetails({ gaps, hasData }: { gaps: GapAnalysis; hasData: boolean }) 
         <p className="mt-2 text-[11px] text-muted">
           Strich = NRW-Durchschnitt. Themen mit weniger als 10 Stimmen werden nicht ausgewertet.
         </p>
-      </section>
-
-      <Link
-        to={gaps.weaknesses[0] ? `/massnahmen?topic=${gaps.weaknesses[0].slug}` : '/massnahmen'}
-        className="inline-flex min-h-11 w-full items-center justify-center rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-fg"
-      >
-        {gaps.weaknesses[0]
-          ? `Maßnahmen zu „${gaps.weaknesses[0].title}“ ansehen`
-          : 'Maßnahmenkatalog ansehen'}
-      </Link>
+      </details>
     </div>
+  );
+}
+
+/** Zur größten Baustelle direkt die am besten belegten Maßnahmen aus dem Katalog – mit Quelle. */
+function WhatHelps({ topic }: { topic: TopicGap }) {
+  const measures = measuresForTopic(topic.slug);
+  if (measures.length === 0) return null;
+  return (
+    <section aria-label={`Was hilft bei ${topic.title}`} className="rounded-xl bg-accent/10 p-3">
+      <h3 className="text-sm font-semibold">Was hilft bei „{topic.title}“?</h3>
+      <p className="text-[11px] text-muted">Aus dem Maßnahmenkatalog, am besten belegte zuerst</p>
+      <ul className="mt-2 space-y-2">
+        {measures.map((measure) => (
+          <li key={measure.id} className="rounded-lg bg-card p-2.5 ring-1 ring-border">
+            <Link
+              to={`/massnahmen?topic=${topic.slug}#${measure.id}`}
+              className="flex items-start gap-2 text-sm font-semibold hover:underline"
+            >
+              <EvidenceBadge level={measure.evidence} />
+              {measure.title}
+            </Link>
+            <SourceLine sources={measure.sources.slice(0, 2)} className="mt-1.5 pl-8 text-[11px]" />
+          </li>
+        ))}
+      </ul>
+      <Link
+        to={`/massnahmen?topic=${topic.slug}`}
+        className="mt-2 inline-flex min-h-9 items-center text-xs font-semibold text-accent underline"
+      >
+        Alle Maßnahmen zu diesem Thema
+      </Link>
+    </section>
   );
 }
 
