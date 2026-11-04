@@ -214,7 +214,11 @@ export function MapPage() {
   const requestedTopic = searchParams.get('topic');
   const topic = MAP_TOPICS.find((entry) => entry.slug === requestedTopic) ?? MAP_TOPICS[0]!;
   const topicSlug = topic.slug as MapTopic;
-  const mode = parseMapMode(searchParams.get('mode'));
+  // Datenquelle (#272) früh, damit eine leere Live-Woche direkt mit amtlichen Daten startet (#301)
+  const source = useSelectedSource();
+  const noVotesYet = source.selected?.kind === 'live' && source.selected.n === 0;
+  const defaultMode: MapMode = noVotesYet ? 'ausfall' : 'mood';
+  const mode = searchParams.has('mode') ? parseMapMode(searchParams.get('mode')) : defaultMode;
   const radar = mode === 'radar';
   const factMode = isFactMode(mode);
   const factsQuery = useFacts(factMode);
@@ -313,7 +317,6 @@ export function MapPage() {
   // Weitere Filter (#20): Schulform, Stufe, Zeitraum → an alle Abfragen außer dem Live-Zähler
   const currentWave = useCurrentWave();
   // Datenquelle (#272): Import-Befragungen beziehen Zeitachse und Zeiträume auf ihre letzte Woche
-  const source = useSelectedSource();
   const anchor = anchorWave(source.selected, currentWave.data?.id);
   // Zeitachse (#34): eine gewählte Woche überschreibt den Zeitraum-Filter
   const schoolYearWaves = periodWaveIds('year', anchor) ?? [];
@@ -468,7 +471,7 @@ export function MapPage() {
     setSearchParams(
       (previous) => {
         const params = new URLSearchParams(previous);
-        if (next === 'mood') params.delete('mode');
+        if (next === defaultMode) params.delete('mode');
         else params.set('mode', next);
         return params;
       },
@@ -627,20 +630,23 @@ export function MapPage() {
             <p className="px-1 text-xs text-muted">{levelHint(drill, scope != null, factMode)}</p>
             {source.unknown && <SourceSwitcher selection={source} />}
             {/* Leere Woche: einladen statt nur grau zeigen */}
-            {source.selected && source.selected.n === 0 && source.selected.kind !== 'import' && (
-              <div className="rounded-xl bg-accent/10 p-3 text-sm" role="status">
-                <p className="font-semibold">Noch keine Stimmen diese Woche</p>
-                <p className="mt-0.5 text-xs text-muted">
-                  Die Karte färbt sich, sobald pro Region mindestens 10 Schüler:innen mitgemacht haben.
-                </p>
-                <Link
-                  to="/check"
-                  className="mt-2 inline-flex min-h-9 items-center rounded-lg bg-primary px-3 text-xs font-semibold text-primary-fg"
-                >
-                  Mood-Check machen
-                </Link>
-              </div>
-            )}
+            {mode === 'mood' &&
+              source.selected &&
+              source.selected.n === 0 &&
+              source.selected.kind !== 'import' && (
+                <div className="rounded-xl bg-accent/10 p-3 text-sm" role="status">
+                  <p className="font-semibold">Noch keine Stimmen diese Woche</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    Die Karte färbt sich, sobald pro Region mindestens 10 Schüler:innen mitgemacht haben.
+                  </p>
+                  <Link
+                    to="/check"
+                    className="mt-2 inline-flex min-h-9 items-center rounded-lg bg-primary px-3 text-xs font-semibold text-primary-fg"
+                  >
+                    Mood-Check machen
+                  </Link>
+                </div>
+              )}
             {/* Für Screenreader: was die Karte gerade zeigt */}
             <p className="sr-only" aria-live="polite">
               {MODE_CAPTION[mode] ?? `${topic.icon} ${topic.title}`} ·{' '}
