@@ -1,7 +1,10 @@
 import { MapPin, Search, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import type { School } from '@/types';
+import { cn } from '@/lib/utils';
+import { type School, SCHOOL_FORMS } from '@/types';
+import type { MapFilters } from './filters';
 import type { RegionCollection, RegionFeature } from './geo';
+import { SCHOOL_FORM_LABELS } from './schools';
 import { MIN_SEARCH_LENGTH, type MapSearchResult, searchMap } from './searchCatalog';
 
 interface MapSearchProps {
@@ -9,6 +12,9 @@ interface MapSearchProps {
   directorySchools?: readonly School[];
   kreise?: RegionCollection;
   regbez?: RegionCollection;
+  /** Aktive Kartenfilter – sie gelten auch für die Trefferliste (#303). */
+  filters?: MapFilters;
+  onChangeFilters?: (filters: MapFilters) => void;
   onSelectSchool: (school: School) => void;
   onSelectDirectorySchool?: (school: School) => void;
   /** Lädt das große Schulverzeichnis erst beim ersten Suchen. */
@@ -34,6 +40,8 @@ export function MapSearch({
   directorySchools,
   kreise,
   regbez,
+  filters,
+  onChangeFilters,
   onSelectSchool,
   onSelectDirectorySchool,
   onRequestDirectory,
@@ -48,11 +56,25 @@ export function MapSearch({
   const listId = useId();
 
   const results = useMemo(
-    () => searchMap(query, { schools, directorySchools, kreise, regbez }),
-    [query, schools, directorySchools, kreise, regbez],
+    () =>
+      searchMap(query, {
+        schools,
+        directorySchools,
+        kreise,
+        regbez,
+        filters: { schoolForm: filters?.schoolForm, directory: filters?.directory },
+      }),
+    [query, schools, directorySchools, kreise, regbez, filters?.schoolForm, filters?.directory],
   );
   const tooShort = query.trim().length > 0 && query.trim().length < MIN_SEARCH_LENGTH;
   const showResults = open && query.trim().length >= MIN_SEARCH_LENGTH;
+  const activeSearchFilters = (filters?.schoolForm.length ?? 0) + (filters && !filters.directory ? 1 : 0);
+  const canEditFilters = Boolean(filters && onChangeFilters);
+  // Panel offen oder Filter aktiv: Chips sichtbar. Bewusst NICHT am Blur aufgehängt – in Safari
+  // unmountet die Zeile sonst beim Mousedown, bevor der Klick auf einen Chip ankommt (#303).
+  const showFilterRow = canEditFilters && (open || activeSearchFilters > 0);
+  const valuesOnlyFilters =
+    (filters?.gradeBand.length ?? 0) > 0 || (filters != null && filters.period !== 'week');
 
   useEffect(() => {
     onOpenChange?.(open);
@@ -82,8 +104,44 @@ export function MapSearch({
     inputRef.current?.focus();
   }
 
+  function selectionIfAvailable() {
+    if (!filters || !onChangeFilters) return null;
+    return (next: Partial<MapFilters>) => onChangeFilters({ ...filters, ...next });
+  }
+
+  function toggleForm(form: (typeof SCHOOL_FORMS)[number]) {
+    const update = selectionIfAvailable();
+    if (!update || !filters) return;
+    update({
+      schoolForm: filters.schoolForm.includes(form)
+        ? filters.schoolForm.filter((value) => value !== form)
+        : [...filters.schoolForm, form],
+    });
+  }
+
+  /** Setzt nur die Schulform zurück; der Verzeichnis-Schalter bleibt, wie er ist. */
+  function resetSchoolForms() {
+    selectionIfAvailable()?.({ schoolForm: [] });
+  }
+
+  /** Empty-State: alle Suchfilter zurücksetzen, damit wieder Treffer erscheinen. */
+  function resetSearchFilters() {
+    selectionIfAvailable()?.({ schoolForm: [], directory: true });
+  }
+
   return (
-    <div ref={rootRef} className="relative w-full max-w-sm" role="search">
+    <div
+      ref={rootRef}
+      className="relative w-full max-w-sm"
+      role="search"
+      onKeyDown={(event) => {
+        // Escape wirkt auch, wenn der Fokus auf einem Filterchip statt im Suchfeld liegt.
+        if (event.key === 'Escape') {
+          setOpen(false);
+          (document.activeElement as HTMLElement | null)?.blur();
+        }
+      }}
+    >
       <label className="relative block">
         <Search
           aria-hidden
@@ -99,14 +157,10 @@ export function MapSearch({
             if (event.target.value.trim().length >= MIN_SEARCH_LENGTH) onRequestDirectory?.();
           }}
           onFocus={() => {
-            if (query.trim()) setOpen(true);
+            setOpen(true);
             onRequestDirectory?.();
           }}
           onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              setOpen(false);
-              inputRef.current?.blur();
-            }
             if (event.key === 'Enter' && results[0]) {
               event.preventDefault();
               choose(results[0]);
@@ -116,7 +170,7 @@ export function MapSearch({
           aria-label="Schule oder Stadt suchen"
           aria-controls={showResults ? listId : undefined}
           aria-expanded={showResults}
-          className="min-h-10 w-full rounded-xl bg-subtle py-2 pr-9 pl-9 text-sm text-fg ring-1 ring-border outline-none placeholder:text-muted focus:ring-2 focus:ring-accent"
+          className="min-h-10 w-full rounded-xl bg-subtle py-2 pr-9 pl-9 text-sm text-fg ring-1 ring-border outline-none placeholder:text-muted focus:ring-2 focus:ring-accent [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
           <button
@@ -130,6 +184,67 @@ export function MapSearch({
         )}
       </label>
 
+      {showFilterRow && (
+        <div className="mt-2 space-y-2 border-t border-border pt-2">
+          <div className="flex items-center justify-between gap-2 px-1">
+            <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">Schulform</span>
+            {(filters?.schoolForm.length ?? 0) > 0 && (
+              <button
+                type="button"
+                onClick={resetSchoolForms}
+                className="text-[11px] font-medium text-accent hover:underline"
+              >
+                Zurücksetzen
+              </button>
+            )}
+          </div>
+          <div
+            role="group"
+            aria-label="Treffer nach Schulform filtern"
+            className="-mx-0.5 flex gap-1.5 overflow-x-auto px-0.5 pb-0.5"
+          >
+            {SCHOOL_FORMS.map((form) => {
+              const selected = filters?.schoolForm.includes(form) ?? false;
+              return (
+                <button
+                  key={form}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => toggleForm(form)}
+                  className={cn(
+                    'min-h-9 shrink-0 rounded-full border px-2.5 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
+                    selected
+                      ? 'border-primary bg-primary text-primary-fg'
+                      : 'border-border bg-card text-fg hover:border-muted/40 hover:bg-subtle',
+                  )}
+                >
+                  {SCHOOL_FORM_LABELS[form]}
+                </button>
+              );
+            })}
+          </div>
+          <label className="flex min-h-10 cursor-pointer items-center justify-between gap-3 px-1 text-xs">
+            <span>
+              Auch Verzeichnis-Standorte
+              <span className="block text-[11px] text-muted">Schulen ohne Stimmungswerte</span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              aria-label="Auch Verzeichnis-Standorte anzeigen"
+              checked={filters?.directory ?? true}
+              onChange={(event) => selectionIfAvailable()?.({ directory: event.target.checked })}
+              className="size-4 shrink-0 accent-primary"
+            />
+          </label>
+          {valuesOnlyFilters && (
+            <p className="px-1 text-[11px] text-muted">
+              Stufe und Zeitraum wirken auf die Kartenwerte, nicht auf die Suche.
+            </p>
+          )}
+        </div>
+      )}
+
       {tooShort && <p className="mt-1 text-[11px] text-muted">Bitte mindestens 2 Zeichen eingeben.</p>}
 
       {showResults && (
@@ -138,9 +253,22 @@ export function MapSearch({
           className="absolute top-full left-0 z-50 mt-2 max-h-[min(24rem,60dvh)] w-[min(24rem,calc(100vw-2.5rem))] overflow-y-auto rounded-2xl bg-card p-2 shadow-xl ring-1 ring-border"
         >
           {results.length === 0 ? (
-            <p className="px-2 py-3 text-sm text-muted">
-              Keine Treffer für „{query.trim()}“. Versuch es mit Schulname, Stadt oder Schulnummer.
-            </p>
+            <div className="px-2 py-3 text-sm text-muted">
+              <p>
+                {activeSearchFilters > 0
+                  ? `Keine Treffer für „${query.trim()}“ mit den aktiven Filtern.`
+                  : `Keine Treffer für „${query.trim()}“. Versuch es mit Schulname, Stadt oder Schulnummer.`}
+              </p>
+              {activeSearchFilters > 0 && onChangeFilters && (
+                <button
+                  type="button"
+                  onClick={resetSearchFilters}
+                  className="mt-2 font-medium text-accent hover:underline"
+                >
+                  Filter zurücksetzen
+                </button>
+              )}
+            </div>
           ) : (
             <div className="space-y-2">
               {GROUP_ORDER.map((kind) => {
