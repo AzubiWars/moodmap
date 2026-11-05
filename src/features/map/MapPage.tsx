@@ -277,11 +277,14 @@ export function MapPage() {
   const filters = parseFilters(searchParams);
   // Release-Ansicht (#295): nur Stimmung, Thema und Suche. Modi, Live, Filter und Kartenextras
   // erscheinen mit `?erweitert=1` – oder automatisch, sobald einer davon per URL aktiv ist.
+  // Schulform/Standorte werden seit #303 direkt in der Suche gesetzt und halten die Release-Ansicht
+  // deshalb schlank; nur Wertfilter (Zeitraum, Stufe) erweitern die Werkzeugleiste.
+  const valueFiltersActive = filters.gradeBand.length > 0 || filters.period !== 'week';
   const advanced =
     searchParams.get('erweitert') === '1' ||
     !RELEASE_MODES.includes(mode) ||
     live ||
-    activeFilterCount(filters) > 0 ||
+    valueFiltersActive ||
     searchParams.has('wave');
   // Das 1,1-MB-Verzeichnis erst laden, wenn es gebraucht wird: Suche oder graue Standorte einer Stadt.
   const [directoryRequested, setDirectoryRequested] = useState(false);
@@ -603,6 +606,8 @@ export function MapPage() {
             <MapSearch
               schools={schoolsQuery.data}
               directorySchools={directoryQuery.data}
+              filters={filters}
+              onChangeFilters={setFilters}
               onRequestDirectory={() => setDirectoryRequested(true)}
               onOpenChange={setSearchOpen}
               kreise={kreiseQuery.data}
