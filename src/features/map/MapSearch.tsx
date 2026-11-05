@@ -51,7 +51,6 @@ export function MapSearch({
 }: MapSearchProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
-  const [focused, setFocused] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listId = useId();
@@ -70,8 +69,10 @@ export function MapSearch({
   const tooShort = query.trim().length > 0 && query.trim().length < MIN_SEARCH_LENGTH;
   const showResults = open && query.trim().length >= MIN_SEARCH_LENGTH;
   const activeSearchFilters = (filters?.schoolForm.length ?? 0) + (filters && !filters.directory ? 1 : 0);
-  // Filterchips nur zeigen, solange die Suche benutzt wird – oder wenn ein Filter aktiv ist.
-  const showFilterRow = focused || activeSearchFilters > 0;
+  const canEditFilters = Boolean(filters && onChangeFilters);
+  // Panel offen oder Filter aktiv: Chips sichtbar. Bewusst NICHT am Blur aufgehängt – in Safari
+  // unmountet die Zeile sonst beim Mousedown, bevor der Klick auf einen Chip ankommt (#303).
+  const showFilterRow = canEditFilters && (open || activeSearchFilters > 0);
   const valuesOnlyFilters =
     (filters?.gradeBand.length ?? 0) > 0 || (filters != null && filters.period !== 'week');
 
@@ -118,6 +119,12 @@ export function MapSearch({
     });
   }
 
+  /** Setzt nur die Schulform zurück; der Verzeichnis-Schalter bleibt, wie er ist. */
+  function resetSchoolForms() {
+    selectionIfAvailable()?.({ schoolForm: [] });
+  }
+
+  /** Empty-State: alle Suchfilter zurücksetzen, damit wieder Treffer erscheinen. */
   function resetSearchFilters() {
     selectionIfAvailable()?.({ schoolForm: [], directory: true });
   }
@@ -127,9 +134,12 @@ export function MapSearch({
       ref={rootRef}
       className="relative w-full max-w-sm"
       role="search"
-      onFocus={() => setFocused(true)}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocused(false);
+      onKeyDown={(event) => {
+        // Escape wirkt auch, wenn der Fokus auf einem Filterchip statt im Suchfeld liegt.
+        if (event.key === 'Escape') {
+          setOpen(false);
+          (document.activeElement as HTMLElement | null)?.blur();
+        }
       }}
     >
       <label className="relative block">
@@ -147,14 +157,10 @@ export function MapSearch({
             if (event.target.value.trim().length >= MIN_SEARCH_LENGTH) onRequestDirectory?.();
           }}
           onFocus={() => {
-            if (query.trim()) setOpen(true);
+            setOpen(true);
             onRequestDirectory?.();
           }}
           onKeyDown={(event) => {
-            if (event.key === 'Escape') {
-              setOpen(false);
-              inputRef.current?.blur();
-            }
             if (event.key === 'Enter' && results[0]) {
               event.preventDefault();
               choose(results[0]);
@@ -182,10 +188,10 @@ export function MapSearch({
         <div className="mt-2 space-y-2 border-t border-border pt-2">
           <div className="flex items-center justify-between gap-2 px-1">
             <span className="text-[11px] font-semibold tracking-wide text-muted uppercase">Schulform</span>
-            {activeSearchFilters > 0 && onChangeFilters && (
+            {(filters?.schoolForm.length ?? 0) > 0 && (
               <button
                 type="button"
-                onClick={resetSearchFilters}
+                onClick={resetSchoolForms}
                 className="text-[11px] font-medium text-accent hover:underline"
               >
                 Zurücksetzen
@@ -204,10 +210,9 @@ export function MapSearch({
                   key={form}
                   type="button"
                   aria-pressed={selected}
-                  disabled={!onChangeFilters}
                   onClick={() => toggleForm(form)}
                   className={cn(
-                    'min-h-8 shrink-0 rounded-full border px-2.5 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
+                    'min-h-9 shrink-0 rounded-full border px-2.5 text-xs transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none',
                     selected
                       ? 'border-primary bg-primary text-primary-fg'
                       : 'border-border bg-card text-fg hover:border-muted/40 hover:bg-subtle',
@@ -218,13 +223,16 @@ export function MapSearch({
               );
             })}
           </div>
-          <label className="flex min-h-9 cursor-pointer items-center justify-between gap-3 px-1 text-xs">
-            <span>Auch Schulen ohne Stimmungsdaten</span>
+          <label className="flex min-h-10 cursor-pointer items-center justify-between gap-3 px-1 text-xs">
+            <span>
+              Auch Verzeichnis-Standorte
+              <span className="block text-[11px] text-muted">Schulen ohne Stimmungswerte</span>
+            </span>
             <input
               type="checkbox"
               role="switch"
+              aria-label="Auch Verzeichnis-Standorte anzeigen"
               checked={filters?.directory ?? true}
-              disabled={!onChangeFilters}
               onChange={(event) => selectionIfAvailable()?.({ directory: event.target.checked })}
               className="size-4 shrink-0 accent-primary"
             />
