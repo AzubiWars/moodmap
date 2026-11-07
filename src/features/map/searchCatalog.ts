@@ -1,4 +1,4 @@
-import type { School } from '@/types';
+import type { School, SchoolForm } from '@/types';
 import { kreisLabel, regbezLabel } from './drilldown';
 import type { RegionCollection, RegionFeature } from './geo';
 import { SCHOOL_FORM_LABELS } from './schools';
@@ -21,11 +21,24 @@ export interface MapSearchResult {
   city?: string;
 }
 
+/** Kartenfilter, die auch für die Trefferliste gelten (#303). */
+export interface MapSearchFilters {
+  /** Leer oder fehlend = alle Schulformen. */
+  schoolForm?: readonly SchoolForm[];
+  /** `false` blendet Schulen aus dem Verzeichnis ohne Stimmungswerte aus. */
+  directory?: boolean;
+}
+
 export interface MapSearchInput {
   schools?: readonly School[];
   directorySchools?: readonly School[];
   kreise?: RegionCollection;
   regbez?: RegionCollection;
+  filters?: MapSearchFilters;
+}
+
+function matchesSchoolForm(school: School, forms: readonly SchoolForm[] | undefined): boolean {
+  return !forms || forms.length === 0 || forms.includes(school.schoolForm);
 }
 
 export const MIN_SEARCH_LENGTH = 2;
@@ -77,9 +90,11 @@ export function searchMap(query: string, input: MapSearchInput, limit = 12): Map
   const queryWords = words(query);
   const results: MapSearchResult[] = [];
   const liveSchoolIds = new Set((input.schools ?? []).map((school) => school.id));
+  const formFilter = input.filters?.schoolForm;
 
   // 1. Schulen: Name, Stadt, Schulnummer und Schulform.
-  const schoolResults = (input.schools ?? [])
+  const liveSchools = (input.schools ?? []).filter((school) => matchesSchoolForm(school, formFilter));
+  const schoolResults = liveSchools
     .filter((school) =>
       matches(
         `${school.name} ${school.city} ${school.id} ${SCHOOL_FORM_LABELS[school.schoolForm]}`,
@@ -98,9 +113,11 @@ export function searchMap(query: string, input: MapSearchInput, limit = 12): Map
   results.push(...schoolResults);
 
   // 1b. Offizielles NRW-Schulverzeichnis: alle 5.327 Standorte durchsuchbar.
-  const directoryResults = (input.directorySchools ?? [])
+  // „Schulen ohne Daten anzeigen“ aus (#303): Verzeichnis-Treffer ganz ausblenden.
+  const directoryResults = (input.filters?.directory === false ? [] : (input.directorySchools ?? []))
     // Live-Schulen stehen bereits oben; keine doppelten Suchtreffer.
     .filter((school) => !liveSchoolIds.has(school.id))
+    .filter((school) => matchesSchoolForm(school, formFilter))
     .filter((school) =>
       matches(
         `${school.name} ${school.city} ${school.id} ${SCHOOL_FORM_LABELS[school.schoolForm]}`,
@@ -126,7 +143,8 @@ export function searchMap(query: string, input: MapSearchInput, limit = 12): Map
       .map((feature) => normalizeSearch(feature.properties.name)),
   );
   const cities = new Map<string, number>();
-  for (const school of input.schools ?? []) {
+  // Bei aktivem Schulform-Filter zählen die Städte nur passende Schulen (#303).
+  for (const school of liveSchools) {
     if (!school.city || independentCities.has(normalizeSearch(school.city))) continue;
     cities.set(school.city, (cities.get(school.city) ?? 0) + 1);
   }
