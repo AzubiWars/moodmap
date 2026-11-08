@@ -590,17 +590,29 @@ export function MoodMap({
         </>
       )}
       {/* Über allen Basemap-Layern (auch Labels), unter NRW-Flächen und Markern */}
-      <Source id="germany-mask" type="geojson" data={GERMANY_MASK_URL}>
-        <Layer
-          id="germany-mask-fill"
-          type="fill"
-          paint={{ 'fill-color': maskColor, 'fill-opacity': MASK_FILL_OPACITY }}
-        />
-      </Source>
-      <Source id="germany-outline" type="geojson" data={GERMANY_OUTLINE_URL}>
-        <Layer id="germany-mask-edge" type="line" paint={{ 'line-color': maskColor, ...MASK_EDGE_PAINT }} />
-        <Layer id="germany-outline-line" type="line" paint={{ 'line-color': '#94a3b8', 'line-width': 1 }} />
-      </Source>
+      {styleReady && (
+        <>
+          <Source id="germany-mask" type="geojson" data={GERMANY_MASK_URL}>
+            <Layer
+              id="germany-mask-fill"
+              type="fill"
+              paint={{ 'fill-color': maskColor, 'fill-opacity': MASK_FILL_OPACITY }}
+            />
+          </Source>
+          <Source id="germany-outline" type="geojson" data={GERMANY_OUTLINE_URL}>
+            <Layer
+              id="germany-mask-edge"
+              type="line"
+              paint={{ 'line-color': maskColor, ...MASK_EDGE_PAINT }}
+            />
+            <Layer
+              id="germany-outline-line"
+              type="line"
+              paint={{ 'line-color': '#94a3b8', 'line-width': 1 }}
+            />
+          </Source>
+        </>
+      )}
       {styleReady && regions && (
         <Source id="regions" type="geojson" data={regions} promoteId="id">
           <Layer
@@ -629,7 +641,7 @@ export function MoodMap({
           />
         </Source>
       )}
-      {directorySchools && (
+      {styleReady && directorySchools && (
         <Source
           id={DIRECTORY_SOURCE_ID}
           type="geojson"
@@ -664,7 +676,7 @@ export function MoodMap({
           />
         </Source>
       )}
-      {schools && (
+      {styleReady && schools && (
         <Source
           // Cluster-Optionen lassen sich nicht live ändern → Source beim Umschalten neu anlegen
           key={clusterSchools ? 'clustered' : 'points'}
