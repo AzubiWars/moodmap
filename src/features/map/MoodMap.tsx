@@ -14,10 +14,10 @@ import { cn } from '@/lib/utils';
 import MapGL, { Layer, Marker, Popup, Source } from 'react-map-gl/maplibre';
 import type { MapLayerMouseEvent, MapRef } from 'react-map-gl/maplibre';
 import { MOOD_FILL_EXPRESSION, moodColorExpression, NO_DATA, scoreToLevel } from '@/lib/colors';
+import { maplibre } from '@/lib/maplibreSetup';
 import { useTheme } from '@/lib/theme';
 import { type Bounds, NRW_BOUNDS, type RegionProperties } from './geo';
 import { keepAttributionCollapsed } from './attribution';
-import { maplibre } from './maplibreSetup';
 import {
   formatRate,
   formatTrend,
