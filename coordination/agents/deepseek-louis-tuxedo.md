@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #258 (PR #276), #249 (PR #277), #278 (PR #279) – alle in Review. Epic #264 (Datenimport) mit Untersissues #265–#274 angelegt.
-- **Status:** Lokales Repo aufgeräumt (87 Commits nachgezogen, 10 alte Branches gelöscht, `npm ci` + 573 Tests grün). Datenimport-Architektur als Epic + 10 Untersissues dokumentiert. P0-Bug #278 gefunden und gefixt: Die Mock-Demo-Welle endete fest mit `2026-W43`; seit dem 26.10. brach der Mood-Check ab. Lokal 580 Tests + E2E grün, PR #279 CI/E2E grün.
-- **Nächster Schritt:** Review/Merge von #276/#277/#279; danach #276/#277 auf den P0-Fix rebasen. Dann #267 (Datenquellen-Modell) und #268 (Import-CLI) starten, sobald gewünscht.
-- **Blockiert durch / brauche:** LGTM/Merge für die drei PRs (kein anderer Agent aktiv); echte Beispieldaten + Datenwörterbuch in #269.
-- **Zuletzt aktualisiert:** 2026-10-27 12:00
+- **Arbeite an:** #299 (PR #305) – Review; sonst keine offenen Agenten-Tickets.
+- **Status:** Meine PRs #276/#277/#279/#280 wurden über #284 integriert. Das Datenimport-Epic #264 ist über #291 umgesetzt; alle Untersissues außer #269 (Menschen) sind geschlossen. #299 (MapLibre-Buffer-Race beim Theme-Wechsel) gefixt: alle Custom-Quellen hinter `styleReady`, MapLibre 6.15 → 6.17 (Lockfile); 2×20 Single-Worker-E2E-Läufe grün, 687 Tests/Build grün.
+- **Nächster Schritt:** Nach Merge von #305 ist mein Board leer. Sobald die echten Daten vorliegen (#269), den ersten Import mit `npm run data:import -- --dry-run` begleiten.
+- **Blockiert durch / brauche:** Review/Merge #305; echte Beispieldaten + Datenwörterbuch in #269.
+- **Zuletzt aktualisiert:** 2026-11-08 15:35
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-11-08 15:35** – Nach Server-Neustart und 12 Tagen: Lokales Repo auf `bbaed08` synchronisiert und vier veraltete Branches entfernt. Meine Oktober-PRs (#276/#277/#279/#280) wurden über #284 integriert; das Datenimport-Epic #264 ist über #291 umgesetzt (alle Untersissues außer #269 geschlossen). Neues P1-Ticket #299 übernommen: MapLibre-Buffer-Race beim Theme-Wechsel. Reproduziert mit 4/20 Single-Worker-Läufen (`Length of new data is … current length of 0`); Ursache: `schools`/`directorySchools`/`germany-*` wurden während des Style-Aufbaus gemountet. Fix in PR #305: alle Custom-Quellen hinter `styleReady`, MapLibre 6.15 → 6.17 (nur Lockfile). 2×20 Läufe grün, 687 Tests/Build grün. Epic #264 auf `status:blocked` gesetzt, offen nur #269.
 - **2026-10-27 12:00** – Session „Projektüberblick + lokales Aufräumen“: `main` von `3bb3822` auf `db6505a` gebracht (87 Commits), veralteten Freitext-Zwischenstand (Backup unter `/tmp/opencode/moodmap-local-backup-20261027/`) und 10 gemergte lokale Branches entfernt. Datenimport als Epic #264 + #265–#274 angelegt (kanonisches Modell, Import-Adapter, Datenquellen, PRIVACY §9, menschliche Datenanfrage #269). #258/ADR-017 (PR #276) und #249/statische Schuldatei (PR #277) umgesetzt. Beim Testen P0-Bug #278 entdeckt: Mock-Seed endete fix mit W43, dadurch war der Mood-Check ab 26.10. komplett kaputt und der E2E-Smoke rot. Fix in PR #279 (dynamische aktuelle ISO-Woche + Fallback auf letzte Welle); E2E lokal wieder grün. Unabhängiges Infra-Ticket #275 für den Playwright-Installations-Timeout angelegt.
 
 - **2026-10-21 13:55** – Lead-Vertretung fortgesetzt: #194 (Pitch-Aggregat + Freitext-Cluster im DataSource, Mock-PITCH), #191 (Mobile-Attribution), #192 (Lasttest-Runner), #182 (App-Icon Variante B), #195 (Publishable-Key nicht als Bearer, Edge-Deploy mit `--no-verify-jwt`) gemergt. #187 als durch #177 erledigt geschlossen; #188 als UX-Follow-up angelegt. Hosted-Smoke: Pitch-Aggregat/Teilnahme/Reset-Isolation geprüft, Testdaten entfernt. Offen: Function-Deployments/Secrets (#118), Vercel-Limit (#139), #116/#117, #185/#197.
