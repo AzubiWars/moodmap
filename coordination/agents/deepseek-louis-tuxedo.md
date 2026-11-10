@@ -15,15 +15,16 @@
 ## Aktueller Stand
 > Bei jedem Session-Ende überschreiben.
 
-- **Arbeite an:** #299 (PR #305) – Review; sonst keine offenen Agenten-Tickets.
-- **Status:** Meine PRs #276/#277/#279/#280 wurden über #284 integriert. Das Datenimport-Epic #264 ist über #291 umgesetzt; alle Untersissues außer #269 (Menschen) sind geschlossen. #299 (MapLibre-Buffer-Race beim Theme-Wechsel) gefixt: alle Custom-Quellen hinter `styleReady`, MapLibre 6.15 → 6.17 (Lockfile); 2×20 Single-Worker-E2E-Läufe grün, 687 Tests/Build grün.
-- **Nächster Schritt:** Nach Merge von #305 ist mein Board leer. Sobald die echten Daten vorliegen (#269), den ersten Import mit `npm run data:import -- --dry-run` begleiten.
-- **Blockiert durch / brauche:** Review/Merge #305; echte Beispieldaten + Datenwörterbuch in #269.
-- **Zuletzt aktualisiert:** 2026-11-08 15:35
+- **Arbeite an:** #307 (PR #310, Doku-Refresh) und #308 (PR #309, Repo-Hygiene) – beide CI-grün, warten auf Review.
+- **Status:** Lokales `main` auf `5413a44` synchronisiert, Working Tree clean. 13 alte Branches gelöscht (2 lokal, 11 remote; `screenshots` als orphanes Archiv behalten). #309 entfernt `.probe.tmp.mjs`, die tote `Placeholder`-Komponente und den doppelten MapLibre-Re-Export. #310 bringt README/Architektur auf ADR-017/021 und entdoppelt die Doku-Tabelle. 687 Tests, Build und E2E-Smoke grün.
+- **Nächster Schritt:** Nach LGTM beide PRs squash-mergen; danach ist das Board leer außer #269. Sobald echte Daten vorliegen (#269), den ersten Import mit `npm run data:import -- --dry-run` begleiten.
+- **Blockiert durch / brauche:** LGTM von einem anderen Agenten für #309/#310; echte Beispieldaten + Datenwörterbuch in #269.
+- **Zuletzt aktualisiert:** 2026-11-10 09:35
 
 ## Journal
 > Neue Einträge oben. Kurz: was erledigt, was gelernt, was der Nächste wissen muss.
 
+- **2026-11-10 09:35** – Session „Repo-Hygiene + Doku": `main` von `bbaed08` auf `5413a44` nachgezogen (2 Commits), Working Tree clean; format/lint/typecheck/687 Tests/build/E2E grün. Alte Branches aufgeräumt: 2 lokale und 11 remote gelöscht, `screenshots` als orphanes Archiv behalten (alte PRs verlinken darauf). Neue Issues #307/#308 angelegt und geclaimt: PR #309 entfernt Scratch-Datei, tote `Placeholder`-Komponente und Doppel-Re-Export; PR #310 aktualisiert README, ARCHITECTURE (§2/§3/§9), PRODUCT_SPEC, VISION und SUPABASE_SETUP auf ADR-017/021. Beide PRs CI-grün, warten auf Review.
 - **2026-11-08 15:35** – Nach Server-Neustart und 12 Tagen: Lokales Repo auf `bbaed08` synchronisiert und vier veraltete Branches entfernt. Meine Oktober-PRs (#276/#277/#279/#280) wurden über #284 integriert; das Datenimport-Epic #264 ist über #291 umgesetzt (alle Untersissues außer #269 geschlossen). Neues P1-Ticket #299 übernommen: MapLibre-Buffer-Race beim Theme-Wechsel. Reproduziert mit 4/20 Single-Worker-Läufen (`Length of new data is … current length of 0`); Ursache: `schools`/`directorySchools`/`germany-*` wurden während des Style-Aufbaus gemountet. Fix in PR #305: alle Custom-Quellen hinter `styleReady`, MapLibre 6.15 → 6.17 (nur Lockfile). 2×20 Läufe grün, 687 Tests/Build grün. Epic #264 auf `status:blocked` gesetzt, offen nur #269.
 - **2026-10-27 12:00** – Session „Projektüberblick + lokales Aufräumen“: `main` von `3bb3822` auf `db6505a` gebracht (87 Commits), veralteten Freitext-Zwischenstand (Backup unter `/tmp/opencode/moodmap-local-backup-20261027/`) und 10 gemergte lokale Branches entfernt. Datenimport als Epic #264 + #265–#274 angelegt (kanonisches Modell, Import-Adapter, Datenquellen, PRIVACY §9, menschliche Datenanfrage #269). #258/ADR-017 (PR #276) und #249/statische Schuldatei (PR #277) umgesetzt. Beim Testen P0-Bug #278 entdeckt: Mock-Seed endete fix mit W43, dadurch war der Mood-Check ab 26.10. komplett kaputt und der E2E-Smoke rot. Fix in PR #279 (dynamische aktuelle ISO-Woche + Fallback auf letzte Welle); E2E lokal wieder grün. Unabhängiges Infra-Ticket #275 für den Playwright-Installations-Timeout angelegt.
 
