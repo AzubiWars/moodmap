@@ -54,9 +54,11 @@ moodmap/
     ├── features/
     │   ├── survey/          # Onboarding, Mood-Check, Danke-Screen
     │   ├── map/             # Moodmap, Layer, Legende, Detail-Panel
-    │   ├── dashboard/       # Ministeriums-Dashboard, KI-Lagebericht
-    │   ├── school/          # Schul-Dashboard (P2)
-    │   └── demo/            # Demo-Steuerung
+    │   ├── dashboard/       # Ministeriums- und Schul-Dashboard, KI-Lagebericht
+    │   ├── actions/         # Maßnahmenkatalog mit Studienbelegen
+    │   ├── dialog/          # „Politik antwortet"
+    │   ├── info/            # Landing, Methodik, Quellen, Datenschutz
+    │   └── demo/            # Demo-Steuerung, Pitch-Beamer
     ├── components/ui/       # shadcn-Komponenten
     ├── components/          # geteilte Komponenten (MoodBadge, WeatherIcon, …)
     ├── data/
@@ -80,7 +82,9 @@ moodmap/
 Alle UI-Teile sprechen **nur** mit diesem Interface. So funktionieren Mock und Supabase austauschbar, und Agenten können parallel an UI und Backend arbeiten.
 
 ```ts
-// src/data/api.ts
+// src/data/api.ts (vollständige Signaturen: dort und in src/types/)
+export type DataSourceMode = 'mock' | 'supabase';
+
 export interface DataSource {
   // Stammdaten
   getSchools(): Promise<School[]>;
@@ -89,13 +93,18 @@ export interface DataSource {
 
   // Umfrage
   getCurrentWave(): Promise<Wave>;
-  submitResponse(input: ResponseInput): Promise<{ ok: true } | { ok: false; reason: 'already_submitted' | 'error' }>;
-  deleteOwnResponse(input: { waveId: string; deviceToken: string }): Promise<{ ok: true } | { ok: false; reason: 'not_found' | 'error' }>; // #161
+  submitResponse(input: ResponseInput): Promise<SubmitResult>;
+  deleteOwnResponse(input: OwnResponseInput): Promise<DeleteResult>; // #161
+
+  // Datenquellen (ADR-018)
+  getDataSources(): Promise<DataSourceInfo[]>;
 
   // Aggregate (immer bereits k-anonymisiert!)
   getAggregates(query: AggregateQuery): Promise<AggregateRow[]>;
   getTrend(query: TrendQuery): Promise<TrendPoint[]>;
   getChoiceDistribution(questionId: string, scope: Scope): Promise<Distribution | null>;
+  countActiveSchools(query: { sourceId?: string }): Promise<number>; // #252
+  getLiveCounts(query: { sourceId?: string; knownVersion?: string }): Promise<LiveCounts>; // #253
 
   // Frühwarn-Radar
   getTensionIndex(query: AggregateQuery): Promise<TensionRow[]>;
@@ -106,7 +115,7 @@ export interface DataSource {
   resetPitchTest(pin: string): Promise<{ ok: boolean }>;
 
   // „Politik antwortet"
-  getPolicyAnswers(filter: { regionIds?: string[]; topics?: string[] }): Promise<PolicyAnswer[]>;
+  getPolicyAnswers(filter: PolicyAnswerFilter): Promise<PolicyAnswer[]>;
   publishPolicyAnswer(input: PolicyAnswerInput): Promise<PolicyAnswer>;
   ratePolicyAnswer(answerId: string, value: 1 | 2 | 3 | 4 | 5): Promise<{ ok: boolean }>;
 
@@ -114,51 +123,33 @@ export interface DataSource {
   subscribeToNewResponses(cb: (e: { schoolId: string }) => void): () => void;
 }
 
-export interface PolicyAnswer {
-  id: string;
-  topic: string;                   // Topic-Slug
-  scope: 'nrw' | 'regbez' | 'kreis';
-  regionId: string | null;         // null bei 'nrw'
-  title: string;
-  body: string;                    // max. ~400 Zeichen
-  status: 'listening' | 'reviewing' | 'planned' | 'done';
-  publishedAt: string;             // ISO-Datum
-  resonance: { n: number; score: number | null };      // Bewertung „Hilft dir das?", K_MIN gilt
-  topicDeltaSincePublished: number | null;              // Wirkung
-}
-
-export interface TensionRow {
-  id: string;                      // Region-/Schul-ID
-  index: number | null;            // 0–100, hoch = mehr Spannung; null wenn zu wenige Daten
-  level: 'stable' | 'watch' | 'talk' | null;
-  trend: number | null;            // Δ Index zur Vorperiode
-  drivers: string[];               // Themen-Slugs, die am stärksten beitragen
-}
-
 export interface AggregateQuery {
-  level: 'regbez' | 'kreis' | 'school';
-  topic: string | 'all';           // 'all' = Gesamt-Mood
+  level: 'nrw' | 'regbez' | 'kreis' | 'gemeinde' | 'school'; // ADR-021
+  topic: TopicSlug | 'all'; // 'all' = Gesamt-Mood
   schoolForm?: SchoolForm[];
   gradeBand?: GradeBand[];
-  role?: 'student' | 'teacher';
-  waveIds?: string[];              // Zeitraum
-  parentId?: string;               // z. B. nur Schulen eines Kreises
+  role?: Role;
+  waveIds?: WaveId[]; // Zeitraum
+  parentId?: string; // z. B. nur Schulen eines Kreises oder einer Gemeinde
+  sourceId?: string; // Datenquelle (ADR-018)
 }
 
 export interface AggregateRow {
-  id: string;                      // regbez-/kreis-ID oder Schulnummer
-  n: number;                       // Anzahl unterschiedlicher gewerteter Teilnahmen
-  score: number | null;            // 0–100, null wenn n < K_MIN
-  delta: number | null;            // Δ zur Vorperiode
-  topicScores?: Record<string, number | null>;
+  id: string; // RegBez-/Kreis-/Gemeinde-ID oder Schulnummer
+  n: number; // Anzahl unterschiedlicher Teilnahmen mit gewerteten Antworten
+  score: number | null; // 0–100, null wenn n < K_MIN
+  delta: number | null; // Δ zur Vorperiode
+  topicScores?: Record<TopicSlug, number | null>;
+  distribution?: MoodDistribution | null; // mood5 1–5, null unter K_MIN
+  liveN?: number | null; // echte Abgaben, fehlt unter K_MIN
 }
 ```
 
-Auswahl per Env: `VITE_DATA_MODE=mock | supabase` (Default: `mock`).
+Auswahl per Env: `VITE_DATA_MODE=mock | supabase`. Im Entwicklungsmodus ist `mock` der Default, in Production `supabase`; ein fehlender oder unbekannter Wert wird nie stillschweigend zu Demo-Daten (ADR-017).
 
-Die aktive Implementierung wird über `getDataSource()` in `src/data/index.ts` gewählt. Implementierungen registrieren sich per `registerDataSource('mock' | 'supabase', source)`; ist der gewünschte Modus nicht registriert, fällt die Factory auf `mock` zurück (ADR-003).
+Die aktive Implementierung wird über `getDataSource()` in `src/data/index.ts` gewählt. Implementierungen registrieren sich per `registerDataSource('mock' | 'supabase', source)`; ist der gewünschte Modus nicht registriert, wirft die Factory einen Fehler. `mock` ist kein Produktions-Fallback (ADR-017).
 
-Die Supabase-Implementierung (#23) ist bei gesetzter URL und öffentlichem Key registriert. `VITE_DATA_MODE=supabase` ist der Produktionsmodus; fehlt die Konfiguration, bricht die App mit einer klaren Fehlermeldung ab, statt auf Demo-Daten zurückzufallen. Nur der explizite Wert `mock` aktiviert den lokalen Demo-Modus. Netzwerk-/RPC-Fehler ersetzen Live-Daten nie durch Mock-Ergebnisse. `supabaseSource.ts` verwendet die REST-API ohne zusätzliche SDK-Dependency: paginierte Schulstammdaten ohne `join_code`, Themen und bestehende camelCase-RPCs. `joinCode` ist in der allgemeinen Schulliste leer und wird nur über `get_school_by_code` aufgelöst. Kleine Score-Zellen und Choice-Häufigkeiten werden zusätzlich im Client maskiert.
+Die Supabase-Implementierung (#23) ist bei gesetzter URL und öffentlichem Key registriert. `VITE_DATA_MODE=supabase` ist der Produktionsmodus; fehlt die Konfiguration, bricht die App mit einer klaren Fehlermeldung ab, statt auf Demo-Daten zurückzufallen. Nur der explizite Wert `mock` aktiviert den lokalen Demo-Modus. Netzwerk-/RPC-Fehler ersetzen Live-Daten nie durch Mock-Ergebnisse. `supabaseSource.ts` verwendet die REST-API ohne zusätzliche SDK-Dependency: zuerst das statische, verkleinerte Schulverzeichnis `public/data/schools.min.json`, bei Fehlern paginierte Schulstammdaten ohne `join_code`; dazu Themen und die bestehenden camelCase-RPCs. `joinCode` ist in der allgemeinen Schulliste leer und wird nur über `get_school_by_code` aufgelöst. Kleine Score-Zellen und Choice-Häufigkeiten werden zusätzlich im Client maskiert.
 
 Die Supabase-Quelle meldet erfolgreiche Abgaben lokal und über BroadcastChannel mit `{ schoolId }`. Sie abonniert keine Rohantworten. Geräteübergreifende Live-Karten nutzen das vorhandene Aggregat-Polling alle 2,5 s (#24); ein serverseitiger Push-Kanal ist damit nicht eingerichtet. `publishPolicyAnswer` benötigt ein echtes Supabase-Auth-JWT mit passender Rolle, das eine authentifizierte Integration an `createSupabaseSource({ accessToken })` übergeben kann. Der Rollen-Umschalter der Demo verleiht keine Serverrechte.
 
@@ -380,7 +371,7 @@ Die Supabase-CLI ist auf **`supabase@2.120.0`** gepinnt und läuft per `npx` (`n
 - Admin-SQL ohne `service_role`-Key: `npm run supabase -- db query --linked "<sql>"` (nach `link`).
 - Migrationen spielt nur ein, wer vom Lead/den Menschen dazu bestimmt ist, und nur **gemergte** Migrationen von `main`: `npm run supabase -- link --project-ref <ref>`, dann `npm run supabase -- db push --include-seed`. Das DB-Passwort steht in `SUPABASE_DB_PASSWORD` (nur `.env.local`).
 - Keys: URL + anon/publishable Key sind für das Frontend gedacht, werden aber trotzdem **nicht** committet oder in Issues gepostet (AGENTS.md §9). Die Menschen geben sie weiter und setzen sie in Vercel (ADR-004). Den `service_role`-Key bekommen nur Seed-Skripte (#23), nie das Frontend.
-- `VITE_DATA_MODE` bleibt in Vercel `mock`, bis die SupabaseDataSource (#23) gemergt ist.
+- `VITE_DATA_MODE` wird im Vercel-Dashboard gesetzt. Production läuft mit `supabase` und den nötigen Keys; ohne vollständige Konfiguration erscheint ein Fehler statt Demo-Daten (ADR-017). Previews und CI laufen ohne Supabase-Env im expliziten `mock`-Modus.
 
 ## 11. Geplante Schüler-Anmeldung (Vorschlag, #74)
 

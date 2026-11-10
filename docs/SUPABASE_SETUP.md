@@ -2,7 +2,7 @@
 
 ## App starten
 
-Der Standard `VITE_DATA_MODE=mock` läuft ohne Keys. Für gemeinsame Daten auf verschiedenen Geräten in einer lokalen `.env.local` bzw. in den Deployment-Einstellungen setzen:
+Der explizite Modus `VITE_DATA_MODE=mock` läuft ohne Keys (Standard im Dev-Server). Für gemeinsame Daten auf verschiedenen Geräten in einer lokalen `.env.local` bzw. in den Deployment-Einstellungen setzen:
 
 ```dotenv
 VITE_DATA_MODE=supabase
@@ -12,7 +12,7 @@ VITE_SUPABASE_ANON_KEY=<öffentlicher-anon-oder-publishable-Key>
 
 Danach den Dev-Server neu starten bzw. neu bauen. Die Datenquelle verwendet nur öffentliche Stammdaten und vorhandene RPCs; sie liest keine Rohantworten. Kein `service_role`-/Secret-Key gehört ins Frontend. Keys nicht in Git oder Issues posten. Für ein Supabase-Projekt zunächst alle gemergten Migrationen und den Stammdaten-Seed durch die zuständige Person einspielen (ARCHITECTURE §10).
 
-Bei fehlender Konfiguration bleibt der vereinbarte Mock-Fallback. Mit vollständiger Live-Konfiguration schlagen fehlerhafte Netzwerk-/RPC-Anfragen sichtbar fehl, statt synthetische Ergebnisse einzumischen. Der allgemeine Schulabruf ist paginiert und liefert keine Join-Codes; `/s/DEMO42` bzw. `/s/PITCH` lösen diese über den dedizierten RPC auf. Der Pitch-Code existiert erst nach der Pitch-Migration (#113).
+Fehlt die Live-Konfiguration, bricht die App mit einer klaren Fehlermeldung ab; es gibt keinen stillen Mock-Fallback (ADR-017). Netzwerk-/RPC-Fehler ersetzen Live-Daten nie durch synthetische Ergebnisse. Der Schulabruf nutzt zuerst das statische `public/data/schools.min.json` und fällt bei Bedarf auf die paginierte REST-API zurück; beide liefern keine Join-Codes. `/s/DEMO42` bzw. `/s/PITCH` lösen diese über den dedizierten RPC auf. Der Pitch-Code existiert erst nach der Pitch-Migration (#113).
 
 Die Live-Karte pollt Aggregate bei eingeschaltetem Live-Modus alle 2,5 s. Lokale Abgaben und andere Tabs lösen zusätzlich eine Aktualisierung aus. Ein Realtime-Abonnement auf `responses` wird wegen der gesperrten Rohdaten nicht eingerichtet. Politik-Antworten können nur mit einem echten Auth-JWT und serverseitig erlaubter Rolle veröffentlicht werden; der Demo-Rollenwechsel authentifiziert niemanden.
 

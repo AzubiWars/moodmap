@@ -15,7 +15,7 @@ Moodmap
 │   ├── Danke + "Deine Schule vs. NRW"
 │   └── Öffentliche Moodmap (eingeschränkt)
 ├── 🗺️ Moodmap (Kern der Demo)
-│   ├── NRW-Karte: Regierungsbezirke → Kreise → Schulen
+│   ├── NRW-Karte: Regierungsbezirke → Kreise → Städte/Gemeinden → Schulen
 │   ├── Themen-Filter + weitere Filter
 │   ├── Detail-Panel (Region/Schule)
 │   └── Zeitachse
@@ -98,7 +98,8 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
 |---|---|---|
 | Landesansicht | 5 Regierungsbezirke (Düsseldorf, Köln, Münster, Detmold, Arnsberg) | Choropleth (Flächen eingefärbt) |
 | Mittel | 53 Kreise & kreisfreie Städte | Choropleth |
-| Nah | Einzelne Schulen | Farbige Kreis-Marker (Größe ~ Anzahl Antworten), Clustering bei vielen Punkten |
+| Nah | Städte & Gemeinden innerhalb eines Kreises (ADR-021) | Choropleth; in kreisfreien Städten direkt die Schulen |
+| Schulebene | Einzelne Schulen ab Ebene Stadt/Gemeinde | Farbige Kreis-Marker (Größe ~ Anzahl Antworten), Clustering bei vielen Punkten |
 | Sehr nah (ab Zoom 15, max. 18) | Schulgelände & Umgebung | **3D-Gebäude** aus OpenFreeMap (`fill-extrusion`), Karte kippt automatisch auf 45°, Mood-Flächen treten zurück (#85) |
 
 - Klick auf Fläche → zoomt hinein + öffnet **Detail-Panel** (Bottom-Sheet auf Mobile, Sidebar auf Desktop).
@@ -112,11 +113,12 @@ Das ist für die Demo transparent und spart Auth-Aufwand. Echte Auth ist Ausblic
 | Filter | Werte | Prio |
 |---|---|---|
 | **Thema** | „Gesamt" (Ø aller Themen) oder ein einzelnes Thema | P0 |
+| Datenquelle | Live, Demo/Import oder eine ausgewählte Import-Befragung (ADR-018) | P1 |
 | Schulform | Grundschule, Hauptschule, Realschule, Sekundarschule, Gesamtschule, Gymnasium, Förderschule, Berufskolleg | P1 |
 | Schulstufe | 5–7, 8–10, Oberstufe, Berufskolleg | P1 |
 | Zeitraum / Welle | Aktuelle Woche, letzter Monat, Schuljahr | P1 |
 | Rolle | Schüler:innen / Lehrkräfte | P2 |
-| Kartenmodus | Stimmung · Trend (Δ zur Vorperiode) · Beteiligung | P1 |
+| Kartenmodus | Stimmung · Trend (Δ zur Vorperiode) · Beteiligung · Frühwarn-Radar · amtliche Daten (Ausfall, Sozialindex, Klassengröße) | P1 |
 
 - Filterzustand steckt in der **URL** (teilbare Links, z. B. `/map?topic=ki&form=gym`).
 
