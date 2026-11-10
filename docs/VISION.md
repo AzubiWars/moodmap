@@ -38,7 +38,7 @@ Eine **niedrigschwellige, spielerische Umfrage-App** + **ein Lagebild als intera
 
 - **Für Schüler:** 60-Sekunden-„Mood-Check" mit Emojis und Swipe-Karten, anonym, auf dem Handy, als PWA installierbar. Direkt danach sehen sie, wie ihre Schule und NRW insgesamt drauf sind („Give to get").
 - **Für Schulen (Schulleitung, SV):** Eigenes Stimmungsbild der Schule, Trends, Vergleich mit ähnlichen Schulen. Optional: „Ihr habt gesagt – wir haben getan"-Board, damit Schüler sehen, dass ihr Feedback wirkt.
-- **Für das Ministerium / die Politik:** Moodmap von NRW (Regierungsbezirk → Kreis → Schule), Filter nach Thema, Schulform, Jahrgang, Zeitraum; Hotspots & Trends; Frühwarn-Radar; automatischer KI-Lagebericht; Rückkanal „Politik antwortet".
+- **Für das Ministerium / die Politik:** Moodmap von NRW (Regierungsbezirk → Kreis → Stadt/Gemeinde → Schule), Filter nach Thema, Schulform, Jahrgang, Zeitraum; Hotspots & Trends; Frühwarn-Radar; automatischer KI-Lagebericht; Rückkanal „Politik antwortet".
 
 ## Zielgruppen & Rollen
 
