@@ -340,27 +340,28 @@ function SwipeControls({ onAnswer, onSkip }: { onAnswer: (value: CardAnswer) => 
 
   return (
     <div
-      className="space-y-4 touch-pan-y select-none"
+      className="space-y-4"
       role="group"
       aria-label="Swipe-Aussage: links trifft nicht zu, rechts trifft zu"
-      onPointerDown={(event) => {
-        start.current = event.clientX;
-        (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
-      }}
-      onPointerMove={(event) => {
-        if (start.current === null) return;
-        setDx(Math.max(-120, Math.min(120, event.clientX - start.current)));
-      }}
-      onPointerUp={end}
-      onPointerCancel={end}
     >
       <div className="flex items-center justify-between text-xs font-medium text-muted">
         <span>← Trifft nicht zu</span>
         <span>Trifft zu →</span>
       </div>
       <div
-        className="card bg-subtle p-6 text-center text-sm font-semibold shadow-none transition-transform"
+        className="card bg-subtle touch-pan-y p-6 text-center text-sm font-semibold shadow-none select-none transition-transform"
         style={{ transform: `translateX(${dx}px) rotate(${dx / 20}deg)` }}
+        onPointerDown={(event) => {
+          if ((event.target as HTMLElement).closest('button, a, input, textarea, select')) return;
+          start.current = event.clientX;
+          (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (start.current === null) return;
+          setDx(Math.max(-120, Math.min(120, event.clientX - start.current)));
+        }}
+        onPointerUp={end}
+        onPointerCancel={end}
       >
         {dx < -20 ? 'Trifft nicht zu' : dx > 20 ? 'Trifft zu' : 'Wische nach links oder rechts'}
       </div>
